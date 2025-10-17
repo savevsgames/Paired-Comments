@@ -73,6 +73,12 @@
     },
     "commands": [
       {
+        "command": "pairedComments.showMenu",
+        "title": "Paired Comments: Show Menu",
+        "category": "Paired Comments",
+        "icon": "$(menu)"
+      },
+      {
         "command": "pairedComments.open",
         "title": "Paired Comments: Open",
         "category": "Paired Comments",
@@ -140,6 +146,12 @@
       }
     ],
     "keybindings": [
+      {
+        "command": "pairedComments.showMenu",
+        "key": "ctrl+alt+p ctrl+alt+p",
+        "mac": "cmd+alt+p cmd+alt+p",
+        "when": "editorTextFocus"
+      },
       {
         "command": "pairedComments.open",
         "key": "ctrl+alt+p o",

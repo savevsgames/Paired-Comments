@@ -7,7 +7,43 @@ import * as vscode from 'vscode';
 /**
  * Comment tags for categorization
  */
-export type CommentTag = 'TODO' | 'FIXME' | 'NOTE' | 'QUESTION' | 'HACK' | 'WARNING' | null;
+export type CommentTag = 'TODO' | 'FIXME' | 'NOTE' | 'QUESTION' | 'HACK' | 'WARNING' | 'STAR' | null;
+
+/**
+ * Comment status for lifecycle tracking
+ */
+export type CommentStatus = 'open' | 'resolved' | 'wontfix';
+
+/**
+ * Supported comment syntaxes by language
+ */
+export interface CommentSyntax {
+  /** Single-line comment syntax (e.g., '//', '#', '--') */
+  singleLine?: string[];
+  /** Block comment syntax tuple: [start, end] (e.g., C-style or HTML-style) */
+  block?: [string, string];
+}
+
+/**
+ * Rich content types for comments
+ */
+export type CommentContentType = 'text' | 'markdown' | 'code' | 'link' | 'image';
+
+/**
+ * Reply to a comment (for threaded conversations)
+ */
+export interface CommentReply {
+  /** Unique identifier */
+  id: string;
+  /** Reply text */
+  text: string;
+  /** Author of the reply */
+  author: string;
+  /** ISO 8601 timestamp */
+  created: string;
+  /** Content type */
+  contentType?: CommentContentType;
+}
 
 /**
  * Represents a single comment in a comment file
@@ -16,11 +52,26 @@ export interface Comment {
   /** Unique identifier (UUID v4) */
   id: string;
 
-  /** Line number in the source file (1-indexed) */
+  /** Line number in the source file (1-indexed) - DEPRECATED: use startLine/endLine */
   line: number;
+
+  /** Start line for range comments (1-indexed) */
+  startLine?: number;
+
+  /** End line for range comments (1-indexed) */
+  endLine?: number;
+
+  /** Content anchor: hash of the line(s) for drift detection */
+  lineHash?: string;
+
+  /** Content anchor: actual text of the line for verification */
+  lineText?: string;
 
   /** The comment text content */
   text: string;
+
+  /** Content type (text, markdown, code, link, image) */
+  contentType?: CommentContentType;
 
   /** Author of the comment */
   author: string;
@@ -33,6 +84,18 @@ export interface Comment {
 
   /** Optional tag for categorization (TODO, FIXME, NOTE, etc.) */
   tag?: CommentTag;
+
+  /** Status of the comment (open, resolved, wontfix) */
+  status?: CommentStatus;
+
+  /** Who resolved the comment */
+  resolvedBy?: string;
+
+  /** When the comment was resolved */
+  resolvedAt?: string;
+
+  /** Threaded replies to this comment */
+  replies?: CommentReply[];
 }
 
 /**
@@ -190,6 +253,7 @@ export const TAG_COLORS: Record<NonNullable<CommentTag>, string> = {
   QUESTION: '#9B59B6',  // Purple
   HACK: '#E67E22',      // Dark orange
   WARNING: '#F39C12',   // Yellow-orange
+  STAR: '#FFD700',      // Gold (for bookmarked/significant comments)
 };
 
 /**
@@ -204,6 +268,68 @@ export function detectTag(text: string): CommentTag {
   if (upperText.startsWith('QUESTION:') || upperText.startsWith('QUESTION ') || upperText.startsWith('?')) return 'QUESTION';
   if (upperText.startsWith('HACK:') || upperText.startsWith('HACK ')) return 'HACK';
   if (upperText.startsWith('WARNING:') || upperText.startsWith('WARNING ') || upperText.startsWith('WARN:')) return 'WARNING';
+  if (upperText.startsWith('STAR:') || upperText.startsWith('STAR ') || upperText.startsWith('⭐')) return 'STAR';
 
   return null;
 }
+
+/**
+ * Language-specific comment syntax map
+ */
+export const COMMENT_SYNTAX_MAP: Record<string, CommentSyntax> = {
+  // C-style languages
+  javascript: { singleLine: ['//'], block: ['/*', '*/'] },
+  typescript: { singleLine: ['//'], block: ['/*', '*/'] },
+  java: { singleLine: ['//'], block: ['/*', '*/'] },
+  c: { singleLine: ['//'], block: ['/*', '*/'] },
+  cpp: { singleLine: ['//'], block: ['/*', '*/'] },
+  csharp: { singleLine: ['//'], block: ['/*', '*/'] },
+  go: { singleLine: ['//'], block: ['/*', '*/'] },
+  rust: { singleLine: ['//'], block: ['/*', '*/'] },
+  swift: { singleLine: ['//'], block: ['/*', '*/'] },
+  kotlin: { singleLine: ['//'], block: ['/*', '*/'] },
+
+  // Python-style
+  python: { singleLine: ['#'], block: ['"""', '"""'] },
+  ruby: { singleLine: ['#'], block: ['=begin', '=end'] },
+  perl: { singleLine: ['#'], block: ['=pod', '=cut'] },
+  r: { singleLine: ['#'] },
+  shell: { singleLine: ['#'] },
+  bash: { singleLine: ['#'] },
+  powershell: { singleLine: ['#'], block: ['<#', '#>'] },
+  yaml: { singleLine: ['#'] },
+
+  // SQL-style
+  sql: { singleLine: ['--'], block: ['/*', '*/'] },
+  plsql: { singleLine: ['--'], block: ['/*', '*/'] },
+
+  // Lisp-style
+  lisp: { singleLine: [';'] },
+  clojure: { singleLine: [';'] },
+  scheme: { singleLine: [';'] },
+
+  // Markup languages
+  html: { block: ['<!--', '-->'] },
+  xml: { block: ['<!--', '-->'] },
+
+  // Lua
+  lua: { singleLine: ['--'], block: ['--[[', ']]'] },
+
+  // Haskell
+  haskell: { singleLine: ['--'], block: ['{-', '-}'] },
+
+  // MATLAB
+  matlab: { singleLine: ['%'], block: ['%{', '%}'] },
+
+  // LaTeX
+  latex: { singleLine: ['%'] },
+
+  // VB
+  vb: { singleLine: ["'"] },
+
+  // Fortran
+  fortran: { singleLine: ['!'] },
+
+  // Assembly
+  asm: { singleLine: [';'] },
+};

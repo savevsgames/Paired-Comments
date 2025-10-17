@@ -22,6 +22,13 @@ export function registerCommands(
   context: vscode.ExtensionContext,
   deps: CommandDependencies
 ): void {
+  // Show command menu (Ctrl+Alt+P)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.showMenu', async () => {
+      await showCommandMenu(deps);
+    })
+  );
+
   // Open paired comments view
   context.subscriptions.push(
     vscode.commands.registerCommand('pairedComments.open', async () => {
@@ -119,6 +126,124 @@ export function registerCommands(
       await toggleCommentFilesVisibility();
     })
   );
+}
+
+/**
+ * Show command menu with all available commands
+ */
+async function showCommandMenu(_deps: CommandDependencies): Promise<void> {
+  interface CommandMenuItem {
+    label: string;
+    description: string;
+    detail: string;
+    key: string;
+    command: string;
+  }
+
+  const menuItems: CommandMenuItem[] = [
+    {
+      label: '$(comment-discussion) O - Open Paired Comments',
+      description: 'Open side-by-side view',
+      detail: 'Open the .comments file next to your source file',
+      key: 'O',
+      command: 'pairedComments.open'
+    },
+    {
+      label: '$(add) A - Add Comment',
+      description: 'Add comment to current line',
+      detail: 'Create a new comment for the line where your cursor is',
+      key: 'A',
+      command: 'pairedComments.addComment'
+    },
+    {
+      label: '$(edit) E - Edit Comment',
+      description: 'Edit comment on current line',
+      detail: 'Modify an existing comment on the current line',
+      key: 'E',
+      command: 'pairedComments.editComment'
+    },
+    {
+      label: '$(trash) D - Delete Comment',
+      description: 'Delete comment on current line',
+      detail: 'Remove a comment from the current line',
+      key: 'D',
+      command: 'pairedComments.deleteComment'
+    },
+    {
+      label: '$(list-unordered) S - Show All Comments',
+      description: 'View all comments in file',
+      detail: 'Quick pick list of all comments with jump-to functionality',
+      key: 'S',
+      command: 'pairedComments.showAllComments'
+    },
+    {
+      label: '$(sync) T - Toggle Scroll Sync',
+      description: 'Enable/disable synchronized scrolling',
+      detail: 'Keep source and comments files in sync while scrolling',
+      key: 'T',
+      command: 'pairedComments.toggleSync'
+    },
+    {
+      label: '$(copy) C - Copy All Comments',
+      description: 'Copy to clipboard',
+      detail: 'Copy all comments in the current file to clipboard',
+      key: 'C',
+      command: 'pairedComments.copyAllComments'
+    },
+    {
+      label: '$(export) X - Export Comments',
+      description: 'Export to external file',
+      detail: 'Export comments to markdown, JSON, or other formats',
+      key: 'X',
+      command: 'pairedComments.exportComments'
+    },
+    {
+      label: '$(import) I - Import Comments',
+      description: 'Import from external file',
+      detail: 'Import comments from another file or project',
+      key: 'I',
+      command: 'pairedComments.importComments'
+    },
+    {
+      label: '$(search) F - Find in Comments',
+      description: 'Search through comments',
+      detail: 'Search for text across all comments in the file',
+      key: 'F',
+      command: 'pairedComments.findInComments'
+    },
+    {
+      label: '$(arrow-down) N - Next Comment',
+      description: 'Jump to next comment',
+      detail: 'Navigate to the next comment in the file',
+      key: 'N',
+      command: 'pairedComments.nextComment'
+    },
+    {
+      label: '$(arrow-up) B - Previous Comment',
+      description: 'Jump to previous comment',
+      detail: 'Navigate to the previous comment in the file (B for Back)',
+      key: 'B',
+      command: 'pairedComments.previousComment'
+    },
+    {
+      label: '$(eye) Toggle .comments Visibility',
+      description: 'Show/hide .comments files',
+      detail: 'Toggle visibility of .comments files in file explorer',
+      key: '',
+      command: 'pairedComments.toggleCommentFilesVisibility'
+    }
+  ];
+
+  const selected = await vscode.window.showQuickPick(menuItems, {
+    placeHolder: 'Paired Comments - Select a command (or press the letter key)',
+    matchOnDescription: true,
+    matchOnDetail: true,
+    title: '💬 Paired Comments Menu'
+  });
+
+  if (selected) {
+    await vscode.commands.executeCommand(selected.command);
+  }
 }
 
 /**
@@ -451,7 +576,8 @@ function getTagEmoji(tag: string): string {
     'NOTE': '📌',
     'QUESTION': '❓',
     'HACK': '⚠️',
-    'WARNING': '⚡'
+    'WARNING': '⚡',
+    'STAR': '⭐'
   };
   return emojiMap[tag] || '💬';
 }
