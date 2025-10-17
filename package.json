@@ -1,0 +1,163 @@
+{
+  "name": "paired-comments",
+  "displayName": "Paired Comments",
+  "description": "Sidecar comment files with synchronized viewing - keep your code clean while maintaining rich annotations",
+  "version": "0.1.0",
+  "publisher": "paired-comments",
+  "author": {
+    "name": "Greg Barker"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/paired-comments"
+  },
+  "engines": {
+    "vscode": "^1.80.0",
+    "node": ">=18.0.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "comments",
+    "documentation",
+    "annotations",
+    "code-review",
+    "productivity"
+  ],
+  "activationEvents": [
+    "onCommand:pairedComments.open",
+    "onCommand:pairedComments.addComment"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pairedComments.open",
+        "title": "Paired Comments: Open",
+        "category": "Paired Comments",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "pairedComments.addComment",
+        "title": "Paired Comments: Add Comment",
+        "category": "Paired Comments"
+      },
+      {
+        "command": "pairedComments.editComment",
+        "title": "Paired Comments: Edit Comment",
+        "category": "Paired Comments"
+      },
+      {
+        "command": "pairedComments.deleteComment",
+        "title": "Paired Comments: Delete Comment",
+        "category": "Paired Comments"
+      },
+      {
+        "command": "pairedComments.toggleSync",
+        "title": "Paired Comments: Toggle Scroll Sync",
+        "category": "Paired Comments"
+      },
+      {
+        "command": "pairedComments.showAllComments",
+        "title": "Paired Comments: Show All Comments",
+        "category": "Paired Comments"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "pairedComments.open",
+        "key": "ctrl+shift+c",
+        "mac": "cmd+shift+c",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.addComment",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.toggleSync",
+        "key": "ctrl+shift+s",
+        "mac": "cmd+shift+s",
+        "when": "pairedComments.viewOpen"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "pairedComments.open",
+          "group": "pairedComments@1",
+          "when": "editorTextFocus"
+        },
+        {
+          "command": "pairedComments.addComment",
+          "group": "pairedComments@2",
+          "when": "editorTextFocus"
+        },
+        {
+          "command": "pairedComments.editComment",
+          "group": "pairedComments@3",
+          "when": "pairedComments.lineHasComment"
+        },
+        {
+          "command": "pairedComments.deleteComment",
+          "group": "pairedComments@4",
+          "when": "pairedComments.lineHasComment"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "pairedComments.open",
+          "when": "editorIsOpen"
+        },
+        {
+          "command": "pairedComments.addComment",
+          "when": "editorIsOpen"
+        },
+        {
+          "command": "pairedComments.editComment",
+          "when": "pairedComments.lineHasComment"
+        },
+        {
+          "command": "pairedComments.deleteComment",
+          "when": "pairedComments.lineHasComment"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "lint:fix": "eslint src --ext ts --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "node ./out/tests/integration/runTests.js",
+    "package": "vsce package",
+    "clean": "rimraf out"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.80.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vscode/test-electron": "^2.3.8",
+    "@vscode/vsce": "^2.22.0",
+    "@vitest/coverage-v8": "^1.0.4",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.1.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
+  },
+  "dependencies": {}
+}

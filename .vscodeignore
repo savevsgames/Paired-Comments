@@ -1,0 +1,29 @@
+# Source files
+src/**
+tests/**
+.vscode/**
+.vscode-test/**
+
+# Build config
+tsconfig.json
+vitest.config.ts
+.eslintrc.json
+.prettierrc.json
+
+# Documentation (keep README in package)
+docs/**
+
+# Git
+.gitignore
+.git
+
+# Dependencies
+node_modules/**
+
+# IDE
+*.swp
+*.swo
+
+# Misc
+.DS_Store
+Thumbs.db
