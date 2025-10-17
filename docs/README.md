@@ -15,6 +15,7 @@ Welcome to the Paired Comments documentation! This extension provides a powerful
 ### Feature Documentation
 - [Ghost Markers (v2.0)](features/ghost-markers.md) - Automatic line tracking system
 - [Params & Hash Tree (v2.1)](features/params-and-hash-tree.md) - AI metadata and dynamic parameters
+- [Security Foundation (v2.1)](features/security-foundation.md) - Encryption and sensitive data protection
 
 ### Architecture
 - [Technical Architecture](architecture/TECHNICAL_ARCHITECTURE.md) - System design and internals

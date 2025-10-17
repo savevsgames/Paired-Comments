@@ -36,6 +36,7 @@
 ### 🤖 v2.1 - AI Metadata & Params (Coming Q1 2026)
 
 **Dynamic Parameters** - Comments that auto-update:
+**Security Foundation** - Enterprise-ready architecture:
 ```json
 {
   "text": "The ${functionName} takes ${paramCount} parameters",
@@ -328,7 +329,9 @@ Comprehensive documentation is available in the `/docs` folder:
 - AI metadata (tokens, complexity, embeddings)
 - Hash tree architecture for change detection
 - Built-in AI helpers (token estimation, chunking)
+- Output capture foundation (Jupyter-style runtime values)
 - Privacy controls and export filtering
+- Security foundation (encryption, sensitive data detection)
 - `.commentsrc` configuration support
 
 ### 📅 Future Versions

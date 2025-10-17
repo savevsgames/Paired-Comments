@@ -212,6 +212,13 @@ Extends Ghost Markers with **dynamic parameters** and **AI metadata**, transform
    - PrivacyManager class
    - Export with field exclusion
 
+5.5. **Security Foundation** (Week 5.5)
+   - Extend `.commentsrc` with security section
+   - Encryption provider interface (stub implementations)
+   - Sensitive data pattern detection (passwords, API keys, etc.)
+   - Export safety warnings
+   - Architecture ready for Azure Key Vault, AWS KMS (future)
+
 6. **Documentation & Polish** (Week 6)
    - Usage guides and examples
    - API documentation
@@ -323,6 +330,313 @@ Completes the output capture system started in v2.1, bringing **Jupyter notebook
 - **API Response Catalog**: Real responses from hundreds of APIs
 - **Security Insights**: Detected data leak patterns
 - **GitHub Copilot Enhancement**: Better suggestions from real runtime examples
+
+---
+
+### 🎮 Phase 3.5: Interactive GitHub Demo & Playground
+
+**Target:** Q3 2026 (After v2.2)
+**Status:** Vision Phase
+
+#### Why This Matters
+Creates a **live, interactive demo** that showcases Paired Comments in action, exactly as it would appear in GitHub's UI. This is our **"wow factor" marketing tool** and proof-of-concept for GitHub acquisition. By building a fake GitHub interface with real Monaco editor integration, we demonstrate the production-ready nature of `.comments` files and their value for developers.
+
+**Strategic Value**: "Don't build our stage before we know how the play will end" - this comes AFTER v2.2 when all major features are mature and impressive.
+
+#### Features
+- **Fake GitHub UI**
+  - Next.js app that perfectly replicates GitHub's file viewer
+  - Left sidebar: File tree navigation (fake but realistic)
+  - Top tabs: Code, Issues, Pull Requests, etc.
+  - Code tab contains Monaco editor with Paired Comments running
+  - Fully responsive, pixel-perfect GitHub aesthetic
+
+- **Monaco Integration**
+  - Browser-compatible version of Paired Comments
+  - Full feature parity with VS Code extension (v2.2)
+  - Gutter icons, hover previews, ghost markers
+  - Output capture visualization
+  - Dynamic params rendering
+
+- **Curated Examples (20+ Scenarios)**
+  - Click file in sidebar → instant load with comments
+  - Examples organized by category
+  - Each example demonstrates specific features
+
+- **Export & Share**
+  - "Fork this example" button (downloads .comments file)
+  - Share URL (deep links to specific examples)
+  - "Open in VS Code" button (opens local workspace)
+  - Embed code for documentation sites
+
+#### Example Categories
+
+**1. Real-World Applications**
+- Express.js API with authentication flow
+- React component library with component variants
+- Python data processing pipeline
+- ML model training script with hyperparameter tuning
+- Database migration with rollback logic
+- Payment processing integration (Stripe/PayPal)
+
+**2. AI/ML Workflows**
+- Fine-tuning dataset with input/output pairs
+- Model evaluation with captured predictions
+- API response caching for development
+- Training data curation with labels
+- Token estimation for cost tracking
+- Chunk boundaries for large context
+
+**3. Educational Examples**
+- Algorithm implementations (sorting, searching)
+- Design pattern demonstrations
+- Code smells with refactoring suggestions
+- Performance optimization case studies
+- Security vulnerability examples with fixes
+- Testing strategies (unit, integration, e2e)
+
+**4. Enterprise Features**
+- Compliance tracking (SOC2, GDPR)
+- API cost estimation
+- Team collaboration workflows
+- Code review processes
+- Audit trail examples
+- Privacy controls demonstration
+
+#### Technical Stack
+- **Frontend**: Next.js 14 (App Router), React, TypeScript
+- **Editor**: Monaco Editor with custom language support
+- **Paired Comments**: Browser-compatible core (stripped of VS Code APIs)
+- **Styling**: Tailwind CSS (GitHub-like theme)
+- **Deployment**: Vercel (instant deployment, edge network)
+- **Analytics**: Track which examples get most views
+
+#### Implementation Phases
+
+1. **Monaco Setup** (Week 1)
+   - Browser-compatible Paired Comments core
+   - Monaco editor integration
+   - Basic .comments file rendering
+
+2. **GitHub UI** (Week 2-3)
+   - Next.js app with fake GitHub interface
+   - File tree navigation
+   - Tab system (Code, Issues, etc.)
+   - Responsive layout
+
+3. **Example Curation** (Week 4-5)
+   - Create 20+ example files with comments
+   - Organize by category
+   - Write descriptions and README
+
+4. **Features & Polish** (Week 6-7)
+   - Deep linking to examples
+   - Export/share functionality
+   - "Open in VS Code" integration
+   - Analytics setup
+
+5. **Launch & Marketing** (Week 8)
+   - Deploy to production
+   - Create demo videos
+   - Write blog posts
+   - Reddit/HN launch
+
+#### Success Metrics
+- ✅ >1000 visitors in first week
+- ✅ >50% click through multiple examples
+- ✅ >10% download .comments files
+- ✅ Featured on HN front page / r/programming
+- ✅ GitHub stars increase by 500+
+- ✅ Direct interest from Microsoft/GitHub
+
+#### GitHub Acquisition Value 🎯
+- **Live Proof**: Not vaporware - fully functional in browser
+- **Zero Friction**: No installation required to try
+- **Instant Understanding**: 30 seconds to see the value
+- **Production Ready**: Demonstrates robustness and polish
+- **Developer Love**: Comments on HN/Reddit validate demand
+- **Training Data Showcase**: Real examples show AI training value
+
+---
+
+### 🤖 Phase 3.6: AI Training Comparison Playground
+
+**Target:** Q4 2026 (After Phase 3.5 GitHub Demo)
+**Status:** Vision Phase
+
+#### Why This Matters
+**Empirical proof that `.comments` files improve AI training.** We fine-tune two models side-by-side:
+1. **Control**: Traditional code with inline comments
+2. **Experiment**: Same code + `.comments` files with rich metadata (params, aiMeta, outputs)
+
+Then we evaluate both models on the SAME task and show **quantifiable improvements** in accuracy, understanding, and code generation quality.
+
+**Strategic Value**: This is the **data-driven proof** Microsoft needs to justify acquisition. "Our users' `.comments` files improved model accuracy by 15%."
+
+#### Features
+
+**1. Training Comparison Dashboard**
+- Split-screen view showing two training runs simultaneously
+- Left: Control (conventional code)
+- Right: Experiment (code + .comments with params, aiMeta, outputs)
+- Real-time metrics: loss, accuracy, perplexity
+- Visual diff of generated outputs
+
+**2. Pre-Built Training Scenarios**
+Choose from curated fine-tuning datasets:
+- **React Component Generator**: Generate form components with a11y
+- **API Endpoint Creator**: Build REST endpoints from specs
+- **Bug Fix Predictor**: Given buggy code, predict the fix
+- **Documentation Writer**: Generate JSDoc from function signatures
+- **Test Case Generator**: Create unit tests for functions
+
+**3. Azure ML Integration**
+- Uses Azure Machine Learning Studio
+- Pre-configured fine-tuning pipelines
+- GPT-4 fine-tuning API or open models (Llama, Mistral)
+- Automatic experiment tracking
+- Model comparison reports with statistical significance
+
+**4. Evaluation Metrics**
+- **Code Accuracy**: Exact match vs. expected output
+- **Functional Correctness**: Does generated code run? Pass tests?
+- **Semantic Similarity**: Embedding distance from target
+- **Pass@k**: Standard AI code generation metric (% correct in top-k)
+- **Human Eval**: Side-by-side comparison UI for subjective quality
+
+**5. Interactive Results**
+- "Try it yourself" - give both models the same prompt
+- Compare generated code side-by-side
+- Show which model understood context better
+- Highlight where `.comments` metadata helped (annotations on diff)
+
+#### Example: React Component Training
+
+**Training Data (100 components):**
+- Control: React component code with inline comments
+- Experiment: Same code + `.comments` with metadata:
+  ```json
+  {
+    "text": "This is a ${componentType} with ${propCount} props",
+    "params": {
+      "componentType": "FormInput",
+      "propCount": 5
+    },
+    "aiMeta": {
+      "complexity": 3,
+      "componentCategory": "form-control",
+      "a11y": true,
+      "responsive": true,
+      "dependencies": ["react", "styled-components"]
+    },
+    "output": {
+      "value": { "rendered": true, "errors": [] },
+      "type": "object"
+    }
+  }
+  ```
+
+**Evaluation Task:**
+- Prompt: "Create a search bar component with autocomplete"
+
+**Results Display:**
+```
+Metric                Control    Experiment    Improvement
+─────────────────────────────────────────────────────────
+Functional tests     78%        94%           +16%
+Accessibility        45%        91%           +46%
+Type safety          82%        97%           +15%
+Best practices       68%        89%           +21%
+Overall quality      73%        93%           +20%
+```
+
+#### Technical Stack
+- **Training**: Azure ML Studio (or Hugging Face AutoTrain)
+- **Models**: GPT-4 fine-tuning API, Claude fine-tuning, or Llama-3 70B
+- **Frontend**: Next.js dashboard (extends Phase 3.5 GitHub demo)
+- **Datasets**: Curated from popular repos (React, Express, Django, etc.)
+- **Evaluation**: Custom harness + Azure ML evaluation tools
+- **Storage**: Azure Blob Storage for datasets, models, results
+
+#### Implementation Phases
+
+1. **Dataset Preparation** (Week 1-2)
+   - Select 5 target applications to reproduce
+   - Create control datasets (conventional code)
+   - Create experiment datasets (+ .comments with metadata)
+   - Quality validation (manual review)
+
+2. **Training Pipeline** (Week 3-4)
+   - Azure ML pipeline setup
+   - Fine-tuning scripts for both datasets
+   - Experiment tracking (MLflow)
+   - Checkpoint management
+
+3. **Evaluation Harness** (Week 5-6)
+   - Automated test generation for each scenario
+   - Metric calculation (accuracy, pass@k, semantic similarity)
+   - Human eval interface (A/B comparison)
+   - Statistical significance testing
+   - Results aggregation and visualization
+
+4. **Interactive Dashboard** (Week 7-8)
+   - Real-time training visualization
+   - Model comparison UI with metrics
+   - "Try it yourself" playground (prompt both models)
+   - Export whitepaper-ready charts and tables
+
+5. **Whitepaper & Launch** (Week 9-10)
+   - Write methodology and results paper
+   - Create demo videos showing improvement
+   - Submit to arXiv (academic credibility)
+   - LinkedIn/Twitter/HN launch
+   - Reach out to Microsoft Research / OpenAI
+
+#### Example Scenarios (5 Initial Fine-Tuning Tasks)
+
+1. **React Component Library** (Frontend)
+   - Task: Generate accessible, responsive components
+   - Metadata: `a11y`, `responsive`, `componentType`, `propTypes`
+   - Expected Improvement: +30% on accessibility checks
+
+2. **Express.js API** (Backend)
+   - Task: Build REST endpoints with auth/validation
+   - Metadata: `authRequired`, `validationRules`, `outputSchema`
+   - Expected Improvement: +20% on security best practices
+
+3. **Python Data Pipeline** (Data Science)
+   - Task: Create ETL scripts with error handling
+   - Metadata: `dataSource`, `transformations`, `errorCases`
+   - Expected Improvement: +25% on edge case handling
+
+4. **Bug Fix Prediction** (Code Quality)
+   - Task: Given buggy code, predict the fix
+   - Metadata: `errorType`, `rootCause`, `testCase` (in output)
+   - Expected Improvement: +15% on fix accuracy
+
+5. **SQL Query Generator** (Database)
+   - Task: Generate optimized queries from natural language
+   - Metadata: `tableSchema`, `indexHints`, `expectedRows`
+   - Expected Improvement: +20% on query optimization
+
+#### Success Metrics
+- ✅ Experiment model outperforms control by **>10%** on average accuracy
+- ✅ Experiment model shows **>20%** improvement on complex/edge cases
+- ✅ Whitepaper published on arXiv, cited by AI research community
+- ✅ Featured in Azure ML case studies or Microsoft blog
+- ✅ Microsoft Research / OpenAI reaches out to discuss integration
+- ✅ "Paired Comments training" becomes an AI best practice
+
+#### Microsoft Acquisition Value 🎯🎯🎯 (HIGHEST)
+- **Empirical Proof**: Not speculation - REAL data showing 10-20% improvement
+- **Azure Integration**: Already using Azure ML (natural acquisition fit)
+- **Training Data Goldmine**: Thousands of developers creating labeled datasets daily
+- **GitHub Copilot Enhancement**: ".comments improve Copilot accuracy by 15%" (marketing gold)
+- **Academic Credibility**: Published methodology, reproducible results
+- **Competitive Moat**: First mover in "metadata-enhanced training"
+- **Revenue Impact**: Better models = happier Copilot customers = retention
+
+This is the **killer proof point** that makes Microsoft say "we need to own this platform."
 
 ---
 
@@ -590,7 +904,8 @@ These features are under consideration but not yet scheduled:
   - Hash tree architecture for efficient change detection
   - Built-in AI helpers (token estimation, complexity, chunking)
   - Privacy controls and export filtering
-  - `.commentsrc` configuration support
+  - Security foundation (encryption interface, sensitive data detection)
+  - `.commentsrc` configuration support (privacy + security)
   - Community-driven metadata standards
 
 - **v2.0** (Current - In Development) - Ghost Markers & Line Tracking
