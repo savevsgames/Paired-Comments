@@ -119,8 +119,8 @@ export class CommentManager {
         existingMarker.commentIds.push(id);
         ghostMarkerId = existingMarker.id;
       } else {
-        // Create new ghost marker
-        const marker = this.ghostMarkerManager.createMarker(document, options.line, [id]);
+        // Create new ghost marker (now async with AST support)
+        const marker = await this.ghostMarkerManager.createMarker(document, options.line, [id]);
         this.ghostMarkerManager.addMarker(document, marker, editor);
         ghostMarkerId = marker.id;
 

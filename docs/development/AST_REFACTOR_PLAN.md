@@ -580,12 +580,193 @@ See `docs/testing/AST_TEST_PLAN.md` for comprehensive manual test scenarios.
 - [ ] **Phase 4:** Testing & Validation (Days 9-11)
 - [ ] **Phase 5:** Documentation & Cleanup (Days 12-14)
 
+### Phase Completion Status
+
+- [x] **Phase 1:** Core Infrastructure ✅ COMPLETE
+- [x] **Phase 2:** File Format Migration ✅ COMPLETE
+- [x] **Phase 3:** Ghost Marker Integration ✅ COMPLETE
+- [ ] **Phase 4:** Testing & Validation 🧪 IN PROGRESS (debugging)
+- [ ] **Phase 5:** Documentation & Cleanup
+
 ### Daily Log
 
 #### Day 1 (2025-10-17)
 - [x] Created AST_REFACTOR_PLAN.md
-- [ ] Started ASTAnchorManager implementation
-- **Status:** Planning complete, ready to begin coding
+- [x] Completed Phase 1: ASTAnchorManager implementation
+- [x] Completed Phase 2: File format migration to v2.0.5
+- [x] Completed Phase 3: Ghost marker integration
+- [x] Created test files and test plan
+- [x] Started Phase 4: Testing and debugging
+- **Status:** All phases complete, now debugging cut/paste tracking
+
+---
+
+## Implementation Changelog
+
+### 2025-10-17 - Testing Phase Issues & Fixes
+
+#### Issue #1: Symbol Provider Returns Empty During Document Edits
+**Problem:** When cutting/pasting code, VS Code's Symbol Provider returns no symbols because document is in transitional state.
+
+**Symptoms:**
+- Cut function → AST verification runs → no symbols found → falls back to line-based
+- Marker doesn't move to pasted location
+
+**Root Cause:** Symbol Provider needs time to parse document after edits, initial 100ms retry was insufficient.
+
+**Fix Applied:**
+```typescript
+// ASTAnchorManager.ts - getAllSymbols()
+// Changed from: Single 100ms retry
+// Changed to: 3 retries with progressive delays (200ms, 300ms, 400ms)
+const maxRetries = 3;
+for (let i = 0; i < maxRetries; i++) {
+  const waitTime = 200 + (i * 100); // Progressive backoff
+  await new Promise(resolve => setTimeout(resolve, waitTime));
+  // Retry symbol provider...
+}
+```
+
+**Files Modified:**
+- `src/core/ASTAnchorManager.ts` - Added progressive retry logic
+
+---
+
+#### Issue #2: Immediate Verification Runs Before Document Settles
+**Problem:** When marker detected in deleted range, verification triggered immediately while document still being edited.
+
+**Symptoms:**
+- Popup shows "🚨 Ghost marker in deleted range..."
+- But AST verification fails because document in flux
+
+**Fix Applied:**
+```typescript
+// GhostMarkerManager.ts - updateMarkerPositions()
+// Changed from: Immediate verification (0ms)
+// Changed to: Priority verification (100ms delay)
+this.verificationTimer = setTimeout(() => {
+  console.log('[GhostMarkerManager] Running priority verification after document settled...');
+  void this.verifyMarkers(event.document);
+}, 100); // Let document settle before verification
+```
+
+**Files Modified:**
+- `src/core/GhostMarkerManager.ts` - Changed immediate to delayed priority verification
+
+---
+
+#### Issue #3: Decoration Not Refreshing After AST Resolution
+**Problem:** AST successfully resolved marker to new location, but gutter icon didn't move.
+
+**Symptoms:**
+- Console shows: `[AST] Symbol found at line 120`
+- Console shows: `[GhostMarker] Marker moved: 13 → 120`
+- But gutter icon still at line 13
+
+**Fix Applied:**
+```typescript
+// GhostMarkerManager.ts - verifyMarkerWithAST()
+// Added explicit decoration refresh after marker moves
+if (editor && editor.document === document) {
+  console.log(`[GhostMarker] Refreshing decoration at new location (line ${newLine})`);
+  this.applyDecoration(editor, markerState);
+}
+```
+
+**Files Modified:**
+- `src/core/GhostMarkerManager.ts` - Added decoration refresh after AST resolution
+
+---
+
+#### Enhanced Logging Added
+
+To aid debugging, comprehensive logging was added throughout the AST system:
+
+**ASTAnchorManager:**
+- Symbol resolution attempts with detailed paths
+- Retry attempts with timing information
+- Success/failure indicators with emojis
+
+**GhostMarkerManager:**
+- Document change events with before/after marker positions
+- Detection of markers in deleted ranges
+- Verification timing and results
+
+**Console Output Example:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[GhostMarkerManager] Document changed: ast-test.js
+[GhostMarkerManager] Markers BEFORE update:
+  - Marker gm-ast-001: line 13, text: "function calculateTotal(items) {"
+⚠️ WARNING: Marker at line 13 is INSIDE change range 13-15!
+🚨 Markers in deleted range - triggering PRIORITY verification!
+[AST] 🔍 Resolving anchor: calculateTotal
+[AST] Retry 1/3: Waiting 200ms for language server...
+[AST] ✓ Retry 1 successful! Found 7 symbols
+[AST] ✅ Symbol found at line 120
+[GhostMarker] Refreshing decoration at new location (line 120)
+```
+
+**Files Modified:**
+- `src/core/ASTAnchorManager.ts` - Added detailed resolution logging
+- `src/core/GhostMarkerManager.ts` - Added change detection and verification logging
+- `src/extension.ts` - Added startup banner
+
+---
+
+### Testing Status
+
+**Current Status:** 🧪 In Progress
+
+**What Works:**
+- ✅ Extension activates and loads
+- ✅ File migration v2.0 → v2.0.5 works
+- ✅ AST anchors created successfully
+- ✅ Symbol Provider retry logic works
+- ✅ Scroll synchronization works
+- ✅ Comment navigation works
+
+**What's Being Debugged:**
+- ⚠️ Cut/paste function tracking (symbols not available during edit)
+- ⚠️ Decoration refresh timing
+
+**Next Steps:**
+1. Test with longer delays to see if symbols become available
+2. Consider alternative approach: track paste events separately
+3. Evaluate if Symbol Provider is reliable enough for real-time tracking
+
+---
+
+### Technical Decisions Made
+
+#### Decision: Progressive Retry Strategy
+**Context:** Symbol Provider unreliable during active document editing
+
+**Options Considered:**
+1. Single retry with fixed delay
+2. Event-based waiting (onDidChangeTextDocument complete)
+3. Progressive retry with backoff
+
+**Decision:** Option 3 - Progressive retry with 200/300/400ms delays
+
+**Rationale:**
+- No event for "document edit complete"
+- Fixed delay might be too short or unnecessarily long
+- Progressive backoff balances responsiveness vs reliability
+
+---
+
+#### Decision: Priority Verification (100ms) vs Immediate (0ms)
+**Context:** Markers in deleted range need quick verification, but document needs time to settle
+
+**Decision:** 100ms priority delay (faster than normal 500ms debounce, slower than immediate)
+
+**Rationale:**
+- 0ms too fast - document still in flux
+- 500ms too slow - user expects quick response
+- 100ms sweet spot - document settled, still feels responsive
+
+---
 
 ---
 

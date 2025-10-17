@@ -1,11 +1,12 @@
 /**
  * Main extension entry point for Paired Comments
- * Now with ghost marker support! 👻
+ * Now with AST-based ghost markers! 👻
  */
 
 import * as vscode from 'vscode';
 import { CommentManager } from './core/CommentManager';
 import { GhostMarkerManager } from './core/GhostMarkerManager';
+import { ASTAnchorManager } from './core/ASTAnchorManager';
 import { PairedViewManager } from './ui/PairedViewManager';
 import { ScrollSyncManager } from './ui/ScrollSyncManager';
 import { DecorationManager } from './ui/DecorationManager';
@@ -19,13 +20,17 @@ import { registerCommands } from './commands';
  * Called when the extension is activated
  */
 export function activate(context: vscode.ExtensionContext): void {
+  console.log('═══════════════════════════════════════════════════════════');
+  console.log('🚀 PAIRED COMMENTS EXTENSION ACTIVATED - v2.0.5 AST');
+  console.log('═══════════════════════════════════════════════════════════');
   console.log('Paired Comments extension is now active');
 
   // Apply initial file exclusion settings
   applyFileExclusionSettings();
 
-  // Initialize core managers
-  const fileSystemManager = new FileSystemManager();
+  // Initialize core managers (order matters: AST → FileSystem → Comment → Ghost)
+  const astAnchorManager = new ASTAnchorManager();
+  const fileSystemManager = new FileSystemManager(astAnchorManager);
   const ghostMarkerManager = new GhostMarkerManager();
   const commentManager = new CommentManager(fileSystemManager, ghostMarkerManager);
   const decorationManager = new DecorationManager(context);
@@ -36,12 +41,16 @@ export function activate(context: vscode.ExtensionContext): void {
     decorationManager
   );
 
-  // Wire up decoration manager with comment manager
+  // Wire up managers
   decorationManager.setCommentManager(commentManager);
+  ghostMarkerManager.setASTManager(astAnchorManager);
 
-  // Register ghost marker manager for disposal
+  // Register managers for disposal
   context.subscriptions.push({
-    dispose: () => ghostMarkerManager.dispose()
+    dispose: () => {
+      ghostMarkerManager.dispose();
+      astAnchorManager.dispose();
+    }
   });
 
   // Register CodeLens provider for clickable comment indicators

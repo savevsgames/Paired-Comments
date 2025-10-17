@@ -3,6 +3,7 @@
  */
 
 import * as vscode from 'vscode';
+import { ASTAnchor } from './types/ast';
 
 /**
  * Comment tags for categorization
@@ -108,11 +109,14 @@ export interface GhostMarker {
   /** Unique identifier for this ghost marker */
   id: string;
 
-  /** Current line number (1-indexed) - source of truth for comment positions */
+  /** Current line number (1-indexed) - cached value, use AST anchor for resolution in v2.0.5+ */
   line: number;
 
   /** Array of comment IDs anchored to this line */
   commentIds: string[];
+
+  /** AST-based anchor for semantic tracking (v2.0.5+) - null for non-symbolic lines or unsupported languages */
+  astAnchor?: ASTAnchor | null;
 
   /** SHA-256 hash (first 16 chars) of the current line text */
   lineHash: string;
@@ -290,7 +294,7 @@ export class PairedCommentsError extends Error {
 /**
  * Schema version constant
  */
-export const COMMENT_FILE_VERSION = '1.0';
+export const COMMENT_FILE_VERSION = '2.0.5';
 
 /**
  * File extension for comment files

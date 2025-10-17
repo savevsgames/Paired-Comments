@@ -1,56 +1,86 @@
 {
   "file": "test-samples/ghost-markers-demo.js",
-  "version": "2.0",
+  "version": "2.0.5",
   "ghostMarkers": [
     {
       "id": "gm-test-001",
       "line": 10,
-      "commentIds": ["c1"],
+      "commentIds": [
+        "c1"
+      ],
       "lineHash": "d4f5e6a7b8c9d0e1f2a3b4c5d6e7f8a9",
       "lineText": "function calculateSum(a, b) {",
       "prevLineText": "// Test 1: Simple function",
       "nextLineText": "return a + b;",
-      "lastVerified": "2025-10-17T12:00:00Z"
+      "lastVerified": "2025-10-17T12:00:00Z",
+      "astAnchor": {
+        "symbolPath": [
+          "calculateSum"
+        ],
+        "symbolKind": "Function",
+        "containerName": null,
+        "offset": 0
+      }
     },
     {
       "id": "gm-test-002",
       "line": 15,
-      "commentIds": ["c2"],
+      "commentIds": [
+        "c2"
+      ],
       "lineHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6",
       "lineText": "class UserManager {",
       "prevLineText": "// Test 2: Class with methods",
       "nextLineText": "constructor() {",
-      "lastVerified": "2025-10-17T12:00:00Z"
+      "lastVerified": "2025-10-17T12:00:00Z",
+      "astAnchor": null
     },
     {
       "id": "gm-test-003",
       "line": 20,
-      "commentIds": ["c3"],
+      "commentIds": [
+        "c3"
+      ],
       "lineHash": "b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7",
       "lineText": "addUser(user) {",
       "prevLineText": "}",
       "nextLineText": "this.users.push(user);",
-      "lastVerified": "2025-10-17T12:00:00Z"
+      "lastVerified": "2025-10-17T12:00:00Z",
+      "astAnchor": {
+        "symbolPath": [
+          "UserManager"
+        ],
+        "symbolKind": "Class",
+        "containerName": null,
+        "offset": 1
+      }
     },
     {
       "id": "gm-test-004",
       "line": 29,
-      "commentIds": ["c4", "c5"],
+      "commentIds": [
+        "c4",
+        "c5"
+      ],
       "lineHash": "c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8",
       "lineText": "async function fetchUserData(userId) {",
       "prevLineText": "// Test 3: Async function",
       "nextLineText": "const response = await fetch(`/api/users/${userId}`);",
-      "lastVerified": "2025-10-17T12:00:00Z"
+      "lastVerified": "2025-10-17T12:00:00Z",
+      "astAnchor": null
     },
     {
       "id": "gm-test-005",
       "line": 35,
-      "commentIds": ["c6"],
+      "commentIds": [
+        "c6"
+      ],
       "lineHash": "d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9",
       "lineText": "function processPayment(order) {",
       "prevLineText": "// Test 4: Complex logic",
       "nextLineText": "if (!order.items || order.items.length === 0) {",
-      "lastVerified": "2025-10-17T12:00:00Z"
+      "lastVerified": "2025-10-17T12:00:00Z",
+      "astAnchor": null
     }
   ],
   "comments": [

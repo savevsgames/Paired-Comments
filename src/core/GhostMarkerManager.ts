@@ -2,13 +2,14 @@
  * GhostMarkerManager - Manages ghost markers for automatic line tracking
  *
  * Ghost markers are invisible decorations that track comment positions
- * and automatically move with code edits. They use content anchoring
- * (hash-based verification) to detect drift and auto-reconcile.
+ * and automatically move with code edits. They use AST-based anchoring
+ * (v2.0.5+) with line-based fallback for unsupported languages.
  */
 
 import * as vscode from 'vscode';
 import { GhostMarker, ReconciliationResult } from '../types';
 import { hashLine, getLineText } from '../utils/contentAnchor';
+import { ASTAnchorManager } from './ASTAnchorManager';
 
 /**
  * Ghost marker with runtime decoration state
@@ -30,19 +31,30 @@ export class GhostMarkerManager {
   /** Verification debounce delay (ms) */
   private readonly verificationDelay = 500;
 
+  /** AST anchor manager for semantic tracking */
+  private astManager: ASTAnchorManager | null = null;
+
   constructor() {
     // Listen for document changes
     vscode.workspace.onDidChangeTextDocument(this.onDocumentChange, this);
   }
 
   /**
-   * Create a new ghost marker for a line
+   * Set the AST anchor manager (called after initialization)
    */
-  createMarker(
+  setASTManager(astManager: ASTAnchorManager): void {
+    this.astManager = astManager;
+  }
+
+  /**
+   * Create a new ghost marker for a line
+   * Now with AST anchor support (v2.0.5+)
+   */
+  async createMarker(
     document: vscode.TextDocument,
     line: number,
     commentIds: string[]
-  ): GhostMarker {
+  ): Promise<GhostMarker> {
     // Get line text and context
     const lineText = getLineText(document, line);
     const prevLineText = line > 1 ? getLineText(document, line - 1) : '';
@@ -52,11 +64,27 @@ export class GhostMarkerManager {
       throw new Error(`Invalid line number: ${line}`);
     }
 
+    // Try to create AST anchor if manager is available
+    let astAnchor = null;
+    if (this.astManager) {
+      try {
+        astAnchor = await this.astManager.createAnchor(document, line);
+        if (astAnchor) {
+          console.log(`[GhostMarker] Created AST anchor for line ${line}: ${astAnchor.symbolPath.join('.')}`);
+        } else {
+          console.log(`[GhostMarker] No symbol found at line ${line}, using line-based fallback`);
+        }
+      } catch (error) {
+        console.error(`[GhostMarker] Failed to create AST anchor for line ${line}:`, error);
+      }
+    }
+
     // Create ghost marker
     const marker: GhostMarker = {
       id: this.generateId(),
       line,
       commentIds,
+      astAnchor: astAnchor, // May be null for non-symbolic lines or unsupported languages
       lineHash: hashLine(lineText),
       lineText: lineText.trim(),
       prevLineText: prevLineText?.trim() || '',
@@ -77,6 +105,18 @@ export class GhostMarkerManager {
   ): void {
     const key = document.uri.toString();
 
+    // Check for duplicate marker ID (prevent double-loading from file)
+    if (!this.markers.has(key)) {
+      this.markers.set(key, []);
+    }
+
+    const existingMarkers = this.markers.get(key)!;
+    const isDuplicate = existingMarkers.some(m => m.id === marker.id);
+    if (isDuplicate) {
+      console.log(`[GhostMarkerManager] ⚠️ Skipping duplicate marker: ${marker.id} at line ${marker.line}`);
+      return;
+    }
+
     // Create decoration type (invisible, whole line)
     const decoration = vscode.window.createTextEditorDecorationType({
       isWholeLine: true,
@@ -95,10 +135,7 @@ export class GhostMarkerManager {
     };
 
     // Add to map
-    if (!this.markers.has(key)) {
-      this.markers.set(key, []);
-    }
-    this.markers.get(key)!.push(markerState);
+    existingMarkers.push(markerState);
 
     // Apply decoration if editor is open
     if (editor) {
@@ -233,20 +270,156 @@ export class GhostMarkerManager {
     const states = this.markers.get(key);
     if (!states) return [];
 
+    console.log(`[GhostMarkerManager] Verifying ${states.length} markers...`);
+
     const results: ReconciliationResult[] = [];
 
     for (const markerState of states) {
+      console.log(`[GhostMarkerManager] Verifying marker at line ${markerState.line}...`);
       const result = await this.verifyMarker(document, markerState);
+      console.log(`[GhostMarkerManager] Result: ${result.status} - ${result.reason}`);
+      if (result.oldLine && result.newLine) {
+        console.log(`[GhostMarkerManager] Marker moved: ${result.oldLine} → ${result.newLine}`);
+      }
       results.push(result);
     }
+
+    console.log(`[GhostMarkerManager] Verification complete. Results:`, results.map(r => r.status));
 
     return results;
   }
 
   /**
    * Verify a single ghost marker
+   * Uses AST resolution if available, falls back to line-based
    */
   private async verifyMarker(
+    document: vscode.TextDocument,
+    markerState: GhostMarkerState
+  ): Promise<ReconciliationResult> {
+    // Try AST-based resolution first (v2.0.5+)
+    if (markerState.astAnchor && this.astManager) {
+      const astResult = await this.verifyMarkerWithAST(document, markerState);
+      if (astResult) {
+        return astResult;
+      }
+      // AST failed, fall through to line-based verification
+      console.log(`[GhostMarker] AST verification failed for marker ${markerState.id}, falling back to line-based`);
+    }
+
+    // Line-based verification (v2.0 fallback)
+    return await this.verifyMarkerWithLine(document, markerState);
+  }
+
+  /**
+   * Verify marker using AST anchor resolution
+   */
+  private async verifyMarkerWithAST(
+    document: vscode.TextDocument,
+    markerState: GhostMarkerState
+  ): Promise<ReconciliationResult | null> {
+    if (!markerState.astAnchor || !this.astManager) {
+      return null;
+    }
+
+    try {
+      const resolution = await this.astManager.resolveAnchor(document, markerState.astAnchor);
+
+      if (resolution.confidence === 'exact' && resolution.line) {
+        // Symbol found at exact location
+        const oldLine = markerState.line;
+        const newLine = resolution.line;
+
+        if (oldLine === newLine) {
+          // Still at same line - verify hash
+          const currentLineText = getLineText(document, newLine);
+          if (currentLineText) {
+            const currentHash = hashLine(currentLineText);
+            if (currentHash === markerState.lineHash) {
+              markerState.lastVerified = new Date().toISOString();
+              return {
+                status: 'valid',
+                reason: 'ast-exact-match',
+              };
+            } else {
+              // Line moved or content changed slightly - update
+              markerState.lineHash = currentHash;
+              markerState.lineText = currentLineText.trim();
+              markerState.lastVerified = new Date().toISOString();
+              return {
+                status: 'auto-fixed',
+                reason: 'ast-content-updated',
+              };
+            }
+          }
+        } else {
+          // Symbol moved to different line - update marker
+          console.log(`[GhostMarker] AST resolved: marker moved from line ${oldLine} → ${newLine}`);
+          markerState.line = newLine;
+
+          // Update hash and context
+          const lineText = getLineText(document, newLine);
+          const prevLineText = newLine > 1 ? getLineText(document, newLine - 1) : '';
+          const nextLineText = getLineText(document, newLine + 1);
+
+          if (lineText) {
+            markerState.lineHash = hashLine(lineText);
+            markerState.lineText = lineText.trim();
+            markerState.prevLineText = prevLineText?.trim() || '';
+            markerState.nextLineText = nextLineText?.trim() || '';
+            markerState.lastVerified = new Date().toISOString();
+          }
+
+          // CRITICAL: Refresh the decoration at the new location!
+          const editor = vscode.window.activeTextEditor;
+          if (editor && editor.document === document) {
+            console.log(`[GhostMarker] Refreshing decoration at new location (line ${newLine})`);
+            this.applyDecoration(editor, markerState);
+          }
+
+          return {
+            status: 'auto-fixed',
+            reason: 'ast-symbol-moved',
+            oldLine: oldLine,
+            newLine: newLine,
+          };
+        }
+      } else if (resolution.confidence === 'moved' && resolution.line) {
+        // Symbol found but at different location (less confident)
+        return {
+          status: 'needs-review',
+          reason: 'ast-ambiguous-move',
+          suggestedLine: resolution.line,
+          marker: markerState,
+        };
+      } else if (resolution.confidence === 'ambiguous' && resolution.line) {
+        // Multiple symbols match - needs review
+        return {
+          status: 'needs-review',
+          reason: 'ast-multiple-matches',
+          suggestedLine: resolution.line,
+          marker: markerState,
+        };
+      } else {
+        // Symbol not found - may have been deleted or renamed
+        return {
+          status: 'needs-manual-fix',
+          reason: 'ast-symbol-not-found',
+          marker: markerState,
+        };
+      }
+    } catch (error) {
+      console.error(`[GhostMarker] AST verification error:`, error);
+      return null; // Fall back to line-based
+    }
+
+    return null;
+  }
+
+  /**
+   * Verify marker using line-based hash comparison (v2.0 fallback)
+   */
+  private async verifyMarkerWithLine(
     document: vscode.TextDocument,
     markerState: GhostMarkerState
   ): Promise<ReconciliationResult> {
@@ -365,11 +538,30 @@ export class GhostMarkerManager {
    * Handle document change events
    */
   private onDocumentChange(event: vscode.TextDocumentChangeEvent): void {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('[GhostMarkerManager] Document changed:', event.document.uri.fsPath);
-    console.log('  Changes:', event.contentChanges.length);
+    console.log('[GhostMarkerManager] Changes:', event.contentChanges.length);
+
+    // Log current marker positions BEFORE update
+    const key = event.document.uri.toString();
+    const states = this.markers.get(key);
+    if (states && states.length > 0) {
+      console.log('[GhostMarkerManager] Markers BEFORE update:');
+      states.forEach(m => {
+        console.log(`  - Marker ${m.id}: line ${m.line}, text: "${m.lineText}"`);
+      });
+    }
 
     // Update ghost marker line numbers based on text changes
     this.updateMarkerPositions(event);
+
+    // Log marker positions AFTER update
+    if (states && states.length > 0) {
+      console.log('[GhostMarkerManager] Markers AFTER update:');
+      states.forEach(m => {
+        console.log(`  - Marker ${m.id}: line ${m.line}, text: "${m.lineText}"`);
+      });
+    }
 
     // Debounce verification
     if (this.verificationTimer) {
@@ -377,6 +569,7 @@ export class GhostMarkerManager {
     }
 
     this.verificationTimer = setTimeout(() => {
+      console.log('[GhostMarkerManager] Running verification...');
       void this.verifyMarkers(event.document);
     }, this.verificationDelay);
   }
@@ -387,10 +580,18 @@ export class GhostMarkerManager {
   private updateMarkerPositions(event: vscode.TextDocumentChangeEvent): void {
     const key = event.document.uri.toString();
     const states = this.markers.get(key);
-    if (!states || states.length === 0) return;
+    if (!states || states.length === 0) {
+      console.log('[GhostMarkerManager] No markers to update');
+      return;
+    }
+
+    console.log('[GhostMarkerManager] Processing changes...');
 
     // Process each change
-    for (const change of event.contentChanges) {
+    for (let i = 0; i < event.contentChanges.length; i++) {
+      const change = event.contentChanges[i];
+      if (!change) continue;
+
       const startLine = change.range.start.line + 1; // Convert to 1-indexed
       const endLine = change.range.end.line + 1;
       const newText = change.text;
@@ -400,22 +601,57 @@ export class GhostMarkerManager {
       const linesAdded = newText.split('\n').length;
       const lineDelta = linesAdded - linesRemoved;
 
-      console.log(`  Change at line ${startLine}: ${linesRemoved} removed, ${linesAdded} added (delta: ${lineDelta})`);
+      console.log(`[GhostMarkerManager] Change #${i + 1}:`);
+      console.log(`  Range: line ${startLine}-${endLine} (${linesRemoved} lines)`);
+      console.log(`  New text: ${linesAdded} lines`);
+      console.log(`  Delta: ${lineDelta > 0 ? '+' : ''}${lineDelta}`);
+      console.log(`  Text preview: "${newText.substring(0, 50)}${newText.length > 50 ? '...' : ''}"`);
 
       // Update markers that come after this change
+      let markersShifted = 0;
+      let markersNeedingVerification = false;
+
       for (const markerState of states) {
         if (markerState.line > endLine) {
           // Marker is after the change - shift it
           const oldLine = markerState.line;
           markerState.line += lineDelta;
-          console.log(`    Shifted marker from line ${oldLine} to ${markerState.line}`);
+          console.log(`  ✓ Shifted marker "${markerState.lineText.substring(0, 30)}..." from line ${oldLine} → ${markerState.line}`);
+          markersShifted++;
+        } else if (markerState.line >= startLine && markerState.line <= endLine) {
+          // Marker is INSIDE the changed range - this is the problem case!
+          console.log(`  ⚠️ WARNING: Marker at line ${markerState.line} is INSIDE change range ${startLine}-${endLine}!`);
+          console.log(`     Marker text: "${markerState.lineText}"`);
+          console.log(`     This marker needs IMMEDIATE AST resolution!`);
+          markersNeedingVerification = true;
         }
+      }
+
+      if (markersShifted === 0) {
+        console.log(`  No markers shifted (all before line ${endLine})`);
+      }
+
+      // If markers are in the change range, trigger priority verification
+      if (markersNeedingVerification) {
+        console.log('[GhostMarkerManager] 🚨 Markers in deleted range - triggering PRIORITY verification!');
+        void vscode.window.showInformationMessage('🚨 Ghost marker in deleted range - running AST verification...');
+        // Clear any pending verification
+        if (this.verificationTimer) {
+          clearTimeout(this.verificationTimer);
+        }
+        // Run verification after a short delay (100ms) to let document settle, but faster than normal debounce
+        this.verificationTimer = setTimeout(() => {
+          console.log('[GhostMarkerManager] Running priority verification after document settled...');
+          void this.verifyMarkers(event.document);
+        }, 100);
+        return; // Skip the normal debounced verification
       }
     }
 
     // Refresh decorations
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.document.uri.toString() === key) {
+      console.log('[GhostMarkerManager] Refreshing decorations...');
       this.refreshDecorations(editor);
     }
   }
