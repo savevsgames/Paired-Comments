@@ -365,6 +365,12 @@ export class GhostMarkerManager {
    * Handle document change events
    */
   private onDocumentChange(event: vscode.TextDocumentChangeEvent): void {
+    console.log('[GhostMarkerManager] Document changed:', event.document.uri.fsPath);
+    console.log('  Changes:', event.contentChanges.length);
+
+    // Update ghost marker line numbers based on text changes
+    this.updateMarkerPositions(event);
+
     // Debounce verification
     if (this.verificationTimer) {
       clearTimeout(this.verificationTimer);
@@ -373,6 +379,45 @@ export class GhostMarkerManager {
     this.verificationTimer = setTimeout(() => {
       void this.verifyMarkers(event.document);
     }, this.verificationDelay);
+  }
+
+  /**
+   * Update ghost marker positions based on document changes
+   */
+  private updateMarkerPositions(event: vscode.TextDocumentChangeEvent): void {
+    const key = event.document.uri.toString();
+    const states = this.markers.get(key);
+    if (!states || states.length === 0) return;
+
+    // Process each change
+    for (const change of event.contentChanges) {
+      const startLine = change.range.start.line + 1; // Convert to 1-indexed
+      const endLine = change.range.end.line + 1;
+      const newText = change.text;
+
+      // Count lines added/removed
+      const linesRemoved = endLine - startLine + 1;
+      const linesAdded = newText.split('\n').length;
+      const lineDelta = linesAdded - linesRemoved;
+
+      console.log(`  Change at line ${startLine}: ${linesRemoved} removed, ${linesAdded} added (delta: ${lineDelta})`);
+
+      // Update markers that come after this change
+      for (const markerState of states) {
+        if (markerState.line > endLine) {
+          // Marker is after the change - shift it
+          const oldLine = markerState.line;
+          markerState.line += lineDelta;
+          console.log(`    Shifted marker from line ${oldLine} to ${markerState.line}`);
+        }
+      }
+    }
+
+    // Refresh decorations
+    const editor = vscode.window.activeTextEditor;
+    if (editor && editor.document.uri.toString() === key) {
+      this.refreshDecorations(editor);
+    }
   }
 
   /**

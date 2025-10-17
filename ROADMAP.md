@@ -124,13 +124,210 @@ Ghost Markers solve the **fundamental problem of comment drift** - when line num
 
 ---
 
+### ⚡ Phase 2.0.5: AST-Based Anchoring (DECISION POINT)
+
+**Target:** Q4 2025 / Q1 2026 (After v2.0 testing)
+**Status:** Conditional - Deploy if line-based tracking proves unreliable
+**Documentation:** TBD (will create if needed)
+
+#### ⚠️ CRITICAL DECISION POINT
+
+**After v2.0 testing, we must answer:**
+> "Is line-based ghost marker tracking reliable enough for production use?"
+
+**If YES (>95% success rate):**
+- ✅ Ship v2.0 as-is
+- ✅ Proceed to v2.1 (Params + AI Metadata)
+- ✅ Add AST anchoring in v2.5 (nice-to-have enhancement)
+
+**If NO (<95% success rate, frequent drift issues):**
+- ❌ Skip v2.0 public release
+- ⚡ **PIVOT to AST-first approach** (this phase)
+- ✅ Build params/output on solid AST foundation
+
+#### Why This Matters
+
+**Your quote:** "If we're wasting time troubleshooting our inferior solution, it could be worth doing sooner."
+
+**Exactly right.** AST anchoring is **THE foundation** everything else builds on:
+- ❌ **Without reliable tracking:** Params lose their targets, outputs drift, users lose trust
+- ✅ **With AST tracking:** Survives 95%+ of refactorings, comments track code semantically
+
+**Strategic decision:** Don't build a house on sand. If line-based tracking is flaky, fix the foundation FIRST.
+
+#### Features (AST-Based Ghost Markers)
+
+- **Hybrid Anchoring System**
+  - AST anchoring for JavaScript/TypeScript (uses VS Code's built-in Symbol Provider)
+  - Line-based fallback for other languages (Python, Go, etc. via Language Servers)
+  - Automatic detection and graceful degradation
+
+- **Structural Tracking**
+  ```typescript
+  // Instead of: "line 42, hash abc123..."
+  astAnchor: {
+    path: "Program > FunctionDeclaration[processPayment] > IfStatement",
+    nodeType: "IfStatement",
+    nodeIdentifier: "total > 1000",
+    offset: 1250,  // Character offset for fast lookup
+    fallbackLine: 42  // Still keep line as last resort
+  }
+  ```
+
+- **Survives Major Refactoring**
+  - Function renamed → AST path updates automatically ("processPayment" → "handlePayment")
+  - Function moved 100+ lines → Doesn't matter, tracks AST node
+  - Code reformatted → AST structure unchanged
+  - Function moved to different file → Can track with file+path combo
+
+- **VS Code Integration (Zero Dependencies)**
+  - Uses `vscode.executeDocumentSymbolProvider` (already loaded!)
+  - Works with TypeScript, JavaScript, Python, Go, Rust, Java, C++ (via Language Servers)
+  - Piggybacks on existing infrastructure
+  - No new parsing libraries needed
+
+#### Technical Implementation
+
+```typescript
+// src/core/ASTAnchorManager.ts
+export class ASTAnchorManager {
+  /**
+   * Get AST anchor for a line (JS/TS only for v2.0.5)
+   */
+  async getASTAnchor(
+    document: vscode.TextDocument,
+    line: number
+  ): Promise<ASTAnchor | null> {
+    // Check if supported language
+    const supported = ['javascript', 'typescript', 'javascriptreact', 'typescriptreact'];
+    if (!supported.includes(document.languageId)) {
+      return null; // Fallback to line-based
+    }
+
+    // Use VS Code's Document Symbol Provider (free!)
+    const symbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
+      'vscode.executeDocumentSymbolProvider',
+      document.uri
+    );
+
+    // Find symbol at this line
+    const symbol = this.findSymbolAtLine(symbols, line);
+    if (!symbol) return null;
+
+    return {
+      path: this.buildSymbolPath(symbol),  // "Class[UserManager] > Method[addUser]"
+      nodeType: vscode.SymbolKind[symbol.kind],
+      nodeIdentifier: symbol.name,
+      offset: document.offsetAt(symbol.range.start)
+    };
+  }
+
+  /**
+   * Resolve AST anchor back to current line number
+   */
+  async resolveASTAnchor(
+    document: vscode.TextDocument,
+    anchor: ASTAnchor
+  ): Promise<number | null> {
+    const symbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
+      'vscode.executeDocumentSymbolProvider',
+      document.uri
+    );
+
+    // Search for matching symbol by path
+    const symbol = this.findSymbolByPath(symbols, anchor.path);
+    if (!symbol) {
+      // Fallback to line-based if AST fails
+      return anchor.fallbackLine;
+    }
+
+    return symbol.range.start.line + 1;  // Found it!
+  }
+}
+```
+
+#### Implementation Timeline (2 weeks if needed)
+
+**Week 1: Core AST Integration**
+- Day 1-2: ASTAnchorManager implementation
+- Day 3-4: Hybrid GhostMarker (AST + line fallback)
+- Day 5: Integration with existing GhostMarkerManager
+
+**Week 2: Testing & Migration**
+- Day 6-7: Test refactoring scenarios (rename, move, reformat)
+- Day 8-9: Migration from v2.0 line-based format
+- Day 10: Documentation and polish
+
+#### Success Metrics
+
+- ✅ Ghost markers survive 95%+ of refactorings (vs. ~70% with line-based)
+- ✅ Function rename tracking works in <100ms
+- ✅ Zero false positives on AST-based reconciliation
+- ✅ Graceful fallback when AST unavailable (syntax errors, unsupported languages)
+- ✅ No new dependencies (uses VS Code's existing parsers)
+
+#### Microsoft Acquisition Demo Value 🎯
+
+**Demo Script:**
+1. Add comment to `processPayment` function
+2. **Rename function** to `handlePayment` → Comment follows automatically
+3. **Move function** 200 lines down → Comment still tracks it
+4. **Refactor into class method** → AST path updates to "Class[PaymentProcessor] > Method[handle]"
+5. **Microsoft's reaction:** 😮 "Wait, how did you do that?!"
+
+**This is the feature that makes them lean forward and say "we need this."**
+
+#### File Format v2.0.5
+
+```json
+{
+  "version": "2.0.5",
+  "ghostMarkers": [
+    {
+      "id": "gm-abc123",
+      "line": 42,  // Still keep for backwards compat
+      "lineHash": "...",  // Still keep for quick validation
+
+      // NEW: AST Anchoring (optional, JS/TS only initially)
+      "astAnchor": {
+        "path": "Program > FunctionDeclaration[processPayment] > IfStatement",
+        "nodeType": "IfStatement",
+        "nodeIdentifier": "total > 1000",
+        "offset": 1250,
+        "language": "javascript"
+      },
+
+      // Context for fallback
+      "lineText": "if (total > 1000) {",
+      "prevLineText": "...",
+      "nextLineText": "...",
+      "lastVerified": "..."
+    }
+  ]
+}
+```
+
+#### Rollback Plan
+
+If AST anchoring has issues:
+- ✅ Hybrid design means line-based fallback always works
+- ✅ Can disable AST per-language via config
+- ✅ Can rollback to pure line-based in 1 line of code:
+  ```typescript
+  const USE_AST = false;  // Emergency killswitch
+  ```
+
+---
+
 ### 🤖 Phase 2.1: AI Metadata & Params System (v2.1) - NEXT
 
-**Target:** Q1 2026 (Post v2.0)
+**Target:** Q1 2026 (Post v2.0 or v2.0.5)
 **Documentation:** [docs/features/params-and-hash-tree.md](docs/features/params-and-hash-tree.md)
 
 #### Why This Matters
-Extends Ghost Markers with **dynamic parameters** and **AI metadata**, transforming Paired Comments into a powerful platform for AI-assisted development, code analysis, and training data curation. This enables comments to auto-update with code changes and provides structured metadata for ML workflows.
+Extends Ghost Markers (line-based OR AST-based) with **dynamic parameters** and **AI metadata**, transforming Paired Comments into a powerful platform for AI-assisted development, code analysis, and training data curation. This enables comments to auto-update with code changes and provides structured metadata for ML workflows.
+
+**Note:** If v2.0.5 (AST anchoring) ships first, params will build on AST paths for more reliable tracking.
 
 #### Features
 - **Dynamic Parameters (`params`)**

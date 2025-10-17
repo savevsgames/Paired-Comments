@@ -41,20 +41,33 @@ export class FileSystemManager {
   async readCommentFile(sourceUri: vscode.Uri): Promise<CommentFile | null> {
     const commentUri = this.getCommentFileUri(sourceUri);
 
+    // DEBUG: Log the paths we're using
+    console.log('[FileSystemManager] Reading .comments file:');
+    console.log('  Source URI:', sourceUri.fsPath);
+    console.log('  Comment URI:', commentUri.fsPath);
+
     try {
       const fileData = await vscode.workspace.fs.readFile(commentUri);
       const text = Buffer.from(fileData).toString('utf8');
       const data = JSON.parse(text) as unknown;
 
       if (!this.validateCommentFile(data)) {
+        console.error('[FileSystemManager] Validation failed for:', commentUri.fsPath);
         throw new Error('Invalid comment file schema');
       }
+
+      console.log('[FileSystemManager] Successfully loaded .comments file');
+      console.log('  Version:', (data as CommentFile).version);
+      console.log('  Comments:', (data as CommentFile).comments.length);
+      console.log('  Ghost Markers:', (data as CommentFile).ghostMarkers?.length || 0);
 
       return data;
     } catch (error) {
       if ((error as { code?: string }).code === 'FileNotFound') {
+        console.log('[FileSystemManager] .comments file not found, will create empty');
         return null;
       }
+      console.error('[FileSystemManager] Error reading .comments file:', error);
       throw error;
     }
   }

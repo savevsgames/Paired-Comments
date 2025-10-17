@@ -214,6 +214,7 @@ export class DecorationManager {
 
     // Create hover message showing all comments on this marker
     const hoverMessage = new vscode.MarkdownString();
+    hoverMessage.isTrusted = true; // Enable command URIs
 
     // Header with count
     const commentCount = marker.commentIds.length;
@@ -241,6 +242,12 @@ export class DecorationManager {
       hoverMessage.appendMarkdown(`\n\n*${new Date(comment.created).toLocaleString()}*`);
     }
 
+    // Add clickable action link at the bottom
+    const commandUri = vscode.Uri.parse(
+      `command:pairedComments.openAndNavigate?${encodeURIComponent(JSON.stringify([document.uri.toString(), marker.line]))}`
+    );
+    hoverMessage.appendMarkdown(`\n\n---\n\n[$(open-preview) Open Comments File](${commandUri})`);
+
     return {
       range,
       hoverMessage
@@ -266,9 +273,16 @@ export class DecorationManager {
     // Create hover message
     const tagLabel = comment.tag ? `[${comment.tag}] ` : '';
     const hoverMessage = new vscode.MarkdownString();
+    hoverMessage.isTrusted = true; // Enable command URIs
     hoverMessage.appendMarkdown(`**${tagLabel}Comment by ${comment.author}**\n\n`);
     hoverMessage.appendMarkdown(comment.text);
     hoverMessage.appendMarkdown(`\n\n*Created: ${new Date(comment.created).toLocaleString()}*`);
+
+    // Add clickable action link at the bottom
+    const commandUri = vscode.Uri.parse(
+      `command:pairedComments.openAndNavigate?${encodeURIComponent(JSON.stringify([document.uri.toString(), comment.line]))}`
+    );
+    hoverMessage.appendMarkdown(`\n\n---\n\n[$(open-preview) Open Comments File](${commandUri})`);
 
     return {
       range,

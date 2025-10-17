@@ -8,22 +8,40 @@ export class ScrollSyncManager {
   private syncEnabled: Map<string, boolean> = new Map();
   private scrollListeners: Map<string, vscode.Disposable[]> = new Map();
 
+  // Prevent feedback loop: when we're programmatically scrolling, ignore scroll events
+  private isScrolling: boolean = false;
+
   /**
    * Synchronize scroll position between two editors
    */
   syncScroll(sourceEditor: vscode.TextEditor, targetEditor: vscode.TextEditor): void {
+    // Prevent feedback loop
+    if (this.isScrolling) {
+      return;
+    }
+
     const sourceRange = sourceEditor.visibleRanges[0];
     if (!sourceRange) {
       return;
     }
 
-    // Calculate the percentage of scroll in the source editor
-    const sourceFirstLine = sourceRange.start.line;
-    const targetPosition = new vscode.Position(sourceFirstLine, 0);
-    const targetRange = new vscode.Range(targetPosition, targetPosition);
+    // Set flag to prevent recursive scrolling
+    this.isScrolling = true;
 
-    // Scroll target editor to match
-    targetEditor.revealRange(targetRange, vscode.TextEditorRevealType.AtTop);
+    try {
+      // Calculate the percentage of scroll in the source editor
+      const sourceFirstLine = sourceRange.start.line;
+      const targetPosition = new vscode.Position(sourceFirstLine, 0);
+      const targetRange = new vscode.Range(targetPosition, targetPosition);
+
+      // Scroll target editor to match
+      targetEditor.revealRange(targetRange, vscode.TextEditorRevealType.AtTop);
+    } finally {
+      // Reset flag after a small delay to allow scroll event to complete
+      setTimeout(() => {
+        this.isScrolling = false;
+      }, 50);
+    }
   }
 
   /**

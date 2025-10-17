@@ -281,6 +281,13 @@ async function openAndNavigateToComment(
     // Open the paired view
     await deps.pairedViewManager.openPairedView(sourceUri);
 
+    // Get session for sync control
+    const session = deps.pairedViewManager.getSession(sourceUri);
+    if (!session) {
+      void vscode.window.showErrorMessage('Failed to get paired view session');
+      return;
+    }
+
     // Get the comments editor
     const commentsEditor = deps.pairedViewManager.getCommentsEditor(sourceUri);
     if (!commentsEditor) {
@@ -303,38 +310,57 @@ async function openAndNavigateToComment(
       return;
     }
 
-    const commentIndex = commentFile.comments.findIndex(c => c.id === firstComment.id);
+    // Search for the comment ID in the JSON file
+    const commentText = await vscode.workspace.fs.readFile(commentsEditor.document.uri);
+    const commentJsonText = Buffer.from(commentText).toString('utf8');
+    const lines = commentJsonText.split('\n');
 
-    // Calculate approximate line in .comments file
-    // JSON structure: header (3 lines) + 1 line per comment opener + content
-    const approxLine = 3 + (commentIndex * 7); // Rough estimate based on JSON formatting
+    // Find the line with this comment's ID
+    let targetLine = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i]?.includes(`"id": "${firstComment.id}"`)) {
+        targetLine = i;
+        break;
+      }
+    }
+
+    // DISABLE AUTO-SCROLL while user is viewing the comment JSON
+    session.syncEnabled = false;
+    console.log('[OpenAndNavigate] Disabled auto-scroll for comment navigation');
 
     // Navigate to that line in the comments editor
-    const position = new vscode.Position(approxLine, 0);
+    const position = new vscode.Position(targetLine, 0);
     commentsEditor.selection = new vscode.Selection(position, position);
     commentsEditor.revealRange(
       new vscode.Range(position, position),
       vscode.TextEditorRevealType.InCenter
     );
 
-    // Focus the comments editor
+    // Focus the comments editor (user is now viewing JSON)
     await vscode.window.showTextDocument(commentsEditor.document, {
       viewColumn: commentsEditor.viewColumn,
       preserveFocus: false
     });
 
-    // Also navigate in the source editor
-    const sourceEditor = vscode.window.visibleTextEditors.find(
-      e => e.document.uri.toString() === sourceUri.toString()
-    );
-    if (sourceEditor) {
-      const sourcePosition = new vscode.Position(sourceLine - 1, 0);
-      sourceEditor.selection = new vscode.Selection(sourcePosition, sourcePosition);
-      sourceEditor.revealRange(
-        new vscode.Range(sourcePosition, sourcePosition),
-        vscode.TextEditorRevealType.InCenter
-      );
-    }
+    // Set up listener to RE-ENABLE auto-scroll when user returns to source file
+    const disposable = vscode.window.onDidChangeActiveTextEditor(editor => {
+      if (editor && editor.document.uri.toString() === sourceUri.toString()) {
+        // User switched back to source file - re-enable auto-scroll
+        session.syncEnabled = true;
+        console.log('[OpenAndNavigate] Re-enabled auto-scroll (user returned to source)');
+        disposable.dispose(); // Clean up this listener
+      }
+    });
+
+    // Also clean up after 30 seconds (safety timeout)
+    setTimeout(() => {
+      if (!session.syncEnabled) {
+        session.syncEnabled = true;
+        console.log('[OpenAndNavigate] Re-enabled auto-scroll (timeout)');
+      }
+      disposable.dispose();
+    }, 30000);
+
   } catch (error) {
     void vscode.window.showErrorMessage(`Failed to open and navigate: ${String(error)}`);
   }
