@@ -1,9 +1,11 @@
 /**
  * Main extension entry point for Paired Comments
+ * Now with ghost marker support! 👻
  */
 
 import * as vscode from 'vscode';
 import { CommentManager } from './core/CommentManager';
+import { GhostMarkerManager } from './core/GhostMarkerManager';
 import { PairedViewManager } from './ui/PairedViewManager';
 import { ScrollSyncManager } from './ui/ScrollSyncManager';
 import { DecorationManager } from './ui/DecorationManager';
@@ -24,7 +26,8 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Initialize core managers
   const fileSystemManager = new FileSystemManager();
-  const commentManager = new CommentManager(fileSystemManager);
+  const ghostMarkerManager = new GhostMarkerManager();
+  const commentManager = new CommentManager(fileSystemManager, ghostMarkerManager);
   const decorationManager = new DecorationManager(context);
   const scrollSyncManager = new ScrollSyncManager();
   const pairedViewManager = new PairedViewManager(
@@ -35,6 +38,11 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Wire up decoration manager with comment manager
   decorationManager.setCommentManager(commentManager);
+
+  // Register ghost marker manager for disposal
+  context.subscriptions.push({
+    dispose: () => ghostMarkerManager.dispose()
+  });
 
   // Register CodeLens provider for clickable comment indicators
   const codeLensProvider = new CommentCodeLensProvider(commentManager);

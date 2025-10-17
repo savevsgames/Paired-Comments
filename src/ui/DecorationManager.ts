@@ -1,10 +1,11 @@
 /**
  * DecorationManager - Manages gutter icons and hover previews for commented lines
+ * Now with ghost marker support for automatic line tracking! 👻
  */
 
 import * as vscode from 'vscode';
 import { CommentManager } from '../core/CommentManager';
-import { Comment, CommentTag, TAG_COLORS } from '../types';
+import { Comment, CommentTag, TAG_COLORS, GhostMarker } from '../types';
 
 export class DecorationManager {
   private decorationTypes: Map<string, vscode.TextEditorDecorationType> = new Map();
@@ -33,8 +34,8 @@ export class DecorationManager {
       overviewRulerLane: vscode.OverviewRulerLane.Left,
     }));
 
-    // Tag-specific decorations
-    const tags: Array<NonNullable<CommentTag>> = ['TODO', 'FIXME', 'NOTE', 'QUESTION', 'HACK', 'WARNING'];
+    // Tag-specific decorations (now includes STAR)
+    const tags: Array<NonNullable<CommentTag>> = ['TODO', 'FIXME', 'NOTE', 'QUESTION', 'HACK', 'WARNING', 'STAR'];
     for (const tag of tags) {
       const color = TAG_COLORS[tag];
       this.decorationTypes.set(tag, vscode.window.createTextEditorDecorationType({
@@ -64,6 +65,7 @@ export class DecorationManager {
 
   /**
    * Update decorations for an editor
+   * Now uses ghost markers for automatic line tracking
    */
   async updateDecorations(editor: vscode.TextEditor): Promise<void> {
     if (!this.commentManager) {
@@ -74,33 +76,175 @@ export class DecorationManager {
       // Load comments for this file
       const commentFile = await this.commentManager.loadComments(editor.document.uri);
 
-      // Group comments by tag
-      const commentsByTag = new Map<string, Comment[]>();
-
-      for (const comment of commentFile.comments) {
-        const tag = comment.tag || 'default';
-        if (!commentsByTag.has(tag)) {
-          commentsByTag.set(tag, []);
-        }
-        commentsByTag.get(tag)!.push(comment);
-      }
-
       // Clear all existing decorations
       for (const decorationType of this.decorationTypes.values()) {
         editor.setDecorations(decorationType, []);
       }
 
-      // Apply decorations for each tag group
-      for (const [tag, comments] of commentsByTag.entries()) {
-        const decorationType = this.decorationTypes.get(tag);
-        if (!decorationType) continue;
-
-        const decorations = comments.map(comment => this.createDecoration(comment, editor.document));
-        editor.setDecorations(decorationType, decorations);
+      // If ghost markers exist, use them (v2.0+)
+      if (commentFile.ghostMarkers && commentFile.ghostMarkers.length > 0) {
+        this.applyGhostMarkerDecorations(editor, commentFile.ghostMarkers, commentFile.comments);
+      } else {
+        // Fallback to legacy decoration mode (v1.0)
+        this.applyLegacyDecorations(editor, commentFile.comments);
       }
     } catch (error) {
       console.error('Failed to update decorations:', error);
     }
+  }
+
+  /**
+   * Apply decorations using ghost markers (v2.0+)
+   * One decoration per ghost marker, not per comment
+   */
+  private applyGhostMarkerDecorations(
+    editor: vscode.TextEditor,
+    ghostMarkers: GhostMarker[],
+    comments: Comment[]
+  ): void {
+    // Create a map of comment ID -> comment for fast lookup
+    const commentMap = new Map<string, Comment>();
+    for (const comment of comments) {
+      commentMap.set(comment.id, comment);
+    }
+
+    // Group ghost markers by tag (use highest priority tag for multi-comment markers)
+    const markersByTag = new Map<string, GhostMarker[]>();
+
+    for (const marker of ghostMarkers) {
+      // Determine the tag for this marker
+      const tag = this.getMarkerTag(marker, commentMap);
+      if (!markersByTag.has(tag)) {
+        markersByTag.set(tag, []);
+      }
+      markersByTag.get(tag)!.push(marker);
+    }
+
+    // Apply decorations for each tag group
+    for (const [tag, markers] of markersByTag.entries()) {
+      const decorationType = this.decorationTypes.get(tag);
+      if (!decorationType) continue;
+
+      const decorations = markers.map(marker =>
+        this.createMarkerDecoration(marker, commentMap, editor.document)
+      );
+      editor.setDecorations(decorationType, decorations);
+    }
+  }
+
+  /**
+   * Apply decorations using legacy mode (v1.0 - no ghost markers)
+   */
+  private applyLegacyDecorations(editor: vscode.TextEditor, comments: Comment[]): void {
+    // Group comments by tag
+    const commentsByTag = new Map<string, Comment[]>();
+
+    for (const comment of comments) {
+      const tag = comment.tag || 'default';
+      if (!commentsByTag.has(tag)) {
+        commentsByTag.set(tag, []);
+      }
+      commentsByTag.get(tag)!.push(comment);
+    }
+
+    // Apply decorations for each tag group
+    for (const [tag, comments] of commentsByTag.entries()) {
+      const decorationType = this.decorationTypes.get(tag);
+      if (!decorationType) continue;
+
+      const decorations = comments.map(comment => this.createDecoration(comment, editor.document));
+      editor.setDecorations(decorationType, decorations);
+    }
+  }
+
+  /**
+   * Get the display tag for a ghost marker
+   * Uses highest priority tag if multiple comments
+   */
+  private getMarkerTag(marker: GhostMarker, commentMap: Map<string, Comment>): string {
+    const tagPriority: Record<string, number> = {
+      'FIXME': 1,
+      'WARNING': 2,
+      'TODO': 3,
+      'STAR': 4,
+      'QUESTION': 5,
+      'HACK': 6,
+      'NOTE': 7,
+      'default': 8
+    };
+
+    let highestPriorityTag = 'default';
+    let highestPriority = 999;
+
+    for (const commentId of marker.commentIds) {
+      const comment = commentMap.get(commentId);
+      if (!comment) continue;
+
+      const tag = comment.tag || 'default';
+      const priority = tagPriority[tag] ?? 999;
+
+      if (priority < highestPriority) {
+        highestPriority = priority;
+        highestPriorityTag = tag;
+      }
+    }
+
+    return highestPriorityTag;
+  }
+
+  /**
+   * Create a decoration for a ghost marker
+   */
+  private createMarkerDecoration(
+    marker: GhostMarker,
+    commentMap: Map<string, Comment>,
+    document: vscode.TextDocument
+  ): vscode.DecorationOptions {
+    const line = marker.line - 1; // Convert to 0-indexed
+
+    // Validate line number
+    if (line < 0 || line >= document.lineCount) {
+      return {
+        range: new vscode.Range(0, 0, 0, 0),
+        hoverMessage: 'Invalid line number'
+      };
+    }
+
+    const range = document.lineAt(line).range;
+
+    // Create hover message showing all comments on this marker
+    const hoverMessage = new vscode.MarkdownString();
+
+    // Header with count
+    const commentCount = marker.commentIds.length;
+    if (commentCount === 1) {
+      hoverMessage.appendMarkdown(`**Comment**\n\n`);
+    } else {
+      hoverMessage.appendMarkdown(`**${commentCount} Comments**\n\n`);
+    }
+
+    // Add each comment
+    for (let i = 0; i < marker.commentIds.length; i++) {
+      const commentId = marker.commentIds[i];
+      if (!commentId) continue;
+
+      const comment = commentMap.get(commentId);
+      if (!comment) continue;
+
+      if (i > 0) {
+        hoverMessage.appendMarkdown(`\n\n---\n\n`);
+      }
+
+      const tagLabel = comment.tag ? `[${comment.tag}] ` : '';
+      hoverMessage.appendMarkdown(`**${tagLabel}${comment.author}**\n\n`);
+      hoverMessage.appendMarkdown(comment.text);
+      hoverMessage.appendMarkdown(`\n\n*${new Date(comment.created).toLocaleString()}*`);
+    }
+
+    return {
+      range,
+      hoverMessage
+    };
   }
 
   /**

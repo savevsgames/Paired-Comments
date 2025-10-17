@@ -1,9 +1,10 @@
 /**
  * FileSystemManager - Handles file I/O for .comments files
+ * Supports both v1.0 (basic comments) and v2.0 (with ghost markers)
  */
 
 import * as vscode from 'vscode';
-import { CommentFile, COMMENT_FILE_EXTENSION } from '../types';
+import { CommentFile, COMMENT_FILE_EXTENSION, COMMENT_FILE_VERSION } from '../types';
 
 export class FileSystemManager {
   /**
@@ -81,7 +82,8 @@ export class FileSystemManager {
 
     const commentFile: CommentFile = {
       file: relativePath,
-      version: '1.0',
+      version: COMMENT_FILE_VERSION, // Use current version (now 2.0 with ghost markers)
+      ghostMarkers: [], // Initialize empty ghost markers array
       comments: []
     };
 
@@ -91,6 +93,7 @@ export class FileSystemManager {
 
   /**
    * Validate comment file schema
+   * Supports both v1.0 (basic) and v2.0 (with ghost markers)
    */
   validateCommentFile(data: unknown): data is CommentFile {
     if (!data || typeof data !== 'object') {
@@ -104,6 +107,25 @@ export class FileSystemManager {
     if (typeof obj['version'] !== 'string') return false;
     if (!Array.isArray(obj['comments'])) return false;
 
+    // Validate ghost markers (optional, only in v2.0+)
+    if (obj['ghostMarkers'] !== undefined) {
+      if (!Array.isArray(obj['ghostMarkers'])) return false;
+
+      for (const marker of obj['ghostMarkers']) {
+        if (!marker || typeof marker !== 'object') return false;
+        const m = marker as Record<string, unknown>;
+
+        if (typeof m['id'] !== 'string') return false;
+        if (typeof m['line'] !== 'number') return false;
+        if (!Array.isArray(m['commentIds'])) return false;
+        if (typeof m['lineHash'] !== 'string') return false;
+        if (typeof m['lineText'] !== 'string') return false;
+        if (typeof m['prevLineText'] !== 'string') return false;
+        if (typeof m['nextLineText'] !== 'string') return false;
+        if (typeof m['lastVerified'] !== 'string') return false;
+      }
+    }
+
     // Validate each comment
     for (const comment of obj['comments']) {
       if (!comment || typeof comment !== 'object') return false;
@@ -115,6 +137,7 @@ export class FileSystemManager {
       if (typeof c['author'] !== 'string') return false;
       if (typeof c['created'] !== 'string') return false;
       if (typeof c['updated'] !== 'string') return false;
+      // ghostMarkerId is optional (only in v2.0+)
     }
 
     return true;
