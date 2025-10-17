@@ -1,15 +1,31 @@
 /**
  * CommentManager - Handles CRUD operations for comments
+ * Now with ghost marker support for automatic line tracking! 👻
  */
 
 import * as vscode from 'vscode';
 import { Comment, CommentFile, AddCommentOptions, UpdateCommentOptions, detectTag } from '../types';
 import { FileSystemManager } from '../io/FileSystemManager';
+import { GhostMarkerManager } from './GhostMarkerManager';
 
 export class CommentManager {
   private cache: Map<string, CommentFile> = new Map();
+  private ghostMarkerManager: GhostMarkerManager | null = null;
 
-  constructor(private fileSystemManager: FileSystemManager) {}
+  constructor(
+    private fileSystemManager: FileSystemManager,
+    ghostMarkerManager?: GhostMarkerManager
+  ) {
+    // Ghost markers are optional for backwards compatibility
+    this.ghostMarkerManager = ghostMarkerManager || null;
+  }
+
+  /**
+   * Enable ghost markers (call this after construction if needed)
+   */
+  enableGhostMarkers(ghostMarkerManager: GhostMarkerManager): void {
+    this.ghostMarkerManager = ghostMarkerManager;
+  }
 
   /**
    * Load comments for a source file
@@ -31,9 +47,41 @@ export class CommentManager {
       commentFile = await this.fileSystemManager.createEmptyCommentFile(sourceUri);
     }
 
+    // Restore ghost markers if they exist
+    if (this.ghostMarkerManager && commentFile.ghostMarkers) {
+      await this.restoreGhostMarkers(sourceUri, commentFile);
+    }
+
     // Cache and return
     this.cache.set(key, commentFile);
     return commentFile;
+  }
+
+  /**
+   * Restore ghost markers from comment file
+   */
+  private async restoreGhostMarkers(sourceUri: vscode.Uri, commentFile: CommentFile): Promise<void> {
+    if (!this.ghostMarkerManager || !commentFile.ghostMarkers) {
+      return;
+    }
+
+    const document = await vscode.workspace.openTextDocument(sourceUri);
+    const editor = vscode.window.visibleTextEditors.find(e => e.document.uri.toString() === sourceUri.toString());
+
+    for (const marker of commentFile.ghostMarkers) {
+      // Re-add marker to tracking
+      this.ghostMarkerManager.addMarker(document, marker, editor);
+    }
+
+    // Verify all markers (check for drift)
+    const results = await this.ghostMarkerManager.verifyMarkers(document);
+
+    // Log any drift detected (for now just console, later we'll show UI)
+    for (const result of results) {
+      if (result.status !== 'valid') {
+        console.log(`[GhostMarker] Drift detected:`, result);
+      }
+    }
   }
 
   /**
@@ -57,6 +105,33 @@ export class CommentManager {
     const author = options.author || this.getDefaultAuthor();
     const tag = detectTag(options.text);
 
+    // Create or find ghost marker for this line
+    let ghostMarkerId: string | undefined;
+    if (this.ghostMarkerManager) {
+      const document = await vscode.workspace.openTextDocument(sourceUri);
+      const editor = vscode.window.activeTextEditor;
+
+      // Check if a ghost marker already exists at this line
+      let existingMarker = this.ghostMarkerManager.getMarkerAtLine(sourceUri, options.line);
+
+      if (existingMarker) {
+        // Add comment to existing marker
+        existingMarker.commentIds.push(id);
+        ghostMarkerId = existingMarker.id;
+      } else {
+        // Create new ghost marker
+        const marker = this.ghostMarkerManager.createMarker(document, options.line, [id]);
+        this.ghostMarkerManager.addMarker(document, marker, editor);
+        ghostMarkerId = marker.id;
+
+        // Add marker to comment file
+        if (!commentFile.ghostMarkers) {
+          commentFile.ghostMarkers = [];
+        }
+        commentFile.ghostMarkers.push(marker);
+      }
+    }
+
     const newComment: Comment = {
       id,
       line: options.line,
@@ -64,7 +139,8 @@ export class CommentManager {
       author,
       created: now,
       updated: now,
-      tag: tag
+      tag: tag,
+      ghostMarkerId: ghostMarkerId
     };
 
     // Add to comments array
@@ -108,6 +184,32 @@ export class CommentManager {
       throw new Error(`Comment with ID ${commentId} not found`);
     }
 
+    const comment = commentFile.comments[index];
+    if (!comment) {
+      throw new Error(`Comment at index ${index} not found`);
+    }
+
+    // Remove comment from ghost marker
+    if (this.ghostMarkerManager && comment.ghostMarkerId) {
+      const marker = this.ghostMarkerManager.getMarkerById(sourceUri, comment.ghostMarkerId);
+
+      if (marker) {
+        // Remove comment ID from marker
+        marker.commentIds = marker.commentIds.filter(id => id !== commentId);
+
+        // If marker has no more comments, remove it entirely
+        if (marker.commentIds.length === 0) {
+          this.ghostMarkerManager.removeMarker(sourceUri, marker.id);
+
+          // Remove from comment file too
+          if (commentFile.ghostMarkers) {
+            commentFile.ghostMarkers = commentFile.ghostMarkers.filter(m => m.id !== marker.id);
+          }
+        }
+      }
+    }
+
+    // Remove comment
     commentFile.comments.splice(index, 1);
 
     await this.saveComments(sourceUri, commentFile);

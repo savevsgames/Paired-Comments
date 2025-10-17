@@ -52,8 +52,11 @@ export interface Comment {
   /** Unique identifier (UUID v4) */
   id: string;
 
-  /** Line number in the source file (1-indexed) - DEPRECATED: use startLine/endLine */
+  /** Line number in the source file (1-indexed) - DEPRECATED: use ghostMarker.line as source of truth */
   line: number;
+
+  /** Reference to the ghost marker that tracks this comment's position (v2.0+) */
+  ghostMarkerId?: string;
 
   /** Start line for range comments (1-indexed) */
   startLine?: number;
@@ -99,6 +102,63 @@ export interface Comment {
 }
 
 /**
+ * Ghost Marker - Invisible decoration that tracks comment positions
+ */
+export interface GhostMarker {
+  /** Unique identifier for this ghost marker */
+  id: string;
+
+  /** Current line number (1-indexed) - source of truth for comment positions */
+  line: number;
+
+  /** Array of comment IDs anchored to this line */
+  commentIds: string[];
+
+  /** SHA-256 hash (first 16 chars) of the current line text */
+  lineHash: string;
+
+  /** Actual text of the current line (trimmed, for verification) */
+  lineText: string;
+
+  /** Text of the line above (trimmed, for 3-line fingerprinting) */
+  prevLineText: string;
+
+  /** Text of the line below (trimmed, for 3-line fingerprinting) */
+  nextLineText: string;
+
+  /** ISO 8601 timestamp of last hash verification */
+  lastVerified: string;
+}
+
+/**
+ * Reconciliation result status
+ */
+export type ReconciliationStatus = 'valid' | 'auto-fixed' | 'needs-review' | 'needs-manual-fix';
+
+/**
+ * Result of ghost marker reconciliation
+ */
+export interface ReconciliationResult {
+  /** Status of reconciliation */
+  status: ReconciliationStatus;
+
+  /** Reason for the status */
+  reason: string;
+
+  /** Old line number (if changed) */
+  oldLine?: number;
+
+  /** New line number (if changed) */
+  newLine?: number;
+
+  /** Suggested line number (if needs review) */
+  suggestedLine?: number;
+
+  /** The marker that needs manual fixing (if applicable) */
+  marker?: GhostMarker;
+}
+
+/**
  * Represents the structure of a .comments file
  */
 export interface CommentFile {
@@ -107,6 +167,9 @@ export interface CommentFile {
 
   /** Schema version for future compatibility */
   version: string;
+
+  /** Array of ghost markers (v2.0+) */
+  ghostMarkers?: GhostMarker[];
 
   /** Array of comments */
   comments: Comment[];
