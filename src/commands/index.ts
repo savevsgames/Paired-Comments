@@ -29,6 +29,13 @@ export function registerCommands(
     })
   );
 
+  // Open paired comments view and navigate to specific line
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.openAndNavigate', async (uri: vscode.Uri, line: number) => {
+      await openAndNavigateToComment(deps, uri, line);
+    })
+  );
+
   // Add a new comment
   context.subscriptions.push(
     vscode.commands.registerCommand('pairedComments.addComment', async () => {
@@ -134,6 +141,77 @@ async function openPairedComments(deps: CommandDependencies): Promise<void> {
     await deps.pairedViewManager.openPairedView(editor.document.uri);
   } catch (error) {
     void vscode.window.showErrorMessage(`Failed to open paired comments: ${String(error)}`);
+  }
+}
+
+/**
+ * Open paired comments view and navigate to specific line
+ */
+async function openAndNavigateToComment(
+  deps: CommandDependencies,
+  sourceUri: vscode.Uri,
+  sourceLine: number
+): Promise<void> {
+  try {
+    // Open the paired view
+    await deps.pairedViewManager.openPairedView(sourceUri);
+
+    // Get the comments editor
+    const commentsEditor = deps.pairedViewManager.getCommentsEditor(sourceUri);
+    if (!commentsEditor) {
+      void vscode.window.showErrorMessage('Failed to get comments editor');
+      return;
+    }
+
+    // Load comments to find the position in the .comments file
+    const commentFile = await deps.commentManager.loadComments(sourceUri);
+
+    // Find comments on this line
+    const commentsOnLine = commentFile.comments.filter(c => c.line === sourceLine);
+    if (commentsOnLine.length === 0) {
+      return;
+    }
+
+    // Find the first comment's position in the comments array
+    const firstComment = commentsOnLine[0];
+    if (!firstComment) {
+      return;
+    }
+
+    const commentIndex = commentFile.comments.findIndex(c => c.id === firstComment.id);
+
+    // Calculate approximate line in .comments file
+    // JSON structure: header (3 lines) + 1 line per comment opener + content
+    const approxLine = 3 + (commentIndex * 7); // Rough estimate based on JSON formatting
+
+    // Navigate to that line in the comments editor
+    const position = new vscode.Position(approxLine, 0);
+    commentsEditor.selection = new vscode.Selection(position, position);
+    commentsEditor.revealRange(
+      new vscode.Range(position, position),
+      vscode.TextEditorRevealType.InCenter
+    );
+
+    // Focus the comments editor
+    await vscode.window.showTextDocument(commentsEditor.document, {
+      viewColumn: commentsEditor.viewColumn,
+      preserveFocus: false
+    });
+
+    // Also navigate in the source editor
+    const sourceEditor = vscode.window.visibleTextEditors.find(
+      e => e.document.uri.toString() === sourceUri.toString()
+    );
+    if (sourceEditor) {
+      const sourcePosition = new vscode.Position(sourceLine - 1, 0);
+      sourceEditor.selection = new vscode.Selection(sourcePosition, sourcePosition);
+      sourceEditor.revealRange(
+        new vscode.Range(sourcePosition, sourcePosition),
+        vscode.TextEditorRevealType.InCenter
+      );
+    }
+  } catch (error) {
+    void vscode.window.showErrorMessage(`Failed to open and navigate: ${String(error)}`);
   }
 }
 

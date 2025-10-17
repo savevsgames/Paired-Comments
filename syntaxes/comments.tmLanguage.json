@@ -1,0 +1,151 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Paired Comments JSON",
+  "scopeName": "source.json.comments",
+  "patterns": [
+    {
+      "include": "#value"
+    }
+  ],
+  "repository": {
+    "value": {
+      "patterns": [
+        {
+          "include": "#constant"
+        },
+        {
+          "include": "#number"
+        },
+        {
+          "include": "#string"
+        },
+        {
+          "include": "#array"
+        },
+        {
+          "include": "#object"
+        },
+        {
+          "include": "#comments"
+        }
+      ]
+    },
+    "array": {
+      "begin": "\\[",
+      "end": "\\]",
+      "name": "meta.structure.array.json",
+      "patterns": [
+        {
+          "include": "#value"
+        },
+        {
+          "match": ",",
+          "name": "punctuation.separator.array.json"
+        }
+      ]
+    },
+    "constant": {
+      "match": "\\b(?:true|false|null)\\b",
+      "name": "constant.language.json"
+    },
+    "number": {
+      "match": "(?x)        # turn on extended mode\n  -?        # an optional minus\n  (?:\n    0       # a zero\n    |       # ...or...\n    [1-9]   # a 1-9 character\n    \\d*     # followed by zero or more digits\n  )\n  (?:\n    (?:\n      \\.    # a period\n      \\d+   # followed by one or more digits\n    )?\n    (?:\n      [eE]  # an e character\n      [+-]? # followed by an optional +/-\n      \\d+   # followed by one or more digits\n    )?      # make exponent optional\n  )?        # make decimal portion optional",
+      "name": "constant.numeric.json"
+    },
+    "object": {
+      "begin": "\\{",
+      "end": "\\}",
+      "name": "meta.structure.dictionary.json",
+      "patterns": [
+        {
+          "comment": "Special highlighting for comment fields",
+          "match": "(?x)\n            \"(id|line|text|author|created|updated|tag|file|version)\"\\s*(:)",
+          "captures": {
+            "1": {
+              "name": "support.type.property-name.json"
+            },
+            "2": {
+              "name": "punctuation.separator.dictionary.key-value.json"
+            }
+          }
+        },
+        {
+          "comment": "Highlight 'comments' array specially",
+          "match": "\"(comments)\"\\s*(:)",
+          "captures": {
+            "1": {
+              "name": "entity.name.tag.json"
+            },
+            "2": {
+              "name": "punctuation.separator.dictionary.key-value.json"
+            }
+          }
+        },
+        {
+          "comment": "Highlight TODO/FIXME/NOTE tags",
+          "match": "\"(TODO|FIXME|NOTE|QUESTION|HACK|WARNING)\"",
+          "name": "keyword.control.json"
+        },
+        {
+          "begin": "\"",
+          "end": "\"",
+          "name": "string.quoted.double.json support.type.property-name.json",
+          "patterns": [
+            {
+              "include": "#stringcontent"
+            }
+          ]
+        },
+        {
+          "begin": ":",
+          "end": "(?=[,}\\]])|(?=[^\\s,}\\]])",
+          "name": "meta.structure.dictionary.value.json",
+          "patterns": [
+            {
+              "include": "#value"
+            }
+          ]
+        },
+        {
+          "match": ",",
+          "name": "punctuation.separator.dictionary.pair.json"
+        }
+      ]
+    },
+    "string": {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double.json",
+      "patterns": [
+        {
+          "include": "#stringcontent"
+        }
+      ]
+    },
+    "stringcontent": {
+      "patterns": [
+        {
+          "match": "(?x)                # turn on extended mode\n  \\\\                # a literal backslash\n  (?:               # ...followed by...\n    [\"\\\\/bfnrt]     # one of these characters\n    |               # ...or...\n    u               # a u\n    [0-9a-fA-F]{4}) # and four hex digits",
+          "name": "constant.character.escape.json"
+        },
+        {
+          "match": "\\\\.",
+          "name": "invalid.illegal.unrecognized-string-escape.json"
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "match": "//.*$",
+          "name": "comment.line.double-slash.json"
+        },
+        {
+          "begin": "/\\*",
+          "end": "\\*/",
+          "name": "comment.block.json"
+        }
+      ]
+    }
+  }
+}

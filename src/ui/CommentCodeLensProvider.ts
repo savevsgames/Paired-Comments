@@ -52,12 +52,12 @@ export class CommentCodeLensProvider implements vscode.CodeLensProvider {
 
         const range = new vscode.Range(line, 0, line, 0);
 
-        // Create CodeLens with clickable command
+        // Create CodeLens with clickable command that jumps to this specific line
         const commentText = count === 1 ? '1 comment' : `${count} comments`;
         const codeLens = new vscode.CodeLens(range, {
           title: `💬 ${commentText} - Click to open`,
-          command: 'pairedComments.open',
-          arguments: [document.uri]
+          command: 'pairedComments.openAndNavigate',
+          arguments: [document.uri, lineNumber] // Pass 1-indexed line number
         });
 
         codeLenses.push(codeLens);

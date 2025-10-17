@@ -32,6 +32,25 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "languages": [
+      {
+        "id": "paired-comments-json",
+        "aliases": ["Paired Comments", "comments"],
+        "extensions": [".comments"],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./resources/comment-icon.svg",
+          "dark": "./resources/comment-icon.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "paired-comments-json",
+        "scopeName": "source.json.comments",
+        "path": "./syntaxes/comments.tmLanguage.json"
+      }
+    ],
     "configuration": {
       "title": "Paired Comments",
       "properties": {
