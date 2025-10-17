@@ -1,7 +1,7 @@
 # Paired Comments - Product Roadmap
 
-**Version:** 0.1.0
-**Last Updated:** October 16, 2025
+**Version:** 0.2.0-dev
+**Last Updated:** October 17, 2025
 
 ---
 
@@ -11,6 +11,7 @@
 Core functionality is now implemented and ready for testing:
 
 - **Core Operations**
+  - `Ctrl+Alt+P Ctrl+Alt+P` - Show command menu (NEW!)
   - `Ctrl+Alt+P O` - Open paired comments view
   - `Ctrl+Alt+P A` - Add comment to current line
   - `Ctrl+Alt+P E` - Edit existing comment
@@ -19,17 +20,111 @@ Core functionality is now implemented and ready for testing:
   - `Ctrl+Alt+P T` - Toggle scroll sync
 
 - **Technical Foundation**
-  - `.comments` file format (JSON)
+  - `.comments` file format (JSON v1.0)
   - File I/O with caching
   - Side-by-side view management
   - Bidirectional scroll synchronization
   - Comment decorations in gutter
+  - Tag system (TODO, FIXME, NOTE, QUESTION, HACK, WARNING, STAR)
+  - Multi-language comment detection (30+ languages)
+  - Syntax highlighting for .comments files
+
+### 🚧 v0.1.5 - Infrastructure Enhancements - IN PROGRESS
+
+**Status:** Design & Implementation Phase
+
+#### Completed Features
+- ✅ **Command Menu** - `Ctrl+Alt+P Ctrl+Alt+P` shows all available commands
+- ✅ **Multi-Language Support** - Detects comment syntax for 30+ programming languages
+- ✅ **Content Anchoring** - Hash-based line tracking utilities
+- ✅ **Extended Comment Schema** - Support for ranges, status, threaded replies
+- ✅ **STAR Tag** - Gold-colored bookmark tag for significant comments
+
+#### In Progress
+- 🚧 **Ghost Markers** - Automatic line tracking system (CRITICAL MILESTONE)
+  - See: [docs/ghost-markers.md](docs/ghost-markers.md)
+  - Invisible decorations that auto-track line movements
+  - Hash-based drift detection
+  - 3-line fingerprinting for auto-reconciliation
+  - Manual conflict resolution UI
 
 ---
 
 ## Planned Features
 
-### 🚧 Phase 2: Enhanced Navigation (v0.2.0)
+### 🎯 Phase 2: Ghost Markers & Line Tracking (v0.2.0) - CRITICAL
+
+**Target:** Q4 2025 (PRIORITY)
+**Documentation:** [docs/ghost-markers.md](docs/ghost-markers.md)
+
+#### Why This Matters
+Ghost Markers solve the **fundamental problem of comment drift** - when line numbers in .comments files become misaligned with actual code as files are edited. This is the core architectural foundation that makes Paired Comments reliable and production-ready.
+
+#### Features
+- **Automatic Line Tracking**
+  - Invisible decorations that move with code edits
+  - Comments automatically follow their code as it moves
+  - No manual updates needed when inserting/deleting lines
+
+- **Drift Detection**
+  - SHA-256 hash verification of line content
+  - 3-line fingerprinting for context matching
+  - Immediate detection when code content changes
+
+- **Auto-Reconciliation**
+  - Search nearby lines (±10) for matching content
+  - Whitespace-tolerant (formatting changes don't break)
+  - Automatic repositioning when code moves
+
+- **Manual Conflict Resolution**
+  - UI for reviewing unresolved conflicts
+  - Options: Auto-search, manual select, delete comment
+  - Clear visual feedback of drift status
+
+- **File Format v2.0**
+  - New `ghostMarkers` array in .comments files
+  - Backwards compatible with v1.0 files
+  - Migration tool for existing comments
+
+#### Technical Details
+- VS Code decoration API for auto-tracking
+- Content anchoring with hash verification
+- 3-line fingerprint matching algorithm
+- Document change event listeners
+- Performance: O(1) verification, O(n) reconciliation
+- Memory: ~300 bytes per ghost marker
+
+#### Success Metrics
+- ✅ Comments stay synchronized through refactoring
+- ✅ <1% false positives on drift detection
+- ✅ >95% auto-reconciliation success rate
+- ✅ <50ms verification per document change
+- ✅ Zero data loss during migration
+
+#### Implementation Phases
+1. **Core Infrastructure** (Week 1)
+   - GhostMarker type definition
+   - GhostMarkerManager class
+   - VS Code decoration integration
+
+2. **Verification System** (Week 2)
+   - Document change listeners
+   - Hash verification logic
+   - 3-line fingerprint matching
+
+3. **Reconciliation** (Week 3)
+   - Auto-search algorithm
+   - Conflict detection
+   - Manual adjustment UI
+
+4. **Integration** (Week 4)
+   - Update CommentManager
+   - Update DecorationManager
+   - File format migration
+
+---
+
+### 🧭 Phase 3: Enhanced Navigation (v0.3.0)
 
 **Target:** Q1 2026
 
@@ -41,7 +136,7 @@ Core functionality is now implemented and ready for testing:
   - Visual indicator of current position
 
 #### Technical Details
-- Implement comment position index
+- Implement comment position index using ghost markers
 - Handle edge cases (first/last comment)
 - Smooth scroll animation to target line
 
@@ -51,7 +146,7 @@ Core functionality is now implemented and ready for testing:
 
 ---
 
-### 📦 Phase 3: Import/Export (v0.3.0)
+### 📦 Phase 4: Import/Export (v0.4.0)
 
 **Target:** Q1 2026
 
@@ -93,7 +188,7 @@ Core functionality is now implemented and ready for testing:
 
 ---
 
-### 🔍 Phase 4: Search & Filter (v0.4.0)
+### 🔍 Phase 5: Search & Filter (v0.5.0)
 
 **Target:** Q2 2026
 
@@ -123,7 +218,7 @@ Core functionality is now implemented and ready for testing:
 
 ---
 
-### 👥 Phase 5: Collaboration Features (v0.5.0)
+### 👥 Phase 6: Collaboration Features (v0.6.0)
 
 **Target:** Q2 2026
 
@@ -152,7 +247,7 @@ Core functionality is now implemented and ready for testing:
 
 ---
 
-### 🔗 Phase 6: Integration Features (v0.6.0)
+### 🔗 Phase 7: Integration Features (v0.7.0)
 
 **Target:** Q3 2026
 
@@ -177,7 +272,7 @@ Core functionality is now implemented and ready for testing:
 
 ---
 
-### 🎨 Phase 7: Customization (v0.7.0)
+### 🎨 Phase 8: Customization (v0.8.0)
 
 **Target:** Q3 2026
 
@@ -202,7 +297,7 @@ Core functionality is now implemented and ready for testing:
 
 ---
 
-### 🚀 Phase 8: Performance & Scale (v0.8.0)
+### 🚀 Phase 9: Performance & Scale (v0.9.0)
 
 **Target:** Q4 2026
 
@@ -250,9 +345,10 @@ These features are under consideration but not yet scheduled:
 
 ## Keybinding Reference
 
-### Current Keybindings (v0.1.0)
+### Current Keybindings (v0.1.5)
 | Command | Keybinding | Status |
 |---------|-----------|--------|
+| Show command menu | `Ctrl+Alt+P Ctrl+Alt+P` | ✅ Implemented |
 | Open paired comments | `Ctrl+Alt+P O` | ✅ Implemented |
 | Add comment | `Ctrl+Alt+P A` | ✅ Implemented |
 | Edit comment | `Ctrl+Alt+P E` | ✅ Implemented |
@@ -263,24 +359,35 @@ These features are under consideration but not yet scheduled:
 ### Future Keybindings
 | Command | Keybinding | Planned Version |
 |---------|-----------|-----------------|
-| Copy all comments | `Ctrl+Alt+P C` | v0.3.0 |
-| Export comments | `Ctrl+Alt+P X` | v0.3.0 |
-| Import comments | `Ctrl+Alt+P I` | v0.3.0 |
-| Find in comments | `Ctrl+Alt+P F` | v0.4.0 |
-| Next comment | `Ctrl+Alt+P N` | v0.2.0 |
-| Previous comment | `Ctrl+Alt+P B` | v0.2.0 |
-| Mark resolved | `Ctrl+Alt+P M` | v0.5.0 |
-| Generate link | `Ctrl+Alt+P L` | v0.6.0 |
+| Next comment | `Ctrl+Alt+P N` | v0.3.0 |
+| Previous comment | `Ctrl+Alt+P B` | v0.3.0 |
+| Copy all comments | `Ctrl+Alt+P C` | v0.4.0 |
+| Export comments | `Ctrl+Alt+P X` | v0.4.0 |
+| Import comments | `Ctrl+Alt+P I` | v0.4.0 |
+| Find in comments | `Ctrl+Alt+P F` | v0.5.0 |
+| Mark resolved | `Ctrl+Alt+P M` | v0.6.0 |
+| Generate link | `Ctrl+Alt+P L` | v0.7.0 |
 
 ---
 
 ## Version History
 
-- **v0.1.0** (Current) - MVP with core functionality
+- **v0.1.5** (Current - In Development) - Infrastructure Enhancements
+  - Command menu (`Ctrl+Alt+P Ctrl+Alt+P`)
+  - Multi-language comment detection (30+ languages)
+  - Content anchoring utilities
+  - Extended comment schema (ranges, status, threads)
+  - STAR tag for bookmarked comments
+  - Ghost Markers system (in progress)
+
+- **v0.1.0** (October 16, 2025) - MVP with core functionality
   - Basic CRUD operations
   - Side-by-side view
   - Scroll synchronization
   - Keybinding system established
+  - Tag system (TODO, FIXME, NOTE, etc.)
+  - Gutter decorations
+  - CodeLens integration
 
 ---
 
