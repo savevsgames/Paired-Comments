@@ -5,11 +5,13 @@
 
 import * as vscode from 'vscode';
 import { CommentManager } from '../core/CommentManager';
+import { GhostMarkerManager } from '../core/GhostMarkerManager';
 import { Comment, CommentTag, TAG_COLORS, GhostMarker } from '../types';
 
 export class DecorationManager {
   private decorationTypes: Map<string, vscode.TextEditorDecorationType> = new Map();
   private commentManager: CommentManager | null = null;
+  private ghostMarkerManager: GhostMarkerManager | null = null;
 
   constructor(private context: vscode.ExtensionContext) {
     this.initializeDecorationTypes();
@@ -20,6 +22,13 @@ export class DecorationManager {
    */
   setCommentManager(manager: CommentManager): void {
     this.commentManager = manager;
+  }
+
+  /**
+   * Set the ghost marker manager (called after initialization)
+   */
+  setGhostMarkerManager(manager: GhostMarkerManager): void {
+    this.ghostMarkerManager = manager;
   }
 
   /**
@@ -81,8 +90,18 @@ export class DecorationManager {
         editor.setDecorations(decorationType, []);
       }
 
-      // If ghost markers exist, use them (v2.0+)
-      if (commentFile.ghostMarkers && commentFile.ghostMarkers.length > 0) {
+      // Get LIVE ghost markers from GhostMarkerManager (not from file!)
+      const liveGhostMarkers = this.ghostMarkerManager
+        ? this.ghostMarkerManager.getMarkers(editor.document.uri)
+        : null;
+
+      // If live ghost markers exist, use them (v2.0+)
+      if (liveGhostMarkers && liveGhostMarkers.length > 0) {
+        console.log(`[DecorationManager] Using ${liveGhostMarkers.length} LIVE ghost markers`);
+        this.applyGhostMarkerDecorations(editor, liveGhostMarkers, commentFile.comments);
+      } else if (commentFile.ghostMarkers && commentFile.ghostMarkers.length > 0) {
+        // Fallback to file-based markers if live markers not available
+        console.log(`[DecorationManager] Using ${commentFile.ghostMarkers.length} ghost markers from file`);
         this.applyGhostMarkerDecorations(editor, commentFile.ghostMarkers, commentFile.comments);
       } else {
         // Fallback to legacy decoration mode (v1.0)
@@ -102,6 +121,8 @@ export class DecorationManager {
     ghostMarkers: GhostMarker[],
     comments: Comment[]
   ): void {
+    console.log(`[DecorationManager] Applying decorations for ${ghostMarkers.length} ghost markers`);
+
     // Create a map of comment ID -> comment for fast lookup
     const commentMap = new Map<string, Comment>();
     for (const comment of comments) {
@@ -114,6 +135,7 @@ export class DecorationManager {
     for (const marker of ghostMarkers) {
       // Determine the tag for this marker
       const tag = this.getMarkerTag(marker, commentMap);
+      console.log(`[DecorationManager] Marker at line ${marker.line} has tag: ${tag}`);
       if (!markersByTag.has(tag)) {
         markersByTag.set(tag, []);
       }
@@ -123,11 +145,15 @@ export class DecorationManager {
     // Apply decorations for each tag group
     for (const [tag, markers] of markersByTag.entries()) {
       const decorationType = this.decorationTypes.get(tag);
-      if (!decorationType) continue;
+      if (!decorationType) {
+        console.log(`[DecorationManager] ❌ No decoration type found for tag: ${tag}`);
+        continue;
+      }
 
       const decorations = markers.map(marker =>
         this.createMarkerDecoration(marker, commentMap, editor.document)
       );
+      console.log(`[DecorationManager] Applying ${decorations.length} decorations with tag '${tag}' at lines: ${markers.map(m => m.line).join(', ')}`);
       editor.setDecorations(decorationType, decorations);
     }
   }

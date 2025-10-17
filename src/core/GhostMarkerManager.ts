@@ -60,9 +60,12 @@ export class GhostMarkerManager {
     const prevLineText = line > 1 ? getLineText(document, line - 1) : '';
     const nextLineText = line < document.lineCount ? getLineText(document, line + 1) : '';
 
-    if (!lineText) {
+    if (lineText === null) {
       throw new Error(`Invalid line number: ${line}`);
     }
+
+    // For blank lines, use a placeholder (empty string is valid)
+    const effectiveLineText = lineText || '[blank line]';
 
     // Try to create AST anchor if manager is available
     let astAnchor = null;
@@ -85,8 +88,8 @@ export class GhostMarkerManager {
       line,
       commentIds,
       astAnchor: astAnchor, // May be null for non-symbolic lines or unsupported languages
-      lineHash: hashLine(lineText),
-      lineText: lineText.trim(),
+      lineHash: hashLine(effectiveLineText),
+      lineText: effectiveLineText.trim(),
       prevLineText: prevLineText?.trim() || '',
       nextLineText: nextLineText?.trim() || '',
       lastVerified: new Date().toISOString(),

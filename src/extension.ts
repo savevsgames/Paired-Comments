@@ -43,6 +43,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Wire up managers
   decorationManager.setCommentManager(commentManager);
+  decorationManager.setGhostMarkerManager(ghostMarkerManager);
   ghostMarkerManager.setASTManager(astAnchorManager);
 
   // Register managers for disposal
