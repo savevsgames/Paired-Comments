@@ -9,6 +9,24 @@ export class ScrollSyncManager {
   private scrollListeners: Map<string, vscode.Disposable[]> = new Map();
 
   /**
+   * Synchronize scroll position between two editors
+   */
+  syncScroll(sourceEditor: vscode.TextEditor, targetEditor: vscode.TextEditor): void {
+    const sourceRange = sourceEditor.visibleRanges[0];
+    if (!sourceRange) {
+      return;
+    }
+
+    // Calculate the percentage of scroll in the source editor
+    const sourceFirstLine = sourceRange.start.line;
+    const targetPosition = new vscode.Position(sourceFirstLine, 0);
+    const targetRange = new vscode.Range(targetPosition, targetPosition);
+
+    // Scroll target editor to match
+    targetEditor.revealRange(targetRange, vscode.TextEditorRevealType.AtTop);
+  }
+
+  /**
    * Enable scroll sync between source and comments editors
    */
   enableSync(
@@ -16,16 +34,16 @@ export class ScrollSyncManager {
     _commentsEditor: vscode.TextEditor,
     _sourceUri: vscode.Uri
   ): void {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    // This is now handled by PairedViewManager
+    // Keep method for backwards compatibility
   }
 
   /**
    * Disable scroll sync for a source file
    */
   disableSync(_sourceUri: vscode.Uri): void {
-    // TODO: Implement
-    throw new Error('Not implemented');
+    // This is now handled by PairedViewManager
+    // Keep method for backwards compatibility
   }
 
   /**

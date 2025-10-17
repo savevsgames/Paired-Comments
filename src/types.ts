@@ -5,6 +5,11 @@
 import * as vscode from 'vscode';
 
 /**
+ * Comment tags for categorization
+ */
+export type CommentTag = 'TODO' | 'FIXME' | 'NOTE' | 'QUESTION' | 'HACK' | 'WARNING' | null;
+
+/**
  * Represents a single comment in a comment file
  */
 export interface Comment {
@@ -25,6 +30,9 @@ export interface Comment {
 
   /** ISO 8601 timestamp of when the comment was last updated */
   updated: string;
+
+  /** Optional tag for categorization (TODO, FIXME, NOTE, etc.) */
+  tag?: CommentTag;
 }
 
 /**
@@ -170,4 +178,32 @@ export enum ContextKeys {
   VIEW_OPEN = 'pairedComments.viewOpen',
   SYNC_ENABLED = 'pairedComments.syncEnabled',
   LINE_HAS_COMMENT = 'pairedComments.lineHasComment',
+}
+
+/**
+ * Tag colors for decoration
+ */
+export const TAG_COLORS: Record<NonNullable<CommentTag>, string> = {
+  TODO: '#FFA500',      // Orange
+  FIXME: '#FF4444',     // Red
+  NOTE: '#4A90E2',      // Blue
+  QUESTION: '#9B59B6',  // Purple
+  HACK: '#E67E22',      // Dark orange
+  WARNING: '#F39C12',   // Yellow-orange
+};
+
+/**
+ * Detect tag from comment text
+ */
+export function detectTag(text: string): CommentTag {
+  const upperText = text.trim().toUpperCase();
+
+  if (upperText.startsWith('TODO:') || upperText.startsWith('TODO ')) return 'TODO';
+  if (upperText.startsWith('FIXME:') || upperText.startsWith('FIXME ')) return 'FIXME';
+  if (upperText.startsWith('NOTE:') || upperText.startsWith('NOTE ')) return 'NOTE';
+  if (upperText.startsWith('QUESTION:') || upperText.startsWith('QUESTION ') || upperText.startsWith('?')) return 'QUESTION';
+  if (upperText.startsWith('HACK:') || upperText.startsWith('HACK ')) return 'HACK';
+  if (upperText.startsWith('WARNING:') || upperText.startsWith('WARNING ') || upperText.startsWith('WARN:')) return 'WARNING';
+
+  return null;
 }

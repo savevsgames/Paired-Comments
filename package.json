@@ -32,6 +32,26 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Paired Comments",
+      "properties": {
+        "pairedComments.defaultAuthor": {
+          "type": "string",
+          "default": "Unknown",
+          "description": "Default author name for new comments"
+        },
+        "pairedComments.hideCommentFiles": {
+          "type": "boolean",
+          "default": true,
+          "description": "Hide .comments files in the file explorer"
+        },
+        "pairedComments.showFileBadges": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show comment count badges on files in explorer"
+        }
+      }
+    },
     "commands": [
       {
         "command": "pairedComments.open",
@@ -63,26 +83,115 @@
         "command": "pairedComments.showAllComments",
         "title": "Paired Comments: Show All Comments",
         "category": "Paired Comments"
+      },
+      {
+        "command": "pairedComments.copyAllComments",
+        "title": "Paired Comments: Copy All Comments",
+        "category": "Paired Comments"
+      },
+      {
+        "command": "pairedComments.exportComments",
+        "title": "Paired Comments: Export Comments",
+        "category": "Paired Comments"
+      },
+      {
+        "command": "pairedComments.importComments",
+        "title": "Paired Comments: Import Comments",
+        "category": "Paired Comments"
+      },
+      {
+        "command": "pairedComments.findInComments",
+        "title": "Paired Comments: Find in Comments",
+        "category": "Paired Comments"
+      },
+      {
+        "command": "pairedComments.nextComment",
+        "title": "Paired Comments: Next Comment",
+        "category": "Paired Comments"
+      },
+      {
+        "command": "pairedComments.previousComment",
+        "title": "Paired Comments: Previous Comment",
+        "category": "Paired Comments"
+      },
+      {
+        "command": "pairedComments.toggleCommentFilesVisibility",
+        "title": "Paired Comments: Toggle .comments Files Visibility",
+        "category": "Paired Comments"
       }
     ],
     "keybindings": [
       {
         "command": "pairedComments.open",
-        "key": "ctrl+shift+c",
-        "mac": "cmd+shift+c",
+        "key": "ctrl+alt+p o",
+        "mac": "cmd+alt+p o",
         "when": "editorTextFocus"
       },
       {
         "command": "pairedComments.addComment",
-        "key": "ctrl+shift+a",
-        "mac": "cmd+shift+a",
+        "key": "ctrl+alt+p a",
+        "mac": "cmd+alt+p a",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.editComment",
+        "key": "ctrl+alt+p e",
+        "mac": "cmd+alt+p e",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.deleteComment",
+        "key": "ctrl+alt+p d",
+        "mac": "cmd+alt+p d",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.showAllComments",
+        "key": "ctrl+alt+p s",
+        "mac": "cmd+alt+p s",
         "when": "editorTextFocus"
       },
       {
         "command": "pairedComments.toggleSync",
-        "key": "ctrl+shift+s",
-        "mac": "cmd+shift+s",
+        "key": "ctrl+alt+p t",
+        "mac": "cmd+alt+p t",
         "when": "pairedComments.viewOpen"
+      },
+      {
+        "command": "pairedComments.copyAllComments",
+        "key": "ctrl+alt+p c",
+        "mac": "cmd+alt+p c",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.exportComments",
+        "key": "ctrl+alt+p x",
+        "mac": "cmd+alt+p x",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.importComments",
+        "key": "ctrl+alt+p i",
+        "mac": "cmd+alt+p i",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.findInComments",
+        "key": "ctrl+alt+p f",
+        "mac": "cmd+alt+p f",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.nextComment",
+        "key": "ctrl+alt+p n",
+        "mac": "cmd+alt+p n",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.previousComment",
+        "key": "ctrl+alt+p b",
+        "mac": "cmd+alt+p b",
+        "when": "editorTextFocus"
       }
     ],
     "menus": {

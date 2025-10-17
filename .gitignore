@@ -5,6 +5,7 @@ dist/
 
 # Dependencies
 node_modules/
+temp/
 
 # IDE
 .vscode-test/

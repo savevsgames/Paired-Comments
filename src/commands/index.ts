@@ -63,6 +63,55 @@ export function registerCommands(
       await showAllComments(deps);
     })
   );
+
+  // Future features - Copy all comments
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.copyAllComments', async () => {
+      await copyAllComments(deps);
+    })
+  );
+
+  // Future features - Export comments
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.exportComments', async () => {
+      await exportComments(deps);
+    })
+  );
+
+  // Future features - Import comments
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.importComments', async () => {
+      await importComments(deps);
+    })
+  );
+
+  // Future features - Find in comments
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.findInComments', async () => {
+      await findInComments(deps);
+    })
+  );
+
+  // Future features - Next comment
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.nextComment', async () => {
+      await nextComment(deps);
+    })
+  );
+
+  // Future features - Previous comment
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.previousComment', async () => {
+      await previousComment(deps);
+    })
+  );
+
+  // Toggle .comments files visibility
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.toggleCommentFilesVisibility', async () => {
+      await toggleCommentFilesVisibility();
+    })
+  );
 }
 
 /**
@@ -72,6 +121,12 @@ async function openPairedComments(deps: CommandDependencies): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     void vscode.window.showErrorMessage('No active editor');
+    return;
+  }
+
+  // Prevent opening paired view for .comments files
+  if (editor.document.uri.fsPath.endsWith('.comments')) {
+    void vscode.window.showWarningMessage('Cannot create comments for a .comments file');
     return;
   }
 
@@ -89,6 +144,12 @@ async function addComment(deps: CommandDependencies): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     void vscode.window.showErrorMessage('No active editor');
+    return;
+  }
+
+  // Prevent adding comments to .comments files
+  if (editor.document.uri.fsPath.endsWith('.comments')) {
+    void vscode.window.showWarningMessage('Cannot add comments to a .comments file');
     return;
   }
 
@@ -114,17 +175,124 @@ async function addComment(deps: CommandDependencies): Promise<void> {
 /**
  * Edit an existing comment
  */
-async function editComment(_deps: CommandDependencies): Promise<void> {
-  // TODO: Implement
-  void vscode.window.showInformationMessage('Edit comment - Not implemented yet');
+async function editComment(deps: CommandDependencies): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    void vscode.window.showErrorMessage('No active editor');
+    return;
+  }
+
+  const line = editor.selection.active.line + 1; // Convert to 1-indexed
+  const comments = deps.commentManager.getCommentsForLine(editor.document.uri, line);
+
+  if (comments.length === 0) {
+    void vscode.window.showInformationMessage(`No comments on line ${line}`);
+    return;
+  }
+
+  // If multiple comments, let user pick
+  let commentToEdit = comments[0];
+  if (comments.length > 1) {
+    const items = comments.map(c => ({
+      label: c.text.substring(0, 50) + (c.text.length > 50 ? '...' : ''),
+      description: `by ${c.author}`,
+      comment: c
+    }));
+
+    const selected = await vscode.window.showQuickPick(items, {
+      placeHolder: 'Select comment to edit'
+    });
+
+    if (!selected) {
+      return;
+    }
+
+    commentToEdit = selected.comment;
+  }
+
+  // Get new text
+  const newText = await vscode.window.showInputBox({
+    prompt: `Edit comment for line ${line}`,
+    value: commentToEdit?.text || '',
+    placeHolder: 'Enter your comment...'
+  });
+
+  if (!newText || !commentToEdit) {
+    return; // User cancelled
+  }
+
+  try {
+    await deps.commentManager.updateComment(editor.document.uri, {
+      id: commentToEdit.id,
+      text: newText
+    });
+    await deps.decorationManager.refreshDecorations(editor.document.uri);
+    void vscode.window.showInformationMessage('Comment updated successfully');
+  } catch (error) {
+    void vscode.window.showErrorMessage(`Failed to update comment: ${String(error)}`);
+  }
 }
 
 /**
  * Delete a comment
  */
-async function deleteComment(_deps: CommandDependencies): Promise<void> {
-  // TODO: Implement
-  void vscode.window.showInformationMessage('Delete comment - Not implemented yet');
+async function deleteComment(deps: CommandDependencies): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    void vscode.window.showErrorMessage('No active editor');
+    return;
+  }
+
+  const line = editor.selection.active.line + 1; // Convert to 1-indexed
+  const comments = deps.commentManager.getCommentsForLine(editor.document.uri, line);
+
+  if (comments.length === 0) {
+    void vscode.window.showInformationMessage(`No comments on line ${line}`);
+    return;
+  }
+
+  // If multiple comments, let user pick
+  let commentToDelete = comments[0];
+  if (comments.length > 1) {
+    const items = comments.map(c => ({
+      label: c.text.substring(0, 50) + (c.text.length > 50 ? '...' : ''),
+      description: `by ${c.author}`,
+      comment: c
+    }));
+
+    const selected = await vscode.window.showQuickPick(items, {
+      placeHolder: 'Select comment to delete'
+    });
+
+    if (!selected) {
+      return;
+    }
+
+    commentToDelete = selected.comment;
+  }
+
+  // Confirm deletion
+  if (!commentToDelete) {
+    return;
+  }
+
+  const confirm = await vscode.window.showWarningMessage(
+    `Delete comment "${commentToDelete.text.substring(0, 50)}..."?`,
+    { modal: true },
+    'Delete'
+  );
+
+  if (confirm !== 'Delete') {
+    return;
+  }
+
+  try {
+    await deps.commentManager.deleteComment(editor.document.uri, commentToDelete.id);
+    await deps.decorationManager.refreshDecorations(editor.document.uri);
+    void vscode.window.showInformationMessage('Comment deleted successfully');
+  } catch (error) {
+    void vscode.window.showErrorMessage(`Failed to delete comment: ${String(error)}`);
+  }
 }
 
 /**
@@ -146,7 +314,141 @@ async function toggleSync(deps: CommandDependencies): Promise<void> {
 /**
  * Show all comments in quick pick
  */
-async function showAllComments(_deps: CommandDependencies): Promise<void> {
-  // TODO: Implement
-  void vscode.window.showInformationMessage('Show all comments - Not implemented yet');
+async function showAllComments(deps: CommandDependencies): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    void vscode.window.showErrorMessage('No active editor');
+    return;
+  }
+
+  try {
+    const commentFile = await deps.commentManager.loadComments(editor.document.uri);
+
+    if (commentFile.comments.length === 0) {
+      void vscode.window.showInformationMessage('No comments in this file');
+      return;
+    }
+
+    // Create quick pick items with tag indicators
+    const items = commentFile.comments.map(c => {
+      const tagEmoji = c.tag ? getTagEmoji(c.tag) : '💬';
+      const tagLabel = c.tag ? `[${c.tag}] ` : '';
+
+      return {
+        label: `${tagEmoji} Line ${c.line}: ${tagLabel}${c.text.substring(0, 50)}${c.text.length > 50 ? '...' : ''}`,
+        description: `by ${c.author}`,
+        detail: c.text,
+        line: c.line,
+        tag: c.tag
+      };
+    });
+
+    const selected = await vscode.window.showQuickPick(items, {
+      placeHolder: 'Select a comment to jump to',
+      matchOnDescription: true,
+      matchOnDetail: true
+    });
+
+    if (!selected) {
+      return;
+    }
+
+    // Jump to the line
+    const line = selected.line - 1; // Convert to 0-indexed
+    const position = new vscode.Position(line, 0);
+    editor.selection = new vscode.Selection(position, position);
+    editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+  } catch (error) {
+    void vscode.window.showErrorMessage(`Failed to load comments: ${String(error)}`);
+  }
+}
+
+/**
+ * Get emoji for comment tag
+ */
+function getTagEmoji(tag: string): string {
+  const emojiMap: Record<string, string> = {
+    'TODO': '📝',
+    'FIXME': '🔥',
+    'NOTE': '📌',
+    'QUESTION': '❓',
+    'HACK': '⚠️',
+    'WARNING': '⚡'
+  };
+  return emojiMap[tag] || '💬';
+}
+
+/**
+ * Copy all comments to clipboard
+ * Future feature - Not yet implemented
+ */
+async function copyAllComments(_deps: CommandDependencies): Promise<void> {
+  void vscode.window.showInformationMessage('Copy all comments - Feature not yet implemented');
+}
+
+/**
+ * Export comments to file
+ * Future feature - Not yet implemented
+ */
+async function exportComments(_deps: CommandDependencies): Promise<void> {
+  void vscode.window.showInformationMessage('Export comments - Feature not yet implemented');
+}
+
+/**
+ * Import comments from file
+ * Future feature - Not yet implemented
+ */
+async function importComments(_deps: CommandDependencies): Promise<void> {
+  void vscode.window.showInformationMessage('Import comments - Feature not yet implemented');
+}
+
+/**
+ * Find/search in comments
+ * Future feature - Not yet implemented
+ */
+async function findInComments(_deps: CommandDependencies): Promise<void> {
+  void vscode.window.showInformationMessage('Find in comments - Feature not yet implemented');
+}
+
+/**
+ * Navigate to next comment
+ * Future feature - Not yet implemented
+ */
+async function nextComment(_deps: CommandDependencies): Promise<void> {
+  void vscode.window.showInformationMessage('Next comment - Feature not yet implemented');
+}
+
+/**
+ * Navigate to previous comment
+ * Future feature - Not yet implemented
+ */
+async function previousComment(_deps: CommandDependencies): Promise<void> {
+  void vscode.window.showInformationMessage('Previous comment - Feature not yet implemented');
+}
+
+/**
+ * Toggle visibility of .comments files in explorer
+ */
+async function toggleCommentFilesVisibility(): Promise<void> {
+  const config = vscode.workspace.getConfiguration('pairedComments');
+  const currentValue = config.get<boolean>('hideCommentFiles', true);
+
+  await config.update('hideCommentFiles', !currentValue, vscode.ConfigurationTarget.Global);
+
+  // Update files.exclude setting
+  const filesConfig = vscode.workspace.getConfiguration('files');
+  const exclude = filesConfig.get<Record<string, boolean>>('exclude') || {};
+
+  if (!currentValue) {
+    // Hide .comments files
+    exclude['**/*.comments'] = true;
+  } else {
+    // Show .comments files
+    delete exclude['**/*.comments'];
+  }
+
+  await filesConfig.update('exclude', exclude, vscode.ConfigurationTarget.Global);
+
+  const status = !currentValue ? 'hidden' : 'visible';
+  void vscode.window.showInformationMessage(`.comments files are now ${status}`);
 }
