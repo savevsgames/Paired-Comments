@@ -149,6 +149,20 @@ export function registerCommands(
       await restoreFromBackup(deps);
     })
   );
+
+  // Convert inline comment to paired comment (v2.0.8)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.convertInlineToPaired', async () => {
+      await convertInlineToPaired(deps);
+    })
+  );
+
+  // Convert paired comment to inline comment (v2.0.8)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.convertPairedToInline', async () => {
+      await convertPairedToInline(deps);
+    })
+  );
 }
 
 /**
@@ -513,7 +527,8 @@ async function addRangeComment(deps: CommandDependencies): Promise<void> {
 }
 
 /**
- * Edit an existing comment
+ * Edit an existing comment - Opens paired view with cursor at end of comment text
+ * v2.0.8 Critical UX Improvement
  */
 async function editComment(deps: CommandDependencies): Promise<void> {
   const editor = vscode.window.activeTextEditor;
@@ -550,31 +565,101 @@ async function editComment(deps: CommandDependencies): Promise<void> {
     commentToEdit = selected.comment;
   }
 
-  // Get new text
-  const newText = await vscode.window.showInputBox({
-    prompt: `Edit comment for line ${line}`,
-    value: commentToEdit?.text || '',
-    placeHolder: 'Enter your comment...'
-  });
-
-  if (!newText || !commentToEdit) {
-    return; // User cancelled
+  if (!commentToEdit) {
+    return;
   }
 
   try {
-    await deps.commentManager.updateComment(editor.document.uri, {
-      id: commentToEdit.id,
-      text: newText
+    // Open the paired view
+    await deps.pairedViewManager.openPairedView(editor.document.uri);
+
+    // Get session for sync control
+    const session = deps.pairedViewManager.getSession(editor.document.uri);
+    if (!session) {
+      void vscode.window.showErrorMessage('Failed to get paired view session');
+      return;
+    }
+
+    // Get the comments editor
+    const commentsEditor = deps.pairedViewManager.getCommentsEditor(editor.document.uri);
+    if (!commentsEditor) {
+      void vscode.window.showErrorMessage('Failed to get comments editor');
+      return;
+    }
+
+    // Search for the comment's text field in the JSON
+    const commentText = await vscode.workspace.fs.readFile(commentsEditor.document.uri);
+    const commentJsonText = Buffer.from(commentText).toString('utf8');
+    const lines = commentJsonText.split('\n');
+
+    // Find the line with this comment's "text" field
+    let targetLine = 0;
+    let targetColumn = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line) continue;
+
+      // Look for "text": "..." pattern after finding the comment ID
+      if (line.includes(`"id": "${commentToEdit.id}"`)) {
+        // Found the comment, now find the text field (should be a few lines down)
+        for (let j = i; j < Math.min(i + 20, lines.length); j++) {
+          const textLine = lines[j];
+          if (!textLine) continue;
+
+          const textMatch = textLine.match(/"text":\s*"(.*)"/);
+          if (textMatch) {
+            targetLine = j;
+            // Position cursor at the end of the text value, before the closing quote
+            const textEnd = textLine.lastIndexOf('"');
+            targetColumn = textEnd; // End of text, before closing quote
+            break;
+          }
+        }
+        break;
+      }
+    }
+
+    // DISABLE AUTO-SCROLL while user is editing
+    session.syncEnabled = false;
+
+    // Navigate to the text field and place cursor at the end
+    const position = new vscode.Position(targetLine, targetColumn);
+    commentsEditor.selection = new vscode.Selection(position, position);
+    commentsEditor.revealRange(
+      new vscode.Range(position, position),
+      vscode.TextEditorRevealType.InCenter
+    );
+
+    // Focus the comments editor for editing
+    await vscode.window.showTextDocument(commentsEditor.document, {
+      viewColumn: commentsEditor.viewColumn,
+      preserveFocus: false
     });
-    await deps.decorationManager.refreshDecorations(editor.document.uri);
-    void vscode.window.showInformationMessage('Comment updated successfully');
+
+    // Set up listener to RE-ENABLE auto-scroll when user returns to source file
+    const disposable = vscode.window.onDidChangeActiveTextEditor(editor => {
+      if (editor && editor.document.uri.toString() === editor.document.uri.toString()) {
+        session.syncEnabled = true;
+        disposable.dispose();
+      }
+    });
+
+    // Safety timeout
+    setTimeout(() => {
+      if (!session.syncEnabled) {
+        session.syncEnabled = true;
+      }
+      disposable.dispose();
+    }, 30000);
+
   } catch (error) {
-    void vscode.window.showErrorMessage(`Failed to update comment: ${String(error)}`);
+    void vscode.window.showErrorMessage(`Failed to edit comment: ${String(error)}`);
   }
 }
 
 /**
- * Delete a comment
+ * Delete a comment - Opens paired view to show comment before deletion
+ * v2.0.8 Critical UX Improvement
  */
 async function deleteComment(deps: CommandDependencies): Promise<void> {
   const editor = vscode.window.activeTextEditor;
@@ -611,25 +696,80 @@ async function deleteComment(deps: CommandDependencies): Promise<void> {
     commentToDelete = selected.comment;
   }
 
-  // Confirm deletion
   if (!commentToDelete) {
     return;
   }
 
-  const confirm = await vscode.window.showWarningMessage(
-    `Delete comment "${commentToDelete.text.substring(0, 50)}..."?`,
-    { modal: true },
-    'Delete'
-  );
-
-  if (confirm !== 'Delete') {
-    return;
-  }
-
   try {
+    // Open the paired view to show the comment
+    await deps.pairedViewManager.openPairedView(editor.document.uri);
+
+    // Get the comments editor
+    const commentsEditor = deps.pairedViewManager.getCommentsEditor(editor.document.uri);
+    if (!commentsEditor) {
+      void vscode.window.showErrorMessage('Failed to get comments editor');
+      return;
+    }
+
+    // Get session for sync control
+    const session = deps.pairedViewManager.getSession(editor.document.uri);
+    if (session) {
+      session.syncEnabled = false; // Disable auto-scroll during deletion
+    }
+
+    // Search for the comment in the JSON
+    const commentText = await vscode.workspace.fs.readFile(commentsEditor.document.uri);
+    const commentJsonText = Buffer.from(commentText).toString('utf8');
+    const lines = commentJsonText.split('\n');
+
+    // Find the line with this comment's ID
+    let targetLine = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i]?.includes(`"id": "${commentToDelete.id}"`)) {
+        targetLine = i;
+        break;
+      }
+    }
+
+    // Navigate to the comment in the JSON
+    const position = new vscode.Position(targetLine, 0);
+    commentsEditor.selection = new vscode.Selection(position, position);
+    commentsEditor.revealRange(
+      new vscode.Range(position, position),
+      vscode.TextEditorRevealType.InCenter
+    );
+
+    // Focus the comments editor to show the comment
+    await vscode.window.showTextDocument(commentsEditor.document, {
+      viewColumn: commentsEditor.viewColumn,
+      preserveFocus: false
+    });
+
+    // Confirm deletion with the comment visible
+    const confirm = await vscode.window.showWarningMessage(
+      `Delete comment "${commentToDelete.text.substring(0, 50)}..."?`,
+      { modal: true },
+      'Delete'
+    );
+
+    if (confirm !== 'Delete') {
+      // Re-enable sync if user cancels
+      if (session) {
+        session.syncEnabled = true;
+      }
+      return;
+    }
+
+    // Perform the deletion
     await deps.commentManager.deleteComment(editor.document.uri, commentToDelete.id);
     await deps.decorationManager.refreshDecorations(editor.document.uri);
     void vscode.window.showInformationMessage('Comment deleted successfully');
+
+    // Re-enable sync after deletion
+    if (session) {
+      session.syncEnabled = true;
+    }
+
   } catch (error) {
     void vscode.window.showErrorMessage(`Failed to delete comment: ${String(error)}`);
   }
@@ -834,5 +974,213 @@ async function restoreFromBackup(deps: CommandDependencies): Promise<void> {
     }
   } catch (error) {
     void vscode.window.showErrorMessage(`Failed to restore from backup: ${String(error)}`);
+  }
+}
+
+/**
+ * Convert inline comment to paired comment
+ * v2.0.8 Critical UX Feature - Manual Conversion
+ */
+async function convertInlineToPaired(deps: CommandDependencies): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    void vscode.window.showErrorMessage('No active editor');
+    return;
+  }
+
+  // Prevent converting .comments files
+  if (editor.document.uri.fsPath.endsWith('.comments')) {
+    void vscode.window.showWarningMessage('Cannot convert comments in a .comments file');
+    return;
+  }
+
+  const line = editor.selection.active.line; // 0-indexed
+  const lineText = editor.document.lineAt(line).text;
+
+  // Get language-specific comment syntax
+  const languageId = editor.document.languageId;
+  const { COMMENT_SYNTAX_MAP } = await import('../types.js');
+  const syntax = COMMENT_SYNTAX_MAP[languageId];
+
+  if (!syntax || !syntax.singleLine) {
+    void vscode.window.showErrorMessage(`Unsupported language: ${languageId}`);
+    return;
+  }
+
+  // Find inline comment on this line
+  let commentStart = -1;
+  let commentPrefix = '';
+  for (const prefix of syntax.singleLine) {
+    const index = lineText.indexOf(prefix);
+    if (index !== -1 && (commentStart === -1 || index < commentStart)) {
+      commentStart = index;
+      commentPrefix = prefix;
+    }
+  }
+
+  if (commentStart === -1) {
+    void vscode.window.showInformationMessage(`No inline comment found on line ${line + 1}`);
+    return;
+  }
+
+  // Extract the comment text (remove comment prefix and trim)
+  const commentText = lineText.substring(commentStart + commentPrefix.length).trim();
+
+  if (!commentText) {
+    void vscode.window.showInformationMessage(`Empty comment on line ${line + 1}`);
+    return;
+  }
+
+  // Check if there's already a paired comment on this line
+  const existingComments = deps.commentManager.getCommentsForLine(editor.document.uri, line + 1);
+  if (existingComments.length > 0) {
+    const confirm = await vscode.window.showWarningMessage(
+      `Line ${line + 1} already has ${existingComments.length} paired comment(s). Add another?`,
+      'Add Anyway',
+      'Cancel'
+    );
+    if (confirm !== 'Add Anyway') {
+      return;
+    }
+  }
+
+  try {
+    // Add as paired comment
+    await deps.commentManager.addComment(editor.document.uri, {
+      line: line + 1, // Convert to 1-indexed
+      text: commentText
+    });
+
+    // Ask if user wants to remove the inline comment
+    const removeInline = await vscode.window.showInformationMessage(
+      'Paired comment created! Remove the inline comment?',
+      'Yes, Remove',
+      'No, Keep Both'
+    );
+
+    if (removeInline === 'Yes, Remove') {
+      // Remove the inline comment from the source file
+      const edit = new vscode.WorkspaceEdit();
+      const codeText = lineText.substring(0, commentStart).trimEnd();
+      const range = new vscode.Range(
+        new vscode.Position(line, 0),
+        new vscode.Position(line, lineText.length)
+      );
+      edit.replace(editor.document.uri, range, codeText);
+      await vscode.workspace.applyEdit(edit);
+    }
+
+    await deps.decorationManager.refreshDecorations(editor.document.uri);
+    void vscode.window.showInformationMessage('Comment converted to paired format');
+
+  } catch (error) {
+    void vscode.window.showErrorMessage(`Failed to convert comment: ${String(error)}`);
+  }
+}
+
+/**
+ * Convert paired comment to inline comment
+ * v2.0.8 Critical UX Feature - Manual Conversion
+ */
+async function convertPairedToInline(deps: CommandDependencies): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    void vscode.window.showErrorMessage('No active editor');
+    return;
+  }
+
+  // Prevent converting .comments files
+  if (editor.document.uri.fsPath.endsWith('.comments')) {
+    void vscode.window.showWarningMessage('Cannot convert comments in a .comments file');
+    return;
+  }
+
+  const line = editor.selection.active.line + 1; // Convert to 1-indexed
+  const comments = deps.commentManager.getCommentsForLine(editor.document.uri, line);
+
+  if (comments.length === 0) {
+    void vscode.window.showInformationMessage(`No paired comments on line ${line}`);
+    return;
+  }
+
+  // If multiple comments, let user pick
+  let commentToConvert = comments[0];
+  if (comments.length > 1) {
+    const items = comments.map(c => ({
+      label: c.text.substring(0, 50) + (c.text.length > 50 ? '...' : ''),
+      description: `by ${c.author}`,
+      comment: c
+    }));
+
+    const selected = await vscode.window.showQuickPick(items, {
+      placeHolder: 'Select comment to convert to inline'
+    });
+
+    if (!selected) {
+      return;
+    }
+
+    commentToConvert = selected.comment;
+  }
+
+  if (!commentToConvert) {
+    return;
+  }
+
+  // Get language-specific comment syntax
+  const languageId = editor.document.languageId;
+  const { COMMENT_SYNTAX_MAP } = await import('../types.js');
+  const syntax = COMMENT_SYNTAX_MAP[languageId];
+
+  if (!syntax || !syntax.singleLine || syntax.singleLine.length === 0) {
+    void vscode.window.showErrorMessage(`Unsupported language: ${languageId}`);
+    return;
+  }
+
+  const commentPrefix = syntax.singleLine[0]; // Use first available syntax
+  const lineIndex = line - 1; // Convert back to 0-indexed
+  const lineText = editor.document.lineAt(lineIndex).text;
+
+  // Check if line already has an inline comment
+  const hasInlineComment = syntax.singleLine.some((prefix: string) => lineText.includes(prefix));
+  if (hasInlineComment) {
+    const confirm = await vscode.window.showWarningMessage(
+      `Line ${line} already has an inline comment. Add paired comment as inline anyway?`,
+      'Yes, Add',
+      'Cancel'
+    );
+    if (confirm !== 'Yes, Add') {
+      return;
+    }
+  }
+
+  try {
+    // Add inline comment to source file
+    const edit = new vscode.WorkspaceEdit();
+    const inlineComment = `${commentPrefix} ${commentToConvert.text}`;
+    const newLineText = lineText.trimEnd() + '  ' + inlineComment;
+    const range = new vscode.Range(
+      new vscode.Position(lineIndex, 0),
+      new vscode.Position(lineIndex, lineText.length)
+    );
+    edit.replace(editor.document.uri, range, newLineText);
+    await vscode.workspace.applyEdit(edit);
+
+    // Ask if user wants to remove the paired comment
+    const removePaired = await vscode.window.showInformationMessage(
+      'Inline comment created! Remove the paired comment?',
+      'Yes, Remove',
+      'No, Keep Both'
+    );
+
+    if (removePaired === 'Yes, Remove') {
+      await deps.commentManager.deleteComment(editor.document.uri, commentToConvert.id);
+    }
+
+    await deps.decorationManager.refreshDecorations(editor.document.uri);
+    void vscode.window.showInformationMessage('Comment converted to inline format');
+
+  } catch (error) {
+    void vscode.window.showErrorMessage(`Failed to convert comment: ${String(error)}`);
   }
 }

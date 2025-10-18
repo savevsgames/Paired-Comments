@@ -5,6 +5,66 @@ All notable changes to the Paired Comments extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.8] - 2025-10-18
+
+### Added
+- **Critical UX Improvement: Edit Comment in Paired View** - Opens paired view with cursor at end of comment text
+  - Ctrl+Alt+P E now opens the .comments file and positions cursor at the last character of the comment text
+  - Disables auto-scroll during editing for better UX
+  - Re-enables auto-scroll when user returns to source file
+  - Same intuitive UX as clicking gutter icon to view comment
+- **Critical UX Improvement: Delete Comment in Paired View** - Opens paired view to show comment before deletion
+  - Ctrl+Alt+P D now opens the .comments file to show the comment
+  - User sees the full comment context before confirming deletion
+  - Auto-scroll disabled during deletion dialog
+  - Consistent UX with edit and view commands
+- **Comment Conversion: Inline ↔ Paired** - Manually convert between inline and paired comments
+  - **Inline → Paired**: `Ctrl+Alt+P Ctrl+Alt+I` - Extract inline comment to paired format
+    - Detects language-specific comment syntax (//,  #, --, etc.)
+    - Preserves comment text
+    - Optionally removes inline comment after conversion
+    - Warns if paired comment already exists on line
+  - **Paired → Inline**: `Ctrl+Alt+P Ctrl+Alt+U` - Convert paired comment to inline format
+    - Adds comment to source file using language-specific syntax
+    - Optionally removes paired comment after conversion
+    - Warns if inline comment already exists on line
+  - Foundation for future AI-powered bulk conversion tools
+  - User validation required before AI automation (NASA approach)
+
+### Changed
+- **Edit Command Behavior** - No longer uses input box, opens paired view instead
+  - Previous: Input box with current comment text
+  - New: Paired view with cursor at end of comment text
+  - Better for multi-line comments and context awareness
+- **Delete Command Behavior** - Shows comment in paired view before deletion
+  - Previous: Dialog with truncated comment text
+  - New: Full paired view with complete comment JSON visible
+  - User can review metadata (author, timestamps, tags) before deleting
+
+### Technical Details
+- Updated `src/commands/index.ts`:
+  - Enhanced `editComment()` - Opens paired view, positions cursor at end of text field
+  - Enhanced `deleteComment()` - Opens paired view, shows comment before confirmation
+  - Added `convertInlineToPaired()` - 95 lines, language-aware extraction
+  - Added `convertPairedToInline()` - 105 lines, language-aware insertion
+- Updated `package.json`:
+  - Added `pairedComments.convertInlineToPaired` command
+  - Added `pairedComments.convertPairedToInline` command
+  - Added keybindings: Ctrl+Alt+P Ctrl+Alt+I and Ctrl+Alt+P Ctrl+Alt+U
+- Language support: 30+ languages via `COMMENT_SYNTAX_MAP` (JavaScript, TypeScript, Python, Java, C#, Go, Rust, PHP, Ruby, etc.)
+
+### User Impact
+- **Editing is now visual** - See full comment context while editing
+- **Deletion is now safer** - Review comment metadata before removing
+- **Conversion is now manual** - Users can test conversion logic before AI automation
+- **Consistent UX** - Edit, delete, view all use same paired view pattern
+- **Foundation for v2.1.0 AI features** - Manual conversion validates AI workflow
+
+### Breaking Changes
+- None - Fully backwards compatible with v2.0.7
+
+---
+
 ## [2.0.7] - 2025-10-18
 
 ### Added

@@ -307,6 +307,81 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 
 ---
 
+## ✅ Milestone 3.8: Critical UX Improvements (v2.0.8) - COMPLETE
+
+**Completed:** October 18, 2025
+**Goal:** Fix critical UX oversights - visual editing, safer deletion, manual conversion
+**Status:** ✅ COMPLETE - Foundation for AI automation validated
+
+### Achievements
+
+#### ✅ Visual Edit/Delete Workflow (COMPLETE)
+- ✅ **Edit Command Enhancement** - Opens paired view with cursor at end of comment text
+  - Ctrl+Alt+P E opens .comments file instead of input box
+  - Cursor positioned at last character of text field
+  - Auto-scroll disabled during editing
+  - Re-enabled when user returns to source file
+  - Better for multi-line comments and context awareness
+
+- ✅ **Delete Command Enhancement** - Shows comment in paired view before deletion
+  - Ctrl+Alt+P D opens .comments file to show full comment
+  - User reviews metadata (author, timestamps, tags) before deleting
+  - Confirmation dialog shown with comment visible
+  - Auto-scroll disabled during deletion
+  - Safer deletion with full context
+
+#### ✅ Comment Conversion System (COMPLETE)
+- ✅ **Inline → Paired Conversion** - `Ctrl+Alt+P Ctrl+Alt+I`
+  - Detects language-specific comment syntax (30+ languages)
+  - Extracts inline comment text
+  - Creates paired comment
+  - Optionally removes inline comment
+  - Warns if paired comment already exists on line
+
+- ✅ **Paired → Inline Conversion** - `Ctrl+Alt+P Ctrl+Alt+U`
+  - Converts paired comment to inline format
+  - Uses language-specific syntax (//,  #, --, etc.)
+  - Optionally removes paired comment
+  - Warns if inline comment already exists on line
+
+- ✅ **Language Support** - 30+ languages via COMMENT_SYNTAX_MAP
+  - JavaScript, TypeScript, Python, Java, C#, Go, Rust, PHP, Ruby, etc.
+  - Single-line and block comment syntax
+  - Graceful fallback for unsupported languages
+
+### User Impact
+- **Editing is now visual** - See full comment context while editing
+- **Deletion is now safer** - Review metadata before removing
+- **Conversion is manual** - Users test before AI automation (NASA approach)
+- **Consistent UX** - Edit, delete, view all use same paired view pattern
+- **Foundation for v2.1.0** - Manual conversion validates AI workflow
+
+### Technical Details
+- Updated `src/commands/index.ts`:
+  - Enhanced `editComment()` - 90 lines
+  - Enhanced `deleteComment()` - 110 lines
+  - Added `convertInlineToPaired()` - 95 lines
+  - Added `convertPairedToInline()` - 105 lines
+- Updated `package.json`:
+  - Added 2 new commands with keybindings
+  - Ctrl+Alt+P Ctrl+Alt+I and Ctrl+Alt+P Ctrl+Alt+U
+- Language support via `COMMENT_SYNTAX_MAP` (30+ languages)
+
+### Success Metrics (All Met)
+- ✅ Edit command opens paired view with cursor positioning
+- ✅ Delete command shows full context before deletion
+- ✅ Conversion works for all supported languages
+- ✅ Optional removal prompts for both conversions
+- ✅ Warnings prevent conflicts (duplicate comments)
+- ✅ Foundation validated for AI-powered bulk conversion
+
+### Dependencies
+- ✅ Error handling complete (v2.0.7)
+- ✅ Range comments complete (v2.0.6)
+- ✅ Language syntax map complete (v2.0.5)
+
+---
+
 ## 📋 Milestone 4: AI Metadata & Provider System (v2.1.0) - NEXT UP
 
 **Target:** November-December 2025 (2-3 weeks)
@@ -434,6 +509,104 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 
 ---
 
+## 💡 Milestone 8: Advanced Comment Features (v2.3-2.5) - VISION
+
+**Target:** Q1-Q2 2026 (After AI Metadata)
+**Goal:** Advanced comment management and workflow features
+**Status:** 💡 FUTURE IDEAS - User-requested features
+
+### Feature List
+
+#### 💡 Combine Comments (v2.3.1)
+- **Use Case:** Merge two separate comments into one
+- **Trigger:** Two comments with blank line between them
+- **Command:** `Ctrl+Alt+P M` (Merge)
+- **Workflow:**
+  1. User selects multiple comments in quick pick
+  2. System merges text with separator (configurable)
+  3. Keeps metadata from first comment (author, created)
+  4. Updates `updated` timestamp
+  5. Removes duplicate ghost markers
+- **Options:**
+  - Separator: blank line, " / ", custom
+  - Keep or discard tags (if different)
+  - Preserve or merge replies
+
+#### 💡 Split Range Comment (v2.3.2)
+- **Use Case:** Break a range comment into multiple inline or ranged comments
+- **Command:** `Ctrl+Alt+P Split` (Smart split)
+- **Modes:**
+  1. **One inline per line** - Each line gets its own comment (copy text to all)
+  2. **One long inline** - Single inline comment on start line (truncated text)
+  3. **Custom split** - User selects which lines get comments
+  4. **Mixed mode** - Some lines inline, rest still ranged
+- **Workflow:**
+  1. User triggers split on range comment
+  2. Quick pick shows split modes
+  3. For custom/mixed: Multi-select lines
+  4. System creates new comments/markers
+  5. Optionally removes original range comment
+- **Foundation:** Uses conversion system from v2.0.8
+
+#### 💡 Ghost Comment Visibility (v2.3.3)
+- **Use Case:** Show paired comments directly in source file (like Jupyter)
+- **Visual:** Virtual text above commented lines
+- **Command:** `Ctrl+Alt+P Toggle Ghost View`
+- **Features:**
+  - Show 1 line for single-line comments
+  - Show X lines for range comments (configurable max)
+  - Grey/dimmed text (non-editable)
+  - No line numbers for ghost lines
+  - Click to open full comment in paired view
+- **Settings:**
+  - `pairedComments.maxGhostLines` - Max lines to show for range (default: 5)
+  - `pairedComments.ghostOpacity` - Opacity of ghost text (default: 0.6)
+  - `pairedComments.ghostFontStyle` - italic/normal (default: italic)
+- **Commands:**
+  - `Show All Ghosts` - Show all comments inline
+  - `Hide All Ghosts` - Hide all, keep gutter icons
+  - `Toggle Ghost` - Toggle for current comment
+- **Foundation:** Uses VS Code's virtual text API
+
+#### 💡 Export Modes & Schemas (v2.4.0)
+- **Use Case:** Export comments to various formats for different use cases
+- **Strategic Value:** "ISS docking ports" - Standard interfaces for interop
+- **Modes:**
+  1. **Markdown Export** - `.md` file with formatted comments
+  2. **JSON Export** - Structured data for programmatic use
+  3. **Inline Export** - `//@paired-comment` markers (v2.0.7 deferred)
+  4. **HTML Export** - Standalone HTML with syntax highlighting
+  5. **CSV Export** - Spreadsheet-friendly format
+  6. **Custom Schema** - User-defined templates
+- **Pre-built Schemas:**
+  - **GitHub Issues** - Convert TODO/FIXME to GitHub issues
+  - **Jira Tickets** - Export to Jira import format
+  - **Code Review** - Format for code review tools
+  - **Documentation** - JSDoc/TSDoc/PyDoc format
+  - **Training Data** - Format for AI training pipelines
+- **Commands:**
+  - `Ctrl+Alt+P Export` - Show export mode picker
+  - `Ctrl+Alt+P Export to Markdown`
+  - `Ctrl+Alt+P Export Custom`
+- **Settings:**
+  - `pairedComments.exportFormats` - Array of custom formats
+  - `pairedComments.defaultExportMode` - Default export format
+- **Foundation:** Extensible schema system, community marketplace
+
+### Dependencies
+- ✅ Conversion system (v2.0.8) - Foundation for splitting/merging
+- ⚠️ AI Metadata (v2.1.0) - Export includes metadata
+- ⚠️ Community marketplace infrastructure (future)
+
+### Strategic Value
+- **Combine/Split:** Workflow flexibility, reduces friction
+- **Ghost View:** Inline visibility without cluttering source
+- **Export Modes:** Interoperability with existing tools
+- **Schemas:** "Docking ports" for MCP integration later
+- **Foundation:** Manual workflows validate AI automation
+
+---
+
 ## 🎯 Near-Term Roadmap (Next 3 Months)
 
 ### November 2025 (Week 1)
@@ -504,13 +677,15 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 2. ✅ **AST-Based Line Tracking (v2.0.5)** - October 18, 2025
 3. ✅ **Range Comments Core (v2.0.6)** - October 18, 2025
 4. ✅ **Error Handling & Recovery (v2.0.7)** - October 18, 2025
-5. ✅ **Project Health Analysis** - October 18, 2025 (A- grade, 90/100)
+5. ✅ **Critical UX Improvements (v2.0.8)** - October 18, 2025
+6. ✅ **Project Health Analysis** - October 18, 2025 (A- grade, 90/100)
 
 ### Active Milestones (Week of October 18, 2025)
 1. 📋 **AI Metadata & Provider System (v2.1.0)** - Planning Complete **← YOU ARE HERE**
    - Detailed milestone document created
    - Roadmap updated with 2-3 week plan
    - Ready to begin implementation
+   - **NOTE:** v2.0.8 completed first (critical UX fixes)
 
 ### Upcoming Milestones
 1. 📋 **Test Coverage Push** - January 2026 (1 week)
@@ -665,6 +840,30 @@ Roadmap v2 fixes this with milestone-based tracking and explicit status labels.
 **Timeline:** 2-3 weeks (10-15 working days)
 **MCP Integration:** Deferred to v2.2+ (only if users validate need)
 **Outcome:** Detailed milestone document created, roadmap updated
+**Owner:** Development Team
+
+### October 18, 2025: Critical UX Improvements (v2.0.8 Complete)
+**Decision:** Address critical UX oversights before AI Metadata (v2.1.0)
+**Reasoning:**
+- User identified critical missing features during testing
+- Edit/delete commands lacked visual context (input boxes vs paired view)
+- Conversion system needed for manual testing before AI automation
+- "NASA approach" - users validate manual workflows before AI takes over
+- Only 1 day of work, immediate UX improvement
+**Scope:**
+- Enhanced edit command (opens paired view, cursor at end of text)
+- Enhanced delete command (shows comment in paired view before deletion)
+- Inline ↔ Paired conversion (30+ language support)
+- Foundation for AI-powered bulk conversion (v2.1+)
+**Achievements:**
+- Consistent UX across view/edit/delete commands
+- Safer deletion with full context visibility
+- Manual conversion validates AI workflow
+- Language-aware comment detection and insertion
+**Commands Added:**
+- `Ctrl+Alt+P Ctrl+Alt+I` - Convert Inline → Paired
+- `Ctrl+Alt+P Ctrl+Alt+U` - Convert Paired → Inline (U for "Unpair")
+**Outcome:** ✅ COMPLETE - Foundation for AI automation validated
 **Owner:** Development Team
 
 ---

@@ -28,7 +28,7 @@ import {
 export function activate(context: vscode.ExtensionContext): void {
   // Initialize logger first
   logger.info('═══════════════════════════════════════════════════════════');
-  logger.info('🚀 PAIRED COMMENTS EXTENSION ACTIVATED - v2.0.7 ERROR HANDLING');
+  logger.info('🚀 PAIRED COMMENTS EXTENSION ACTIVATED - v2.0.8 CRITICAL UX');
   logger.info('═══════════════════════════════════════════════════════════');
   logger.info('Paired Comments extension is now active');
 

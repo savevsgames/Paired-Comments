@@ -302,7 +302,7 @@ export class PairedCommentsError extends Error {
 /**
  * Schema version constant
  */
-export const COMMENT_FILE_VERSION = '2.0.7';
+export const COMMENT_FILE_VERSION = '2.0.8';
 
 /**
  * File extension for comment files

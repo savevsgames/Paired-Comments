@@ -2,7 +2,7 @@
   "name": "paired-comments",
   "displayName": "Paired Comments",
   "description": "Sidecar comment files with synchronized viewing - keep your code clean while maintaining rich annotations",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "publisher": "paired-comments",
   "author": {
     "name": "Greg Barker"
@@ -155,6 +155,18 @@
         "title": "Paired Comments: Restore from Backup",
         "category": "Paired Comments",
         "icon": "$(history)"
+      },
+      {
+        "command": "pairedComments.convertInlineToPaired",
+        "title": "Paired Comments: Convert Inline to Paired",
+        "category": "Paired Comments",
+        "icon": "$(arrow-right)"
+      },
+      {
+        "command": "pairedComments.convertPairedToInline",
+        "title": "Paired Comments: Convert Paired to Inline",
+        "category": "Paired Comments",
+        "icon": "$(arrow-left)"
       }
     ],
     "keybindings": [
@@ -246,6 +258,18 @@
         "command": "pairedComments.previousComment",
         "key": "ctrl+alt+p b",
         "mac": "cmd+alt+p b",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.convertInlineToPaired",
+        "key": "ctrl+alt+p ctrl+alt+i",
+        "mac": "cmd+alt+p cmd+alt+i",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.convertPairedToInline",
+        "key": "ctrl+alt+p ctrl+alt+u",
+        "mac": "cmd+alt+p cmd+alt+u",
         "when": "editorTextFocus"
       }
     ],
