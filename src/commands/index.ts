@@ -7,12 +7,14 @@ import { CommentManager } from '../core/CommentManager';
 import { PairedViewManager } from '../ui/PairedViewManager';
 import { ScrollSyncManager } from '../ui/ScrollSyncManager';
 import { DecorationManager } from '../ui/DecorationManager';
+import { FileSystemManager } from '../io/FileSystemManager';
 
 export interface CommandDependencies {
   commentManager: CommentManager;
   pairedViewManager: PairedViewManager;
   scrollSyncManager: ScrollSyncManager;
   decorationManager: DecorationManager;
+  fileSystemManager: FileSystemManager;
 }
 
 /**
@@ -138,6 +140,13 @@ export function registerCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand('pairedComments.toggleCommentFilesVisibility', async () => {
       await toggleCommentFilesVisibility();
+    })
+  );
+
+  // Restore from backup
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.restoreFromBackup', async () => {
+      await restoreFromBackup(deps);
     })
   );
 }
@@ -783,4 +792,47 @@ async function toggleCommentFilesVisibility(): Promise<void> {
 
   const status = !currentValue ? 'hidden' : 'visible';
   void vscode.window.showInformationMessage(`.comments files are now ${status}`);
+}
+
+/**
+ * Restore .comments file from backup
+ * v2.0.7 Error Handling feature
+ */
+async function restoreFromBackup(deps: CommandDependencies): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    void vscode.window.showErrorMessage('No active editor');
+    return;
+  }
+
+  // Get source URI (strip .comments extension if present)
+  const sourceUri = editor.document.uri.fsPath.endsWith('.comments')
+    ? vscode.Uri.file(editor.document.uri.fsPath.replace(/\.comments$/, ''))
+    : editor.document.uri;
+
+  // Confirm restoration
+  const confirm = await vscode.window.showWarningMessage(
+    'Restore .comments file from the most recent backup? This will overwrite the current file.',
+    { modal: true },
+    'Restore',
+    'Cancel'
+  );
+
+  if (confirm !== 'Restore') {
+    return;
+  }
+
+  try {
+    const success = await deps.fileSystemManager.restoreFromBackup(sourceUri);
+
+    if (success) {
+      // Reload comments after restore
+      await deps.commentManager.reloadComments(sourceUri);
+      await deps.decorationManager.refreshDecorations(sourceUri);
+    } else {
+      void vscode.window.showWarningMessage('No backup files found for this source file');
+    }
+  } catch (error) {
+    void vscode.window.showErrorMessage(`Failed to restore from backup: ${String(error)}`);
+  }
 }

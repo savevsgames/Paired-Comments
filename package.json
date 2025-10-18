@@ -2,7 +2,7 @@
   "name": "paired-comments",
   "displayName": "Paired Comments",
   "description": "Sidecar comment files with synchronized viewing - keep your code clean while maintaining rich annotations",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "publisher": "paired-comments",
   "author": {
     "name": "Greg Barker"
@@ -149,6 +149,12 @@
         "command": "pairedComments.toggleCommentFilesVisibility",
         "title": "Paired Comments: Toggle .comments Files Visibility",
         "category": "Paired Comments"
+      },
+      {
+        "command": "pairedComments.restoreFromBackup",
+        "title": "Paired Comments: Restore from Backup",
+        "category": "Paired Comments",
+        "icon": "$(history)"
       }
     ],
     "keybindings": [
