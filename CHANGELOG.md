@@ -5,6 +5,137 @@ All notable changes to the Paired Comments extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-10-18
+
+### Added
+- **🤖 AI Metadata System (Phase 1: Provider Infrastructure)** - Foundation for AI-powered comment metadata
+  - **Multi-Provider Architecture** - Extensible system supporting multiple AI providers
+    - Abstract `AIMetadataProvider` base class for provider implementations
+    - ProviderRegistry for centralized provider management
+    - Currently supports: OpenAI (GPT-4), with Anthropic (Claude) and local models planned
+  - **Three AI Operations**
+    - `analyze_complexity` - Cyclomatic and cognitive complexity analysis
+    - `estimate_tokens` - Token count estimation for LLM context management
+    - `extract_parameters` - Function/class parameter extraction and metadata
+  - **OpenAI Provider (GPT-4)** - First AI provider implementation
+    - Full implementation of all three operations
+    - Cost tracking ($0.045/1K tokens average)
+    - Token usage monitoring
+    - Timeout management (30s default)
+    - Retry logic (3 attempts)
+    - Response format validation (JSON mode)
+  - **Graceful Degradation** - Extension works without AI configured
+    - Fallback heuristics for complexity (control flow keyword counting)
+    - Fallback token estimation (chars / 4)
+    - Fallback parameter extraction (simple regex)
+    - Never breaks if API key missing or AI disabled
+  - **Configuration System**
+    - Custom .env file parser (no external dependencies)
+    - Dual configuration: .env file OR VS Code settings
+    - Settings: `pairedComments.ai.*` namespace
+    - Enable/disable AI features globally
+    - Provider selection (openai, anthropic, local)
+    - Cache control (enabled, TTL)
+    - Provider-specific settings (model, timeout, API keys)
+  - **Response Caching** - Cost optimization
+    - In-memory cache with configurable TTL (default 1 hour)
+    - Cache key generation based on operation + code
+    - Cache hit/miss tracking
+    - Manual cache clearing
+  - **Service Layer** - High-level facade API
+    - `AIMetadataService` singleton
+    - Simple methods: `analyzeComplexity()`, `estimateTokens()`, `extractParameters()`
+    - Automatic provider selection
+    - Error handling with fallbacks
+    - Service statistics (initialized, enabled, provider count, cache size)
+  - **Test Command** - Development verification tool
+    - New command: `pairedComments.testAIMetadata`
+    - Tests all three AI operations on selected code
+    - Displays results in user-friendly dialog
+    - Detailed logging to Output panel
+    - Detects fallback mode and shows configuration help
+    - Shows service statistics
+  - **Native Dependencies** - Zero external AI/HTTP libraries
+    - Uses Node 18+ built-in `fetch` API
+    - Custom .env parser (no dotenv package)
+    - VS Code's configuration system
+    - Minimal footprint
+
+### Changed
+- **Extension Activation** - Now initializes AI metadata service
+  - Non-blocking async initialization
+  - Logs AI provider status (enabled, provider count)
+  - Shows warnings if no API key configured
+  - Extension works normally if AI initialization fails
+- **Version Number** - Updated to 2.1.0
+  - Extension banner: "v2.1.0 AI METADATA"
+  - Package.json version: 2.1.0
+  - File format version remains 2.0.7 (no breaking changes)
+
+### Technical Details
+- **New Files Created**:
+  - `src/ai/AIMetadataProvider.ts` (200+ lines) - Core abstraction layer
+  - `src/ai/providers/OpenAIProvider.ts` (430+ lines) - GPT-4 implementation
+  - `src/ai/ProviderRegistry.ts` (200+ lines) - Provider management
+  - `src/ai/AIMetadataService.ts` (370+ lines) - High-level facade API
+  - `src/config/AIConfig.ts` (220+ lines) - Configuration management
+- **Files Modified**:
+  - `src/extension.ts` - Added AI service initialization
+  - `src/commands/index.ts` - Added test command (120 lines)
+  - `package.json` - Added AI configuration schema (70+ lines)
+- **AI Provider Architecture**:
+  - Request/Response types with full TypeScript support
+  - Error types (MISSING_API_KEY, NO_PROVIDER, etc.)
+  - Metadata tracking (provider, model, latency, tokens, cost)
+  - Confidence scoring (0-1) for all responses
+- **Data Structures**:
+  - `ComplexityAnalysis`: cyclomatic, cognitive, maintainability, explanation, confidence
+  - `TokenEstimation`: heuristic, validated, breakdown (code/comments/whitespace), confidence
+  - `ExtractedParameters`: name, kind, parameters[], returnType, lineCount, confidence
+- **Configuration Schema** (package.json):
+  - `pairedComments.ai.enabled` (boolean, default: true)
+  - `pairedComments.ai.defaultProvider` (enum: openai|anthropic|local)
+  - `pairedComments.ai.cacheEnabled` (boolean, default: true)
+  - `pairedComments.ai.cacheTTL` (number, default: 3600000ms = 1 hour)
+  - `pairedComments.ai.openai.apiKey` (string, optional)
+  - `pairedComments.ai.openai.model` (enum: gpt-4|gpt-4-turbo|gpt-3.5-turbo)
+  - `pairedComments.ai.openai.baseUrl` (string, for Azure/proxies)
+  - `pairedComments.ai.openai.timeout` (number, default: 30000ms)
+  - `pairedComments.ai.openai.maxRetries` (number, default: 3)
+  - Similar settings for Anthropic (reserved for future)
+
+### User Impact
+- **AI is Optional** - Extension works perfectly without AI
+- **Easy Configuration** - Drop OPENAI_API_KEY in .env file or VS Code settings
+- **Cost Transparency** - Logs token usage and estimated costs
+- **Foundation for Future Features** - Infrastructure ready for:
+  - Phase 2: Dynamic Parameters (AI-suggested parameter names)
+  - Phase 3: Ghost Comment Summaries (AI-generated explanations)
+  - Phase 4: Bulk Metadata Generation (AI-powered analysis)
+  - Future: MCP Server extraction for broader ecosystem
+- **NASA Approach** - Manual workflows first, AI automation later
+
+### Breaking Changes
+- None - Fully backwards compatible with v2.0.8
+- AI features are opt-in (disabled if no API key)
+- No changes to file format or existing functionality
+
+### Known Limitations (Phase 1)
+- AI metadata not yet integrated into comment creation (Phase 2+)
+- No bulk analysis commands yet (Phase 4)
+- OpenAI only (Anthropic and local models coming)
+- Test command not in UI menu (developer tool for now)
+
+### Next Steps (v2.1.1+)
+- Phase 2: Dynamic Parameters - AI suggests parameter names when creating comments
+- Phase 3: Ghost Comment Summaries - AI generates explanations for complex code
+- Phase 4: Bulk Metadata Generation - AI analyzes entire files/projects
+- Anthropic (Claude) provider implementation
+- Local model support (Ollama, LM Studio)
+- MCP server extraction for ecosystem integration
+
+---
+
 ## [2.0.8] - 2025-10-18
 
 ### Added

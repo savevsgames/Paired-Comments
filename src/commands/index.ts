@@ -8,6 +8,8 @@ import { PairedViewManager } from '../ui/PairedViewManager';
 import { ScrollSyncManager } from '../ui/ScrollSyncManager';
 import { DecorationManager } from '../ui/DecorationManager';
 import { FileSystemManager } from '../io/FileSystemManager';
+import { aiMetadataService } from '../ai/AIMetadataService';
+import { logger } from '../utils/Logger';
 
 export interface CommandDependencies {
   commentManager: CommentManager;
@@ -161,6 +163,13 @@ export function registerCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand('pairedComments.convertPairedToInline', async () => {
       await convertPairedToInline(deps);
+    })
+  );
+
+  // Test AI metadata (v2.1.0 development)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.testAIMetadata', async () => {
+      await testAIMetadata();
     })
   );
 }
@@ -1182,5 +1191,127 @@ async function convertPairedToInline(deps: CommandDependencies): Promise<void> {
 
   } catch (error) {
     void vscode.window.showErrorMessage(`Failed to convert comment: ${String(error)}`);
+  }
+}
+
+/**
+ * Test AI metadata integration
+ * v2.1.0 Development - Verifies OpenAI provider functionality
+ */
+async function testAIMetadata(): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    void vscode.window.showErrorMessage('No active editor - open a source file to test AI metadata');
+    return;
+  }
+
+  // Get selected code or current line
+  const selection = editor.selection;
+  const code = editor.document.getText(selection.isEmpty ?
+    new vscode.Range(selection.active.line, 0, selection.active.line + 1, 0) :
+    selection);
+
+  if (!code.trim()) {
+    void vscode.window.showWarningMessage('No code selected. Place cursor on a line with code or select a code block.');
+    return;
+  }
+
+  // Show progress
+  void vscode.window.showInformationMessage('Testing AI metadata... (check Output panel for details)');
+  logger.info('═══════════════════════════════════════════════════════════');
+  logger.info('🧪 AI METADATA TEST');
+  logger.info(`Code snippet: ${code.substring(0, 100)}${code.length > 100 ? '...' : ''}`);
+  logger.info(`Language: ${editor.document.languageId}`);
+
+  try {
+    // Test complexity analysis
+    logger.info('Testing complexity analysis...');
+    const complexity = await aiMetadataService.analyzeComplexity(
+      code,
+      editor.document.languageId,
+      {
+        filePath: editor.document.uri.fsPath,
+        lineNumber: selection.active.line + 1,
+        useCache: false // Don't use cache for test
+      }
+    );
+
+    if (complexity) {
+      const confidencePercent = Math.round(complexity.confidence * 100);
+      const isFallback = complexity.explanation.includes('unavailable');
+
+      logger.info(`✅ Complexity Analysis ${isFallback ? '(Fallback)' : '(AI-Powered)'}: Cyclomatic=${complexity.cyclomatic}, Cognitive=${complexity.cognitive}, Maintainability=${complexity.maintainability}/100, Confidence=${confidencePercent}%`);
+      logger.info(`   Explanation: ${complexity.explanation}`);
+
+      const msg = `${isFallback ? '⚠️ AI Unavailable - Using Fallback' : '✅ AI Test Successful'}\n\n` +
+                  `Cyclomatic: ${complexity.cyclomatic}\n` +
+                  `Cognitive: ${complexity.cognitive}\n` +
+                  `Maintainability: ${complexity.maintainability}/100\n` +
+                  `Confidence: ${confidencePercent}%\n\n` +
+                  `${complexity.explanation}\n\n` +
+                  (isFallback ? 'Check Output panel for configuration help.' : 'Check Output panel for details.');
+
+      void vscode.window.showInformationMessage(msg);
+
+      if (isFallback) {
+        logger.warn('AI metadata is using fallback mode. Possible causes:');
+        logger.warn('  1. AI features disabled in settings (pairedComments.ai.enabled)');
+        logger.warn('  2. No OPENAI_API_KEY in .env file or VS Code settings');
+        logger.warn('  3. OpenAI provider failed validation');
+        logger.warn('');
+        logger.warn('To fix:');
+        logger.warn('  1. Create .env file in workspace root with: OPENAI_API_KEY=sk-...');
+        logger.warn('  2. Or set pairedComments.ai.openai.apiKey in VS Code settings');
+        logger.warn('  3. Reload the window (Developer: Reload Window)');
+      }
+    } else {
+      logger.error('❌ Complexity analysis returned null (unexpected)');
+      void vscode.window.showErrorMessage('AI test failed: No result returned. Check Output panel.');
+    }
+
+    // Test token estimation
+    logger.info('Testing token estimation...');
+    const tokens = await aiMetadataService.estimateTokens(
+      code,
+      editor.document.languageId,
+      {
+        filePath: editor.document.uri.fsPath,
+        useCache: false
+      }
+    );
+
+    if (tokens) {
+      logger.info(`✅ Token Estimation: Heuristic=${tokens.heuristic}, Validated=${tokens.validated}, Confidence=${Math.round(tokens.confidence * 100)}%`);
+    }
+
+    // Test parameter extraction
+    logger.info('Testing parameter extraction...');
+    const params = await aiMetadataService.extractParameters(
+      code,
+      editor.document.languageId,
+      {
+        filePath: editor.document.uri.fsPath,
+        lineNumber: selection.active.line + 1,
+        useCache: false
+      }
+    );
+
+    if (params) {
+      logger.info(`✅ Parameter Extraction: Name="${params.name}", Kind=${params.kind}, Params=${params.parameters.length}, Confidence=${Math.round(params.confidence * 100)}%`);
+    }
+
+    // Show service stats
+    const stats = aiMetadataService.getStats();
+    logger.info('');
+    logger.info('AI Metadata Service Stats:');
+    logger.info(`  Initialized: ${stats.initialized}`);
+    logger.info(`  Enabled: ${stats.enabled}`);
+    logger.info(`  Providers: ${stats.providersCount}`);
+    logger.info(`  Cache Size: ${stats.cacheSize}`);
+    logger.info('═══════════════════════════════════════════════════════════');
+
+  } catch (error) {
+    logger.error('❌ AI metadata test failed with error:', error);
+    void vscode.window.showErrorMessage(`AI test failed: ${error instanceof Error ? error.message : String(error)}\n\nCheck Output panel for details.`);
   }
 }

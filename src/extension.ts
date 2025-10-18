@@ -20,6 +20,7 @@ import {
   getUserMessage,
   getRecoverySteps
 } from './errors/PairedCommentsError';
+import { aiMetadataService } from './ai/AIMetadataService';
 
 /**
  * Extension activation function
@@ -28,7 +29,7 @@ import {
 export function activate(context: vscode.ExtensionContext): void {
   // Initialize logger first
   logger.info('═══════════════════════════════════════════════════════════');
-  logger.info('🚀 PAIRED COMMENTS EXTENSION ACTIVATED - v2.0.8 CRITICAL UX');
+  logger.info('🚀 PAIRED COMMENTS EXTENSION ACTIVATED - v2.1.0 AI METADATA');
   logger.info('═══════════════════════════════════════════════════════════');
   logger.info('Paired Comments extension is now active');
 
@@ -39,6 +40,22 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Apply initial file exclusion settings
   applyFileExclusionSettings();
+
+  // Initialize AI metadata service (async, non-blocking)
+  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  aiMetadataService.initialize(workspaceRoot).then(() => {
+    const stats = aiMetadataService.getStats();
+    if (stats.enabled && stats.providersCount > 0) {
+      logger.info(`AI Metadata: ${stats.providersCount} provider(s) initialized`);
+    } else if (!stats.enabled) {
+      logger.info('AI Metadata: Disabled in settings');
+    } else {
+      logger.warn('AI Metadata: No providers configured (set OPENAI_API_KEY in .env)');
+    }
+  }).catch((error: unknown) => {
+    logger.error('Failed to initialize AI metadata service', error);
+    // Non-blocking - extension still works without AI
+  });
 
   // Initialize core managers (order matters: AST → FileSystem → Comment → Ghost)
   const astAnchorManager = new ASTAnchorManager();
