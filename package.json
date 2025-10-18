@@ -26,10 +26,6 @@
     "code-review",
     "productivity"
   ],
-  "activationEvents": [
-    "onCommand:pairedComments.open",
-    "onCommand:pairedComments.addComment"
-  ],
   "main": "./out/extension.js",
   "contributes": {
     "languages": [

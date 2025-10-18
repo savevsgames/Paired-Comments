@@ -1,0 +1,16 @@
+{
+  "file": "corrupt.js",
+  "version": "2.0.6",
+  "ghostMarkers": [
+    {
+      "id": "gm-1",
+      "line": 10,
+      "commentIds": ["comment-1"],
+      // This is an invalid JSON comment that will cause parsing to fail
+      "lineHash": "broken
+  ],
+  "comments": [
+    {
+      "id": "comment-1",
+      "line": 10,
+      "text": "This comment references a missing ghost marker

@@ -1,0 +1,266 @@
+{
+  "file": "sample.js",
+  "version": "2.0.6",
+  "ghostMarkers": [
+    {
+      "id": "gm-calculateDiscount",
+      "line": 6,
+      "endLine": 13,
+      "commentIds": [
+        "comment-discount-range"
+      ],
+      "astAnchor": {
+        "symbolPath": [
+          "calculateDiscount"
+        ],
+        "symbolKind": "Function",
+        "containerName": null,
+        "offset": 0
+      },
+      "lineHash": "3a5c8f9d2b4e1a7f",
+      "lineText": "function calculateDiscount(price, discountPercent) {",
+      "prevLineText": "// Test 1: Top-level function with calculation logic",
+      "nextLineText": "  if (discountPercent < 0 || discountPercent > 100) {",
+      "lastVerified": "2025-10-18T12:00:00.000Z"
+    },
+    {
+      "id": "gm-formatCurrency",
+      "line": 16,
+      "commentIds": [
+        "comment-format-single"
+      ],
+      "astAnchor": {
+        "symbolPath": [
+          "formatCurrency"
+        ],
+        "symbolKind": "Function",
+        "containerName": null,
+        "offset": 0
+      },
+      "lineHash": "7b2d9e4f6a1c3b8e",
+      "lineText": "const formatCurrency = (amount, currency = 'USD') => {",
+      "prevLineText": "// Test 2: Arrow function for formatting",
+      "nextLineText": "  return new Intl.NumberFormat('en-US', {",
+      "lastVerified": "2025-10-18T12:00:00.000Z"
+    },
+    {
+      "id": "gm-shopping-cart-class",
+      "line": 23,
+      "endLine": 64,
+      "commentIds": [
+        "comment-shopping-cart-range"
+      ],
+      "astAnchor": {
+        "symbolPath": [
+          "ShoppingCart"
+        ],
+        "symbolKind": "Class",
+        "containerName": null,
+        "offset": 0
+      },
+      "lineHash": "9c4e2a7f5d8b3e1a",
+      "lineText": "class ShoppingCart {",
+      "prevLineText": "// Test 3: Class with multiple methods",
+      "nextLineText": "  constructor() {",
+      "lastVerified": "2025-10-18T12:00:00.000Z"
+    },
+    {
+      "id": "gm-addItem",
+      "line": 30,
+      "commentIds": [
+        "comment-addItem-todo"
+      ],
+      "astAnchor": {
+        "symbolPath": [
+          "ShoppingCart",
+          "addItem"
+        ],
+        "symbolKind": "Method",
+        "containerName": "ShoppingCart",
+        "offset": 0
+      },
+      "lineHash": "5f8a2c9e1d3b7a4f",
+      "lineText": "  addItem(item) {",
+      "prevLineText": "  // Method to add items",
+      "nextLineText": "    if (!item.id || !item.price || !item.name) {",
+      "lastVerified": "2025-10-18T12:00:00.000Z"
+    },
+    {
+      "id": "gm-checkout",
+      "line": 56,
+      "commentIds": [
+        "comment-checkout-fixme"
+      ],
+      "astAnchor": {
+        "symbolPath": [
+          "ShoppingCart",
+          "checkout"
+        ],
+        "symbolKind": "Method",
+        "containerName": "ShoppingCart",
+        "offset": 0
+      },
+      "lineHash": "2a7c9f4e8d1b5a3f",
+      "lineText": "  checkout() {",
+      "prevLineText": "  // Checkout with validation",
+      "nextLineText": "    if (this.items.length === 0) {",
+      "lastVerified": "2025-10-18T12:00:00.000Z"
+    },
+    {
+      "id": "gm-fetchProducts",
+      "line": 79,
+      "endLine": 90,
+      "commentIds": [
+        "comment-fetch-range"
+      ],
+      "astAnchor": {
+        "symbolPath": [
+          "fetchProducts"
+        ],
+        "symbolKind": "Function",
+        "containerName": null,
+        "offset": 0
+      },
+      "lineHash": "4d9e7a2f6c8b1e3a",
+      "lineText": "async function fetchProducts(category) {",
+      "prevLineText": "// Test 5: Async function for API calls",
+      "nextLineText": "  try {",
+      "lastVerified": "2025-10-18T12:00:00.000Z"
+    },
+    {
+      "id": "gm-orderProcessor",
+      "line": 99,
+      "commentIds": [
+        "comment-processor-question"
+      ],
+      "astAnchor": null,
+      "lineHash": "8e3a7f9c2d5b1a4f",
+      "lineText": "const orderProcessor = {",
+      "prevLineText": "// Test 7: Object with methods (object literal)",
+      "nextLineText": "  processOrder(order) {",
+      "lastVerified": "2025-10-18T12:00:00.000Z"
+    },
+    {
+      "id": "gm-payment-processor",
+      "line": 127,
+      "endLine": 180,
+      "commentIds": [
+        "comment-payment-range",
+        "comment-payment-warning"
+      ],
+      "astAnchor": {
+        "symbolPath": [
+          "PaymentProcessor"
+        ],
+        "symbolKind": "Class",
+        "containerName": null,
+        "offset": 0
+      },
+      "lineHash": "1c9f7a4e2d8b3e5a",
+      "lineText": "class PaymentProcessor {",
+      "prevLineText": "// Test 8: Complex nested structure",
+      "nextLineText": "  constructor(apiKey) {",
+      "lastVerified": "2025-10-18T12:00:00.000Z"
+    }
+  ],
+  "comments": [
+    {
+      "id": "comment-discount-range",
+      "line": 6,
+      "startLine": 6,
+      "endLine": 13,
+      "text": "TODO: This discount calculation needs validation improvements. Consider adding maximum discount limits and better error messages for edge cases.",
+      "author": "Test User",
+      "created": "2025-10-18T12:00:00.000Z",
+      "updated": "2025-10-18T12:00:00.000Z",
+      "tag": "TODO",
+      "ghostMarkerId": "gm-calculateDiscount"
+    },
+    {
+      "id": "comment-format-single",
+      "line": 16,
+      "text": "NOTE: Currency formatting using Intl API. Supports multiple currencies and locales automatically.",
+      "author": "Test User",
+      "created": "2025-10-18T12:00:00.000Z",
+      "updated": "2025-10-18T12:00:00.000Z",
+      "tag": "NOTE",
+      "ghostMarkerId": "gm-formatCurrency"
+    },
+    {
+      "id": "comment-shopping-cart-range",
+      "line": 23,
+      "startLine": 23,
+      "endLine": 64,
+      "text": "This entire ShoppingCart class needs refactoring. Consider extracting the validation logic into a separate validator class and adding persistence layer.",
+      "author": "Test User",
+      "created": "2025-10-18T12:00:00.000Z",
+      "updated": "2025-10-18T12:00:00.000Z",
+      "tag": null,
+      "ghostMarkerId": "gm-shopping-cart-class"
+    },
+    {
+      "id": "comment-addItem-todo",
+      "line": 30,
+      "text": "TODO: Add duplicate item detection. Currently allows the same item to be added multiple times.",
+      "author": "Test User",
+      "created": "2025-10-18T12:00:00.000Z",
+      "updated": "2025-10-18T12:00:00.000Z",
+      "tag": "TODO",
+      "ghostMarkerId": "gm-addItem"
+    },
+    {
+      "id": "comment-checkout-fixme",
+      "line": 56,
+      "text": "FIXME: Checkout doesn't handle payment processing. This is a critical missing feature for production.",
+      "author": "Test User",
+      "created": "2025-10-18T12:00:00.000Z",
+      "updated": "2025-10-18T12:00:00.000Z",
+      "tag": "FIXME",
+      "ghostMarkerId": "gm-checkout"
+    },
+    {
+      "id": "comment-fetch-range",
+      "line": 79,
+      "startLine": 79,
+      "endLine": 90,
+      "text": "STAR: Great example of proper async/await error handling. This pattern should be used throughout the codebase.",
+      "author": "Test User",
+      "created": "2025-10-18T12:00:00.000Z",
+      "updated": "2025-10-18T12:00:00.000Z",
+      "tag": "STAR",
+      "ghostMarkerId": "gm-fetchProducts"
+    },
+    {
+      "id": "comment-processor-question",
+      "line": 99,
+      "text": "QUESTION: Should this be a class instead of an object literal? Would make testing easier with dependency injection.",
+      "author": "Test User",
+      "created": "2025-10-18T12:00:00.000Z",
+      "updated": "2025-10-18T12:00:00.000Z",
+      "tag": "QUESTION",
+      "ghostMarkerId": "gm-orderProcessor"
+    },
+    {
+      "id": "comment-payment-range",
+      "line": 127,
+      "startLine": 127,
+      "endLine": 180,
+      "text": "HACK: This is a simulated payment processor for testing. Replace with real Stripe/PayPal integration before production.",
+      "author": "Test User",
+      "created": "2025-10-18T12:00:00.000Z",
+      "updated": "2025-10-18T12:00:00.000Z",
+      "tag": "HACK",
+      "ghostMarkerId": "gm-payment-processor"
+    },
+    {
+      "id": "comment-payment-warning",
+      "line": 127,
+      "text": "WARNING: API key is stored in plain text. Must use secure environment variables in production.",
+      "author": "Security Team",
+      "created": "2025-10-18T12:00:00.000Z",
+      "updated": "2025-10-18T12:00:00.000Z",
+      "tag": "WARNING",
+      "ghostMarkerId": "gm-payment-processor"
+    }
+  ]
+}

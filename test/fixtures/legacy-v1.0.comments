@@ -1,0 +1,33 @@
+{
+  "file": "legacy-v1.0.js",
+  "version": "1.0",
+  "comments": [
+    {
+      "id": "comment-1",
+      "line": 10,
+      "text": "TODO: This function needs optimization",
+      "author": "Legacy User",
+      "created": "2024-01-15T10:00:00.000Z",
+      "updated": "2024-01-15T10:00:00.000Z",
+      "tag": "TODO"
+    },
+    {
+      "id": "comment-2",
+      "line": 25,
+      "text": "FIXME: Memory leak detected here",
+      "author": "Legacy User",
+      "created": "2024-02-20T14:30:00.000Z",
+      "updated": "2024-02-20T14:30:00.000Z",
+      "tag": "FIXME"
+    },
+    {
+      "id": "comment-3",
+      "line": 42,
+      "text": "This is a critical section that handles authentication",
+      "author": "Legacy User",
+      "created": "2024-03-10T09:15:00.000Z",
+      "updated": "2024-03-10T09:15:00.000Z",
+      "tag": null
+    }
+  ]
+}

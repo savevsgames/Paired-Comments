@@ -1,0 +1,48 @@
+{
+  "file": "legacy-v2.0.js",
+  "version": "2.0",
+  "ghostMarkers": [
+    {
+      "id": "gm-legacy-1",
+      "line": 15,
+      "commentIds": ["comment-legacy-1"],
+      "lineHash": "abc123def456",
+      "lineText": "function processData(input) {",
+      "prevLineText": "// Data processing function",
+      "nextLineText": "  const result = input.map(x => x * 2);",
+      "lastVerified": "2024-06-15T10:00:00.000Z"
+    },
+    {
+      "id": "gm-legacy-2",
+      "line": 30,
+      "commentIds": ["comment-legacy-2"],
+      "lineHash": "789xyz012abc",
+      "lineText": "class DataManager {",
+      "prevLineText": "// Main data management class",
+      "nextLineText": "  constructor() {",
+      "lastVerified": "2024-06-15T10:00:00.000Z"
+    }
+  ],
+  "comments": [
+    {
+      "id": "comment-legacy-1",
+      "line": 15,
+      "text": "NOTE: This processing logic needs AST-based tracking",
+      "author": "Legacy User",
+      "created": "2024-06-15T10:00:00.000Z",
+      "updated": "2024-06-15T10:00:00.000Z",
+      "tag": "NOTE",
+      "ghostMarkerId": "gm-legacy-1"
+    },
+    {
+      "id": "comment-legacy-2",
+      "line": 30,
+      "text": "TODO: Add AST anchors for better tracking",
+      "author": "Legacy User",
+      "created": "2024-06-15T10:00:00.000Z",
+      "updated": "2024-06-15T10:00:00.000Z",
+      "tag": "TODO",
+      "ghostMarkerId": "gm-legacy-2"
+    }
+  ]
+}

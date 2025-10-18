@@ -1,7 +1,7 @@
 # Paired Comments - Technical Architecture
 
-**Version:** 2.0.5-dev (AST-Based)
-**Last Updated:** October 18, 2025
+**Version:** 2.0.6 (Range Comments + AST-Based)
+**Last Updated:** October 18, 2025 (Post-Range Comments)
 
 ---
 
@@ -233,15 +233,16 @@ export class CommentCodeLensProvider implements vscode.CodeLensProvider {
 
 ---
 
-## File Format (v2.0.5)
+## File Format (v2.0.6 - Range Comments)
 
 ```json
 {
-  "version": "2.0.5",
+  "version": "2.0.6",
   "ghostMarkers": [
     {
       "id": "gm-abc123",
       "line": 42,
+      "endLine": 50,  // NEW in v2.0.6: Range support
       "commentIds": ["c1", "c2"],
       "lineHash": "279296474db90992",
       "lineText": "function calculateTotal(items) {",
@@ -253,21 +254,345 @@ export class CommentCodeLensProvider implements vscode.CodeLensProvider {
         "symbolPath": ["calculateTotal"],
         "symbolKind": "Function",
         "offset": 1250,
-        "language": "javascript"
+        "containerName": null
       }
     }
   ],
   "comments": [
     {
       "id": "c1",
+      "line": 42,
+      "startLine": 42,  // NEW in v2.0.6: Explicit start line
+      "endLine": 50,    // NEW in v2.0.6: Explicit end line
       "ghostMarkerId": "gm-abc123",
-      "text": "This function needs input validation",
+      "text": "This entire function needs input validation and error handling",
       "tag": "TODO",
       "author": "Greg",
       "created": "2025-10-15T14:20:00Z",
       "updated": "2025-10-15T14:20:00Z"
     }
   ]
+}
+```
+
+### Range Comments (v2.0.6)
+
+**Single-Line vs Range Comments:**
+
+**Single-line** (v2.0.5 and earlier):
+- Ghost marker has `line` only
+- Comment has `line` only
+- One gutter icon (single letter: `T`, `N`, `F`, etc.)
+
+**Range** (v2.0.6+):
+- Ghost marker has `line` (start) + `endLine` (end)
+- Comment has `line`, `startLine`, and `endLine`
+- Two gutter icons (two letters: `TS`/`TE`, `NS`/`NE`, etc.)
+
+**Backwards Compatibility:**
+- v2.0.6 reads v2.0.5 files (no `endLine` = single-line)
+- v2.0.5 can't read range comments (will ignore `endLine` field)
+
+---
+
+## Range Comments Deep Dive (v2.0.6)
+
+### Two-Letter Gutter Icons
+
+**Design Decision:** Use two-letter codes to visually distinguish range markers from single-line comments.
+
+**Gutter Icon Codes:**
+| Tag | Single | Range Start | Range End | Color |
+|-----|---------|-------------|-----------|-------|
+| TODO | `T` | `TS` | `TE` | Orange |
+| NOTE | `N` | `NS` | `NE` | Blue |
+| FIXME | `F` | `FS` | `FE` | Red |
+| QUESTION | `Q` | `QS` | `QE` | Purple |
+| HACK | `H` | `HS` | `HE` | Dark Orange |
+| WARNING | `W` | `WS` | `WE` | Yellow-Orange |
+| STAR | `S` | `SS` | `SE` | Gold |
+| (none) | `C` | `CS` | `CE` | Blue |
+
+**Visual Specifications:**
+```typescript
+// Single-line icon
+{
+  radius: 7px,
+  fontSize: 10px,
+  stroke: none,
+  bold: false
+}
+
+// Range start icon (TS, NS, etc.)
+{
+  radius: 8px,      // Larger!
+  fontSize: 7px,    // Smaller text (2 letters)
+  stroke: 2px,      // Bold border
+  bold: true
+}
+
+// Range end icon (TE, NE, etc.)
+{
+  radius: 7px,      // Same as single-line
+  fontSize: 7px,    // Smaller text (2 letters)
+  stroke: none,
+  bold: false
+}
+```
+
+**Why these choices:**
+- **Start icon larger** - Draws attention to the beginning of the range
+- **Start icon has border** - Further visual emphasis
+- **End icon smaller** - Subtle marker, doesn't dominate visually
+- **Two letters** - Clear distinction from single-line comments
+
+### Range Tracking Logic
+
+**GhostMarkerManager Changes:**
+
+```typescript
+// Create range marker
+async createMarker(
+  document: vscode.TextDocument,
+  line: number,
+  commentIds: string[],
+  endLine?: number  // NEW parameter
+): Promise<GhostMarker> {
+  const marker: GhostMarker = {
+    id: this.generateId(),
+    line,
+    endLine,  // Optional: undefined = single-line
+    commentIds,
+    lineHash: this.hashLine(document, line),
+    lineText: document.lineAt(line).text,
+    // ... other fields
+  };
+
+  // If endLine provided, track range
+  if (endLine && endLine > line) {
+    console.log(`[GhostMarker] Created RANGE marker: lines ${line}-${endLine}`);
+  }
+
+  return marker;
+}
+
+// Check if line is within range
+getMarkerAtLine(uri: vscode.Uri, line: number): GhostMarker | undefined {
+  const markers = this.markers.get(uri.toString()) || [];
+
+  return markers.find(m => {
+    // Single-line: exact match
+    if (!m.endLine) {
+      return m.line === line;
+    }
+
+    // Range: check if line is within bounds (inclusive)
+    return line >= m.line && line <= m.endLine;
+  });
+}
+
+// Update marker positions on document changes
+updateMarkerPositions(edit: vscode.TextDocumentChangeEvent) {
+  for (const marker of markers) {
+    // Shift start line
+    if (marker.line > changeEndLine) {
+      marker.line += lineDelta;
+    }
+
+    // Shift end line (if range marker)
+    if (marker.endLine && marker.endLine > changeEndLine) {
+      marker.endLine += lineDelta;
+    }
+  }
+}
+```
+
+### DecorationManager Changes
+
+**Decoration Type Initialization:**
+
+```typescript
+// Create 3 decoration types per tag:
+// 1. Single-line (e.g., "TODO")
+// 2. Range start (e.g., "TODO-start")
+// 3. Range end (e.g., "TODO-end")
+
+for (const tag of ALL_TAGS) {
+  const color = TAG_COLORS[tag];
+
+  // Single-line decoration
+  this.decorations.set(`${tag}`, vscode.window.createTextEditorDecorationType({
+    gutterIconPath: this.createGutterIcon('T', color, false),
+    // ...
+  }));
+
+  // Range start decoration (larger, bold)
+  this.decorations.set(`${tag}-start`, vscode.window.createTextEditorDecorationType({
+    gutterIconPath: this.createGutterIcon('TS', color, true),  // isLarger = true
+    // ...
+  }));
+
+  // Range end decoration (smaller, no bold)
+  this.decorations.set(`${tag}-end`, vscode.window.createTextEditorDecorationType({
+    gutterIconPath: this.createGutterIcon('TE', color, false),  // isLarger = false
+    // ...
+  }));
+}
+```
+
+**Decoration Application:**
+
+```typescript
+applyDecorations(editor: vscode.TextEditor, markers: GhostMarker[]) {
+  // Separate single-line from range markers
+  const singleMarkers = markers.filter(m => !m.endLine);
+  const rangeMarkers = markers.filter(m => m.endLine);
+
+  // Apply single-line decorations (one per marker)
+  for (const marker of singleMarkers) {
+    const decorationType = this.decorations.get(`${marker.tag}`);
+    const range = new vscode.Range(marker.line, 0, marker.line, 0);
+    editor.setDecorations(decorationType, [range]);
+  }
+
+  // Apply range decorations (TWO per marker)
+  for (const marker of rangeMarkers) {
+    const tag = marker.tag || 'default';
+
+    // Start decoration
+    const startType = this.decorations.get(`${tag}-start`);
+    const startRange = new vscode.Range(marker.line, 0, marker.line, 0);
+    editor.setDecorations(startType, [startRange]);
+
+    // End decoration
+    const endType = this.decorations.get(`${tag}-end`);
+    const endRange = new vscode.Range(marker.endLine, 0, marker.endLine, 0);
+    editor.setDecorations(endType, [endRange]);
+  }
+}
+```
+
+### Hover Messages (Smart Context)
+
+**Position-Aware Hover:**
+
+```typescript
+provideHover(document, position): vscode.Hover | null {
+  const line = position.line + 1; // Convert to 1-indexed
+  const marker = this.ghostMarkerManager.getMarkerAtLine(document.uri, line);
+
+  if (!marker) return null;
+
+  // Range marker: different hover for start vs end
+  if (marker.endLine) {
+    if (line === marker.line) {
+      // Hovering over START marker
+      return new vscode.Hover(`**Range Comment (lines ${marker.line}-${marker.endLine})**\n\n${commentText}`);
+    } else {
+      // Hovering over END marker
+      return new vscode.Hover(`**Range Comment (end)**\n\nLines ${marker.line}-${marker.endLine}`);
+    }
+  }
+
+  // Single-line marker: standard hover
+  return new vscode.Hover(`**Comment**\n\n${commentText}`);
+}
+```
+
+### Command Structure (S/R/A)
+
+**v2.0.6 Command Architecture:**
+
+```typescript
+// Ctrl+Alt+P S - Single-line comment
+async function addSingleComment() {
+  const line = editor.selection.active.line + 1;
+  const text = await vscode.window.showInputBox({
+    prompt: `Add single-line comment for line ${line}`,
+  });
+  await commentManager.addComment(uri, { line, text });
+}
+
+// Ctrl+Alt+P R - Range comment
+async function addRangeComment() {
+  const startLine = editor.selection.active.line + 1;
+
+  // Ask for end line
+  const endLineStr = await vscode.window.showInputBox({
+    prompt: `Range comment starting at line ${startLine}. Enter end line number:`,
+    validateInput: (value) => {
+      const num = parseInt(value);
+      if (isNaN(num)) return 'Please enter a valid line number';
+      if (num <= startLine) return `End line must be greater than ${startLine}`;
+      return null;
+    }
+  });
+
+  const endLine = parseInt(endLineStr);
+
+  // Ask for comment text
+  const text = await vscode.window.showInputBox({
+    prompt: `Add range comment for lines ${startLine}-${endLine}`,
+  });
+
+  await commentManager.addComment(uri, { line: startLine, endLine, text });
+}
+
+// Ctrl+Alt+P A - Reserved for v2.0.7+ (smart add)
+async function addComment() {
+  void vscode.window.showInformationMessage(
+    'Smart Add (Ctrl+Alt+P A) is reserved for v2.0.7+. Use:\n' +
+    '• Ctrl+Alt+P S for Single-line comments\n' +
+    '• Ctrl+Alt+P R for Range comments'
+  );
+}
+```
+
+**Design Rationale:**
+- **Explicit commands (S/R)** - Clear user intent, simpler implementation
+- **Reserved A command** - Future "smart add" feature (auto-detect or double-tap)
+- **Separate code paths** - Easier debugging and maintenance
+- **Changed L command** - "List All Comments" moved from S to L (avoid conflict)
+
+### Migration from v2.0.5 → v2.0.6
+
+**Schema Changes:**
+1. `COMMENT_FILE_VERSION`: `'2.0.5'` → `'2.0.6'`
+2. `GhostMarker`: Added optional `endLine?: number`
+3. `Comment`: Added optional `startLine?: number` and `endLine?: number`
+
+**Migration Logic:**
+```typescript
+// v2.0.5 files are valid v2.0.6 files (no migration needed)
+// All existing markers are treated as single-line (no endLine)
+// New range comments will have endLine field
+
+if (commentFile.version === '2.0.5') {
+  // No changes needed - v2.0.6 is backwards compatible
+  // Just update version string
+  commentFile.version = '2.0.6';
+}
+```
+
+**Helper Functions (types.ts):**
+```typescript
+// Check if comment/marker is a range
+export function isRangeComment(comment: Comment): boolean {
+  return comment.endLine !== undefined && comment.endLine > comment.line;
+}
+
+export function isRangeMarker(marker: GhostMarker): boolean {
+  return marker.endLine !== undefined && marker.endLine > marker.line;
+}
+
+// Get gutter codes
+export function getRangeGutterCode(tag: CommentTag, isStart: boolean): string {
+  const letter = TAG_LETTERS[tag] || 'C';
+  return isStart ? `${letter}S` : `${letter}E`;
+}
+
+export function getSingleGutterCode(tag: CommentTag): string {
+  return TAG_LETTERS[tag] || 'C';
 }
 ```
 
@@ -369,19 +694,34 @@ const symbols = await vscode.commands.executeCommand(
 
 ## Future Enhancements
 
-### v2.0.6: Range Comments
-- Track code ranges (lines 1-10) instead of single lines
-- Ghost marker anchors to start line of range
+### v2.0.7: Error Handling & Recovery (Next)
+- Custom error classes (PairedCommentsError, FileIOError, etc.)
+- Retry logic with exponential backoff for file I/O
+- Structured logging with VS Code output channel ✅ IMPLEMENTED
+- User-friendly error messages
+- Ghost marker persistence validation
 
-### v2.0.7: Multi-Language AST
+### v2.0.8: Inline Export/Import
+- Export range comments as inline markers
+- Import inline comments back to `.comments` files
+- Visibility toggle for inline markers
+
+### v2.1.0: Params & AI Metadata (KILLER FEATURE)
+- Dynamic parameters (`${functionName}`, `${propCount}`)
+- AI metadata (token estimation, complexity scoring)
+- Privacy controls (.commentsrc configuration)
+- Hash tree architecture for efficient change tracking
+
+### v2.2.0: Output Capture
+- Jupyter notebook-style runtime value capture
+- Template system for common patterns
+- Debug adapter integration
+
+### Future: Multi-Language AST
 - Python support (using Pyright language server)
 - Go support (using gopls)
 - Rust support (using rust-analyzer)
-
-### v2.1.0: Params & AI Metadata
-- Builds on AST foundation
-- Track function names, param counts in metadata
-- Auto-update when function signature changes
+- Java, C#, C++ support
 
 ---
 

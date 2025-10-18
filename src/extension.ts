@@ -14,16 +14,23 @@ import { CommentCodeLensProvider } from './ui/CommentCodeLensProvider';
 import { CommentFileDecorationProvider } from './ui/CommentFileDecorationProvider';
 import { FileSystemManager } from './io/FileSystemManager';
 import { registerCommands } from './commands';
+import { logger } from './utils/Logger';
 
 /**
  * Extension activation function
  * Called when the extension is activated
  */
 export function activate(context: vscode.ExtensionContext): void {
-  console.log('═══════════════════════════════════════════════════════════');
-  console.log('🚀 PAIRED COMMENTS EXTENSION ACTIVATED - v2.0.6 RANGE');
-  console.log('═══════════════════════════════════════════════════════════');
-  console.log('Paired Comments extension is now active');
+  // Initialize logger first
+  logger.info('═══════════════════════════════════════════════════════════');
+  logger.info('🚀 PAIRED COMMENTS EXTENSION ACTIVATED - v2.0.6 RANGE');
+  logger.info('═══════════════════════════════════════════════════════════');
+  logger.info('Paired Comments extension is now active');
+
+  // Register logger for disposal
+  context.subscriptions.push({
+    dispose: () => logger.dispose()
+  });
 
   // Apply initial file exclusion settings
   applyFileExclusionSettings();
@@ -81,7 +88,7 @@ export function activate(context: vscode.ExtensionContext): void {
   // Set up event listeners
   setupEventListeners(context, commentManager, decorationManager, codeLensProvider, fileDecorationProvider);
 
-  console.log('Paired Comments extension initialized successfully');
+  logger.info('Paired Comments extension initialized successfully');
 }
 
 /**
@@ -89,7 +96,7 @@ export function activate(context: vscode.ExtensionContext): void {
  * Called when the extension is deactivated
  */
 export function deactivate(): void {
-  console.log('Paired Comments extension is now deactivated');
+  logger.info('Paired Comments extension is now deactivated');
 }
 
 /**
@@ -107,7 +114,7 @@ function setupEventListeners(
     vscode.window.onDidChangeActiveTextEditor((editor) => {
       if (editor) {
         decorationManager.updateDecorations(editor).catch((error: Error) => {
-          console.error('Failed to update decorations:', error);
+          logger.error('Failed to update decorations', error);
         });
       }
     })
@@ -119,7 +126,7 @@ function setupEventListeners(
       const editor = vscode.window.activeTextEditor;
       if (editor && event.document === editor.document) {
         decorationManager.updateDecorations(editor).catch((error: Error) => {
-          console.error('Failed to update decorations:', error);
+          logger.error('Failed to update decorations on text change', error);
         });
       }
     })
@@ -129,16 +136,20 @@ function setupEventListeners(
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((document) => {
       if (document.fileName.endsWith('.comments')) {
+        logger.debug(`Reloading comments from: ${document.fileName}`);
+
         const sourceUri = vscode.Uri.file(
           document.fileName.replace(/\.comments$/, '')
         );
         commentManager.reloadComments(sourceUri).catch((error: Error) => {
-          console.error('Failed to reload comments:', error);
+          logger.error('Failed to reload comments', error);
         });
 
         // Refresh CodeLens and file decorations
         codeLensProvider.refresh();
         fileDecorationProvider.refresh(sourceUri);
+
+        logger.debug('Comments reloaded and UI refreshed');
       }
     })
   );

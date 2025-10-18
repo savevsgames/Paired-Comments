@@ -1,0 +1,28 @@
+{
+  "file": "large.js",
+  "version": "2.0.6",
+  "ghostMarkers": [
+    {"id": "gm-1", "line": 10, "commentIds": ["c-1"], "astAnchor": null, "lineHash": "hash1", "lineText": "function test1() {", "prevLineText": "", "nextLineText": "", "lastVerified": "2025-10-18T12:00:00.000Z"},
+    {"id": "gm-2", "line": 20, "commentIds": ["c-2"], "astAnchor": null, "lineHash": "hash2", "lineText": "function test2() {", "prevLineText": "", "nextLineText": "", "lastVerified": "2025-10-18T12:00:00.000Z"},
+    {"id": "gm-3", "line": 30, "commentIds": ["c-3"], "astAnchor": null, "lineHash": "hash3", "lineText": "function test3() {", "prevLineText": "", "nextLineText": "", "lastVerified": "2025-10-18T12:00:00.000Z"},
+    {"id": "gm-4", "line": 40, "commentIds": ["c-4"], "astAnchor": null, "lineHash": "hash4", "lineText": "function test4() {", "prevLineText": "", "nextLineText": "", "lastVerified": "2025-10-18T12:00:00.000Z"},
+    {"id": "gm-5", "line": 50, "commentIds": ["c-5"], "astAnchor": null, "lineHash": "hash5", "lineText": "function test5() {", "prevLineText": "", "nextLineText": "", "lastVerified": "2025-10-18T12:00:00.000Z"},
+    {"id": "gm-6", "line": 60, "endLine": 80, "commentIds": ["c-6"], "astAnchor": null, "lineHash": "hash6", "lineText": "function test6() {", "prevLineText": "", "nextLineText": "", "lastVerified": "2025-10-18T12:00:00.000Z"},
+    {"id": "gm-7", "line": 90, "commentIds": ["c-7"], "astAnchor": null, "lineHash": "hash7", "lineText": "function test7() {", "prevLineText": "", "nextLineText": "", "lastVerified": "2025-10-18T12:00:00.000Z"},
+    {"id": "gm-8", "line": 100, "commentIds": ["c-8"], "astAnchor": null, "lineHash": "hash8", "lineText": "function test8() {", "prevLineText": "", "nextLineText": "", "lastVerified": "2025-10-18T12:00:00.000Z"},
+    {"id": "gm-9", "line": 110, "commentIds": ["c-9"], "astAnchor": null, "lineHash": "hash9", "lineText": "function test9() {", "prevLineText": "", "nextLineText": "", "lastVerified": "2025-10-18T12:00:00.000Z"},
+    {"id": "gm-10", "line": 120, "endLine": 150, "commentIds": ["c-10"], "astAnchor": null, "lineHash": "hash10", "lineText": "function test10() {", "prevLineText": "", "nextLineText": "", "lastVerified": "2025-10-18T12:00:00.000Z"}
+  ],
+  "comments": [
+    {"id": "c-1", "line": 10, "text": "TODO: Comment 1 for performance testing", "author": "Perf Tester", "created": "2025-10-18T12:00:00.000Z", "updated": "2025-10-18T12:00:00.000Z", "tag": "TODO", "ghostMarkerId": "gm-1"},
+    {"id": "c-2", "line": 20, "text": "FIXME: Comment 2 for performance testing", "author": "Perf Tester", "created": "2025-10-18T12:00:00.000Z", "updated": "2025-10-18T12:00:00.000Z", "tag": "FIXME", "ghostMarkerId": "gm-2"},
+    {"id": "c-3", "line": 30, "text": "NOTE: Comment 3 for performance testing", "author": "Perf Tester", "created": "2025-10-18T12:00:00.000Z", "updated": "2025-10-18T12:00:00.000Z", "tag": "NOTE", "ghostMarkerId": "gm-3"},
+    {"id": "c-4", "line": 40, "text": "QUESTION: Comment 4 for performance testing", "author": "Perf Tester", "created": "2025-10-18T12:00:00.000Z", "updated": "2025-10-18T12:00:00.000Z", "tag": "QUESTION", "ghostMarkerId": "gm-4"},
+    {"id": "c-5", "line": 50, "text": "HACK: Comment 5 for performance testing", "author": "Perf Tester", "created": "2025-10-18T12:00:00.000Z", "updated": "2025-10-18T12:00:00.000Z", "tag": "HACK", "ghostMarkerId": "gm-5"},
+    {"id": "c-6", "line": 60, "startLine": 60, "endLine": 80, "text": "WARNING: Comment 6 RANGE for performance testing", "author": "Perf Tester", "created": "2025-10-18T12:00:00.000Z", "updated": "2025-10-18T12:00:00.000Z", "tag": "WARNING", "ghostMarkerId": "gm-6"},
+    {"id": "c-7", "line": 90, "text": "STAR: Comment 7 for performance testing", "author": "Perf Tester", "created": "2025-10-18T12:00:00.000Z", "updated": "2025-10-18T12:00:00.000Z", "tag": "STAR", "ghostMarkerId": "gm-7"},
+    {"id": "c-8", "line": 100, "text": "TODO: Comment 8 for performance testing", "author": "Perf Tester", "created": "2025-10-18T12:00:00.000Z", "updated": "2025-10-18T12:00:00.000Z", "tag": "TODO", "ghostMarkerId": "gm-8"},
+    {"id": "c-9", "line": 110, "text": "FIXME: Comment 9 for performance testing", "author": "Perf Tester", "created": "2025-10-18T12:00:00.000Z", "updated": "2025-10-18T12:00:00.000Z", "tag": "FIXME", "ghostMarkerId": "gm-9"},
+    {"id": "c-10", "line": 120, "startLine": 120, "endLine": 150, "text": "NOTE: Comment 10 RANGE for performance testing", "author": "Perf Tester", "created": "2025-10-18T12:00:00.000Z", "updated": "2025-10-18T12:00:00.000Z", "tag": "NOTE", "ghostMarkerId": "gm-10"}
+  ]
+}
