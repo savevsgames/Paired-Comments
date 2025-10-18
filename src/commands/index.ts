@@ -436,7 +436,69 @@ async function addComment(_deps: CommandDependencies): Promise<void> {
 }
 
 /**
+ * Get AI suggestion for comment (v2.1.0)
+ * Returns suggested comment text based on AI analysis, or empty string if AI unavailable
+ */
+async function getAISuggestion(editor: vscode.TextEditor, lineNumber: number, endLine?: number): Promise<string> {
+  // Check if AI is available
+  if (!aiMetadataService.isAvailable()) {
+    return '';
+  }
+
+  // Check if AI suggestions are enabled in settings
+  const config = vscode.workspace.getConfiguration('pairedComments.ai');
+  const suggestionsEnabled = config.get<boolean>('suggestComments', true);
+  if (!suggestionsEnabled) {
+    return '';
+  }
+
+  try {
+    // Get code snippet
+    const startLine = lineNumber - 1; // Convert to 0-indexed
+    const end = endLine ? endLine - 1 : startLine;
+    const range = new vscode.Range(startLine, 0, end + 1, 0);
+    const code = editor.document.getText(range);
+
+    if (!code.trim()) {
+      return '';
+    }
+
+    // Extract parameters using AI (fastest operation, most useful for suggestions)
+    const params = await aiMetadataService.extractParameters(
+      code,
+      editor.document.languageId,
+      {
+        filePath: editor.document.uri.fsPath,
+        lineNumber: lineNumber,
+        useCache: true // Use cache for performance
+      }
+    );
+
+    if (params && params.name && params.name !== 'unknown') {
+      // Build suggested comment based on extracted parameters
+      if (params.kind === 'function' || params.kind === 'method') {
+        const paramNames = params.parameters.map(p => p.name).join(', ');
+        return paramNames
+          ? `${params.name}(${paramNames}) - [AI suggestion]`
+          : `${params.name}() - [AI suggestion]`;
+      } else if (params.kind === 'class') {
+        return `Class: ${params.name} - [AI suggestion]`;
+      } else {
+        return `${params.kind}: ${params.name} - [AI suggestion]`;
+      }
+    }
+
+    return '';
+  } catch (error) {
+    // Silently fail - AI suggestions are optional
+    logger.debug('AI suggestion failed:', error);
+    return '';
+  }
+}
+
+/**
  * Add a single-line comment (Ctrl+Alt+P S)
+ * v2.1.0: Now with AI-powered suggestions!
  */
 async function addSingleComment(deps: CommandDependencies): Promise<void> {
   const editor = vscode.window.activeTextEditor;
@@ -447,16 +509,20 @@ async function addSingleComment(deps: CommandDependencies): Promise<void> {
 
   // Prevent adding comments to .comments files
   if (editor.document.uri.fsPath.endsWith('.comments')) {
-    void vscode.window.showWarningMessage('Cannot add comments to a .comments file');
+    void vscode.window.showWarningMessage('Cannot add comments to a .comments files');
     return;
   }
 
   // Use cursor line (ignore any selection)
   const line = editor.selection.active.line + 1; // Convert to 1-indexed
 
+  // Get AI suggestion (non-blocking, returns empty if unavailable)
+  const suggestion = await getAISuggestion(editor, line);
+
   const text = await vscode.window.showInputBox({
-    prompt: `Add single-line comment for line ${line}`,
-    placeHolder: 'Enter your comment...',
+    prompt: `Add single-line comment for line ${line}${suggestion ? ' (AI suggestion available)' : ''}`,
+    placeHolder: suggestion || 'Enter your comment...',
+    value: suggestion // Pre-fill with suggestion if available
   });
 
   if (!text) {
@@ -464,7 +530,21 @@ async function addSingleComment(deps: CommandDependencies): Promise<void> {
   }
 
   try {
-    await deps.commentManager.addComment(editor.document.uri, { line, text });
+    // Get code snippet for AI metadata enrichment
+    const codeSnippet = editor.document.lineAt(line - 1).text;
+
+    // Check if user wants AI metadata enrichment
+    const config = vscode.workspace.getConfiguration('pairedComments.ai');
+    const enrichWithAI = config.get<boolean>('enrichComments', true);
+
+    await deps.commentManager.addComment(editor.document.uri, {
+      line,
+      text,
+      requestAIMetadata: enrichWithAI && aiMetadataService.isAvailable(),
+      codeSnippet: enrichWithAI ? codeSnippet : undefined,
+      languageId: enrichWithAI ? editor.document.languageId : undefined
+    });
+
     await deps.decorationManager.refreshDecorations(editor.document.uri);
     void vscode.window.showInformationMessage('Single-line comment added successfully');
   } catch (error) {
@@ -474,6 +554,7 @@ async function addSingleComment(deps: CommandDependencies): Promise<void> {
 
 /**
  * Add a range comment (Ctrl+Alt+P R)
+ * v2.1.0: Now with AI-powered suggestions!
  */
 async function addRangeComment(deps: CommandDependencies): Promise<void> {
   const editor = vscode.window.activeTextEditor;
@@ -516,10 +597,14 @@ async function addRangeComment(deps: CommandDependencies): Promise<void> {
 
   const endLine = parseInt(endLineStr);
 
+  // Get AI suggestion for range (non-blocking)
+  const suggestion = await getAISuggestion(editor, startLine, endLine);
+
   // Ask for comment text
   const text = await vscode.window.showInputBox({
-    prompt: `Add range comment for lines ${startLine}-${endLine}`,
-    placeHolder: 'Enter your comment...',
+    prompt: `Add range comment for lines ${startLine}-${endLine}${suggestion ? ' (AI suggestion available)' : ''}`,
+    placeHolder: suggestion || 'Enter your comment...',
+    value: suggestion // Pre-fill with suggestion if available
   });
 
   if (!text) {
@@ -527,7 +612,23 @@ async function addRangeComment(deps: CommandDependencies): Promise<void> {
   }
 
   try {
-    await deps.commentManager.addComment(editor.document.uri, { line: startLine, endLine, text });
+    // Get code snippet for AI metadata enrichment
+    const range = new vscode.Range(startLine - 1, 0, endLine, 0);
+    const codeSnippet = editor.document.getText(range);
+
+    // Check if user wants AI metadata enrichment
+    const config = vscode.workspace.getConfiguration('pairedComments.ai');
+    const enrichWithAI = config.get<boolean>('enrichComments', true);
+
+    await deps.commentManager.addComment(editor.document.uri, {
+      line: startLine,
+      endLine,
+      text,
+      requestAIMetadata: enrichWithAI && aiMetadataService.isAvailable(),
+      codeSnippet: enrichWithAI ? codeSnippet : undefined,
+      languageId: enrichWithAI ? editor.document.languageId : undefined
+    });
+
     await deps.decorationManager.refreshDecorations(editor.document.uri);
     void vscode.window.showInformationMessage(`Range comment added for lines ${startLine}-${endLine}`);
   } catch (error) {

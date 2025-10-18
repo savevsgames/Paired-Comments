@@ -100,6 +100,43 @@ export interface Comment {
 
   /** Threaded replies to this comment */
   replies?: CommentReply[];
+
+  /** AI-generated metadata (v2.1.0+) */
+  aiMetadata?: {
+    /** Complexity analysis at time of comment creation */
+    complexity?: {
+      cyclomatic: number;
+      cognitive: number;
+      maintainability: number;
+      confidence: number;
+    };
+    /** Token estimation for code snippet */
+    tokens?: {
+      heuristic: number;
+      validated: number;
+      confidence: number;
+    };
+    /** Extracted parameters/metadata */
+    parameters?: {
+      name: string;
+      kind: string;
+      parameters: Array<{
+        name: string;
+        type?: string;
+        optional?: boolean;
+        defaultValue?: string;
+      }>;
+      returnType?: string;
+      lineCount: number;
+      confidence: number;
+    };
+    /** AI provider used */
+    provider?: string;
+    /** Model used */
+    model?: string;
+    /** When AI analysis was performed */
+    analyzedAt?: string;
+  };
 }
 
 /**
@@ -222,6 +259,15 @@ export interface AddCommentOptions {
 
   /** Author (optional, will use default if not provided) */
   author?: string;
+
+  /** Whether to request AI metadata enrichment (v2.1.0+) */
+  requestAIMetadata?: boolean;
+
+  /** Code snippet for AI analysis (v2.1.0+) */
+  codeSnippet?: string;
+
+  /** Language ID for AI analysis (v2.1.0+) */
+  languageId?: string;
 }
 
 /**
@@ -302,7 +348,7 @@ export class PairedCommentsError extends Error {
 /**
  * Schema version constant
  */
-export const COMMENT_FILE_VERSION = '2.0.8';
+export const COMMENT_FILE_VERSION = '2.1.0';
 
 /**
  * File extension for comment files

@@ -1,12 +1,15 @@
 /**
  * CommentManager - Handles CRUD operations for comments
  * Now with ghost marker support for automatic line tracking! 👻
+ * v2.1.0: AI metadata enrichment
  */
 
 import * as vscode from 'vscode';
 import { Comment, CommentFile, AddCommentOptions, UpdateCommentOptions, detectTag } from '../types';
 import { FileSystemManager } from '../io/FileSystemManager';
 import { GhostMarkerManager } from './GhostMarkerManager';
+import { aiMetadataService } from '../ai/AIMetadataService';
+import { logger } from '../utils/Logger';
 
 export class CommentManager {
   private cache: Map<string, CommentFile> = new Map();
@@ -137,6 +140,75 @@ export class CommentManager {
       }
     }
 
+    // AI metadata enrichment (v2.1.0) - Optional and non-blocking
+    let aiMetadata: Comment['aiMetadata'];
+    if (options.requestAIMetadata && options.codeSnippet && options.languageId) {
+      try {
+        logger.info(`Enriching comment with AI metadata (line ${options.line})`);
+
+        // Run all three AI operations in parallel for efficiency
+        const [complexity, tokens, parameters] = await Promise.all([
+          aiMetadataService.analyzeComplexity(
+            options.codeSnippet,
+            options.languageId,
+            { filePath: sourceUri.fsPath, lineNumber: options.line }
+          ),
+          aiMetadataService.estimateTokens(
+            options.codeSnippet,
+            options.languageId,
+            { filePath: sourceUri.fsPath }
+          ),
+          aiMetadataService.extractParameters(
+            options.codeSnippet,
+            options.languageId,
+            { filePath: sourceUri.fsPath, lineNumber: options.line }
+          )
+        ]);
+
+        // Build AI metadata object (only include if available)
+        if (complexity || tokens || parameters) {
+          aiMetadata = {
+            analyzedAt: now,
+            provider: 'openai', // TODO: Get from service stats
+            model: 'gpt-4', // TODO: Get from service stats
+          };
+
+          if (complexity) {
+            aiMetadata.complexity = {
+              cyclomatic: complexity.cyclomatic,
+              cognitive: complexity.cognitive,
+              maintainability: complexity.maintainability,
+              confidence: complexity.confidence
+            };
+          }
+
+          if (tokens) {
+            aiMetadata.tokens = {
+              heuristic: tokens.heuristic,
+              validated: tokens.validated,
+              confidence: tokens.confidence
+            };
+          }
+
+          if (parameters) {
+            aiMetadata.parameters = {
+              name: parameters.name,
+              kind: parameters.kind,
+              parameters: parameters.parameters,
+              returnType: parameters.returnType,
+              lineCount: parameters.lineCount,
+              confidence: parameters.confidence
+            };
+          }
+
+          logger.info(`AI metadata enrichment successful (complexity: ${complexity?.cyclomatic}, tokens: ${tokens?.validated})`);
+        }
+      } catch (error) {
+        // Non-blocking: Log error but continue with comment creation
+        logger.warn('AI metadata enrichment failed (comment will be created without metadata)', error);
+      }
+    }
+
     const newComment: Comment = {
       id,
       line: options.line,
@@ -147,7 +219,8 @@ export class CommentManager {
       created: now,
       updated: now,
       tag: tag,
-      ghostMarkerId: ghostMarkerId
+      ghostMarkerId: ghostMarkerId,
+      aiMetadata: aiMetadata // v2.1.0: Add AI metadata if available
     };
 
     // Add to comments array

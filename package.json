@@ -117,6 +117,16 @@
           "default": 3,
           "description": "Maximum number of retry attempts for failed requests"
         },
+        "pairedComments.ai.suggestComments": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show AI-suggested comment text when creating comments (v2.1.0)"
+        },
+        "pairedComments.ai.enrichComments": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enrich comments with AI metadata (complexity, tokens, parameters) when creating them (v2.1.0)"
+        },
         "pairedComments.ai.anthropic.apiKey": {
           "type": "string",
           "default": "",
