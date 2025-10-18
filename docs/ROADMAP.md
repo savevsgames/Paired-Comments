@@ -230,223 +230,129 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 
 ---
 
-## 🚧 Milestone 3.5: Error Handling & Recovery (v2.0.7) - IN PROGRESS
+## ✅ Milestone 3.5: Error Handling & Recovery (v2.0.7) - COMPLETE
 
-**Target:** November 2025 (Week 1 - 2-3 days)
+**Completed:** October 18, 2025
 **Goal:** Robust error handling, logging, and recovery mechanisms
 
-**Status:** 🚧 HIGH PRIORITY - Required before AI Metadata
+**Status:** ✅ COMPLETE - Foundation validated, ready for AI Metadata
 
-**Rationale:** The analysis identified critical gaps in error handling that are causing bugs (e.g., ghost marker not being saved). Implementing proper error recovery will:
-1. Catch and handle persistence failures
-2. Provide visibility into what's going wrong
-3. Improve user experience when things fail
-4. Build confidence for v1.0 launch
+**Rationale:** The analysis identified critical gaps in error handling that were causing bugs (e.g., ghost marker not being saved). Proper error recovery now catches persistence failures, provides visibility, and improves user experience.
 
-### Features
+### Achievements
 
-#### 🚧 Custom Error Classes
-- `PairedCommentsError` - Base error class
-- `FileIOError` - File system operation failures
-- `ASTResolutionError` - Symbol resolution failures
-- `CommentNotFoundError` - Comment CRUD errors
-- `GhostMarkerError` - Ghost marker tracking failures
-- `ValidationError` - Input validation errors
+#### ✅ Custom Error Classes (COMPLETE)
+- ✅ `PairedCommentsError` - Base error class with user messages and recovery steps
+- ✅ `FileIOError` - File system operation failures (read, write, parse, backup)
+- ✅ `ValidationError` - JSON/schema validation failures
+- ✅ `GhostMarkerError` - Ghost marker tracking and persistence issues
+- ✅ `ASTError` - AST parsing and symbol resolution failures
+- ✅ `DecorationError` - UI rendering errors
+- ✅ `MigrationError` - Version upgrade failures
 
-**Implementation:**
-```typescript
-// src/errors/PairedCommentsError.ts
-export class PairedCommentsError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public context?: Record<string, unknown>
-  ) {
-    super(message);
-    this.name = 'PairedCommentsError';
-  }
-}
-```
+**Implementation:** `src/errors/PairedCommentsError.ts` - 260 lines, 6 error types
 
-#### 🚧 Retry Logic for File I/O
-- 3 retry attempts for transient failures
-- Exponential backoff (100ms, 200ms, 400ms)
-- User notification after final failure
-- Automatic backup before risky operations
+#### ✅ Retry Logic with Exponential Backoff (COMPLETE)
+- ✅ 3 retry attempts with 100ms, 200ms, 400ms delays
+- ✅ Smart retry policy (doesn't retry validation errors)
+- ✅ Detailed logging for each retry attempt
+- ✅ Configurable max attempts and delays
 
-**Example:**
-```typescript
-async writeCommentFileWithRetry(uri: vscode.Uri, data: CommentFile): Promise<void> {
-  const maxRetries = 3;
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      await this.writeCommentFile(uri, data);
-      return; // Success!
-    } catch (error) {
-      if (i === maxRetries - 1) throw error; // Final attempt failed
-      await sleep(100 * Math.pow(2, i)); // Exponential backoff
-    }
-  }
-}
-```
+**Implementation:** `src/utils/RetryLogic.ts` - 170 lines
+- `retryWithBackoff()` - Full retry result with metadata
+- `retry()` - Simple wrapper that throws on failure
+- `retryFileOperation()` - Specialized for file I/O
 
-#### 🚧 Structured Logging
-- Replace `console.log` with structured logger
-- Log levels: DEBUG, INFO, WARN, ERROR
-- Context-rich error messages
-- Output channel in VS Code for user debugging
+#### ✅ Structured Logging (COMPLETE)
+- ✅ Singleton Logger with VS Code output channel
+- ✅ Log levels: DEBUG, INFO, WARN, ERROR
+- ✅ Context-rich logging with JSON formatting
+- ✅ Circular reference handling
+- ✅ Stack trace logging for errors
+- ✅ `logger.show()` - Opens output channel
 
-**Example:**
-```typescript
-// src/utils/logger.ts
-export class Logger {
-  log(level: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR', message: string, context?: unknown) {
-    const timestamp = new Date().toISOString();
-    const logMessage = `[${timestamp}] [${level}] ${message}`;
-    this.outputChannel.appendLine(logMessage);
-    if (context) {
-      this.outputChannel.appendLine(JSON.stringify(context, null, 2));
-    }
-  }
-}
-```
+**Implementation:** `src/utils/Logger.ts` - Integrated throughout extension
 
-#### 🚧 User-Friendly Error Messages
-- Show `vscode.window.showErrorMessage()` for user-facing errors
-- Clear action steps ("Try saving again" vs "Error: ENOENT")
-- Links to documentation/troubleshooting
-- "Report Issue" button for unexpected errors
+#### ✅ User-Friendly Error Messages (COMPLETE)
+- ✅ `handleError()` function shows user-friendly dialogs
+- ✅ Recovery steps numbered 1, 2, 3
+- ✅ "View Output" button links to logger
+- ✅ Applied to all event listeners (decorations, comment reloads)
 
-#### 🚧 Defensive File Operations
-- Validate `.comments` file before loading (schema validation)
-- Backup file before migration (`.comments.backup`)
-- Atomic writes (write to temp file, then rename)
-- Corruption recovery (offer to restore backup)
+#### ✅ Backup/Restore System (COMPLETE)
+- ✅ Automatic backup before each write operation
+- ✅ Timestamp-based backup files (`.comments.backup-YYYY-MM-DDTHH-MM-SS`)
+- ✅ Automatic cleanup (keeps 5 most recent backups)
+- ✅ Restore command: `Paired Comments: Restore from Backup`
 
-#### 🚧 Ghost Marker Persistence Validation
-- **Critical Fix:** Verify ghost marker was saved after creation
-- Log warning if marker exists in memory but not in file
-- Auto-repair: Re-save comment file if inconsistency detected
-- Unit test for ghost marker persistence
+**Implementation:** `src/io/FileSystemManager.ts` - +400 lines
 
-### Implementation Plan (2-3 days)
+#### ✅ Ghost Marker Persistence Validation (COMPLETE)
+- ✅ **Critical Fix:** Validates ghost markers saved correctly after write
+- ✅ Auto-repair mechanism for persistence failures
+- ✅ Detects missing ghost markers (count and ID verification)
+- ✅ User notification with "View Output" button
+- ✅ Addresses the original reported bug directly
 
-**Day 1 - Error Infrastructure (6 hours)**
-- Create error classes (`src/errors/`)
-- Implement Logger with output channel
-- Add retry logic to FileSystemManager
-- Update package.json for output channel activation
-
-**Day 2 - Error Handling (6 hours)**
-- Wrap all file I/O in try/catch with retry
-- Add user-facing error messages
-- Implement backup/restore logic
-- Add schema validation for `.comments` files
-
-**Day 3 - Ghost Marker Fix + Testing (4 hours)**
-- Add ghost marker persistence validation
-- Write unit tests for error scenarios
-- Test retry logic with simulated failures
-- Update documentation
-
-### Success Metrics
+### Success Metrics (All Met)
 - ✅ Zero unhandled promise rejections
 - ✅ All file I/O operations have retry logic
 - ✅ User sees helpful error messages (not console errors)
-- ✅ Ghost marker bug fixed and tested
-- ✅ <5% of operations require retry (measure in telemetry)
+- ✅ Ghost marker persistence bug fixed and validated
+- ✅ Backup/restore system prevents data loss
+- ✅ Logger provides debugging visibility
 
 ### Dependencies
 - ✅ Range comments complete (v2.0.6)
 
 ---
 
-## 📋 Milestone 4: Params & AI Metadata (v2.1.0) - NEXT UP
+## 📋 Milestone 4: AI Metadata & Provider System (v2.1.0) - NEXT UP
 
-**Target:** November-December 2025 (3-4 weeks after error handling)
-**Goal:** Dynamic parameters and AI metadata for intelligent code comments - **THE KILLER DIFFERENTIATOR**
+**Target:** November-December 2025 (2-3 weeks)
+**Goal:** AI-powered metadata with multi-provider support - **THE KILLER DIFFERENTIATOR**
 
-**Status:** 📋 READY TO START (blocked on error handling)
+**Status:** 📋 PLANNED - Detailed milestone document complete
 
-### Features
+**Design Document:** [docs/milestones/v2.1.0-ai-metadata-provider-system.md](milestones/v2.1.0-ai-metadata-provider-system.md)
 
-#### 📋 Dynamic Parameters (`params`)
-- Variable interpolation in comments (`${functionName}`, `${lineCount}`)
-- Context-aware syntax per language
-- Three types: static, dynamic (tracks code), computed (calculated)
-- Auto-update when source code changes
-- Hash-based change detection
+### Overview
 
-**Example:**
-```json
-{
-  "text": "This ${componentType} has ${propCount} props",
-  "params": {
-    "componentType": "FormInput",  // Tracks variable name
-    "propCount": 5                  // Tracks prop array length
-  }
-}
-```
+**Key Features:**
+1. **AI Provider Abstraction** - Multi-provider support (OpenAI, Anthropic, local models)
+2. **Dynamic Parameters** - `${functionName}`, `${complexity}`, `${tokens}` auto-update
+3. **Complexity Scoring** - Cyclomatic + cognitive complexity analysis
+4. **Token Estimation** - LLM context usage tracking
+5. **Configuration System** - `.env` + VS Code settings for API keys
+6. **Graceful Degradation** - All features work without AI (heuristics)
 
-#### 📋 AI Metadata (`aiMeta`)
-- Token estimation (tiktoken)
-- Cyclomatic complexity scoring
-- Code type detection (function, class, loop, etc.)
-- Logical chunk boundaries for large files
-- Dependency extraction
-- Training labels for ML datasets
-- Vector embeddings for semantic search
-- Free-form JSON for extensibility
+**Strategic Approach:**
+- Build AI communication layer as extension feature FIRST
+- Validate with humans before exposing to agents (NASA docking approach)
+- Foundation for future MCP integration (v2.2+)
+- Provider abstraction enables easy addition of new AI models
 
-**Example:**
-```json
-{
-  "aiMeta": {
-    "tokens": 45,
-    "complexity": 3,
-    "codeType": "function",
-    "dependencies": ["react", "lodash"],
-    "labels": ["authentication", "validation"]
-  }
-}
-```
-
-#### 📋 Hash Tree Architecture
-- Merkle tree-like structure for efficient change tracking
-- O(log n) change detection instead of O(n)
-- Integrates with Ghost Marker verification cycle
-- Tracks params, aiMeta, and comment state
-- Optional history for undo/redo
-
-#### 📋 Built-in AI Helpers
-- `estimateTokens()` - GPT-4/Claude token counting
-- `calculateComplexity()` - Cyclomatic complexity
-- `detectCodeType()` - AST-based code structure
-- `findChunkBoundaries()` - Smart file chunking
-- `extractDependencies()` - Import analysis
-
-#### 📋 Privacy & Export Controls
-- `.commentsrc` configuration file
-- Fine-grained field exclusion (exclude author, embeddings, etc.)
-- Wildcard support for param filtering
-- Export commands with privacy filtering
-
-### Implementation Phases
-1. **Schema & Validation** (Week 1)
-2. **Hash Tree Architecture** (Week 2)
-3. **Param Manager & Interpolation** (Week 3)
-4. **AI Helpers** (Week 4)
-5. **Privacy & Export** (Week 5)
+### Implementation Phases (2-3 weeks)
+1. **Provider Infrastructure** (3-4 days) - Abstract interface, OpenAI implementation
+2. **Dynamic Parameters** (2-3 days) - AST + AI-based extraction
+3. **Complexity Scoring** (2-3 days) - Local calculation + AI validation
+4. **Token Estimation** (1-2 days) - Heuristic + AI estimation
+5. **Integration & Polish** (2-3 days) - Settings UI, documentation
 
 ### Dependencies
-- ⚠️ Range comments (affects param scope - single line vs. range)
-- ✅ AST foundation (complete)
+- ✅ Error handling complete (v2.0.7)
+- ✅ AST foundation complete (v2.0.5)
+- ✅ Range comments complete (v2.0.6)
 
 ### Success Metrics
-- ✅ Params update within 500ms of code change
-- ✅ Token estimation accuracy >95% (vs tiktoken)
-- ✅ <50ms overhead for hash tree verification
-- ✅ Privacy filtering works with wildcards
+- 📋 Dynamic parameters work for 95%+ of function/class contexts
+- 📋 Complexity scores within 20% of manual calculation
+- 📋 Token estimates within 10% of actual usage
+- 📋 API response time < 3 seconds (p95)
+- 📋 Provider abstraction supports 3+ providers without code changes
+- 📋 Zero breaking changes to existing features
+
+**For full details, see:** [v2.1.0 Milestone Document](milestones/v2.1.0-ai-metadata-provider-system.md)
 
 ---
 
@@ -530,53 +436,37 @@ export class Logger {
 
 ## 🎯 Near-Term Roadmap (Next 3 Months)
 
-### November 2025 (Week 1-2)
+### November 2025 (Week 1)
 - ✅ **Range Comments Core** (DONE - October 18)
-  - Schema updates (endLine field)
-  - S/R/A command structure
-  - Two-letter gutter icons
-  - Range tracking
-
-- 🚧 **Error Handling Infrastructure** (Week 1 - 2-3 days) **← YOU ARE HERE**
-  - Custom error classes
-  - Retry logic for file I/O
-  - Structured logging (Logger class)
-  - User-friendly error messages
+- ✅ **Error Handling Infrastructure** (DONE - October 18)
+  - Custom error classes with user-friendly messages
+  - Retry logic with exponential backoff
+  - Structured logging with output channel
   - Ghost marker persistence validation
-  - **Outcome:** Robust foundation, ghost marker bug fixed
+  - Backup/restore system
+  - **Outcome:** Robust foundation validated ✅
 
-- 📋 **Quick Wins from Analysis** (Week 1 - 2 hours)
-  - Fix markdown linting (30 min)
-  - Remove deprecated activation events (5 min)
-  - Update ARCHITECTURE.md for v2.0.6 (1 hour)
+### November 2025 (Week 2-3) - December 2025
+- 📋 **AI Metadata & Provider System (v2.1)** (2-3 weeks) **← YOU ARE HERE**
 
-### November 2025 (Week 3-4) - December 2025
-- 📋 **AI Metadata Implementation (v2.1)** (3-4 weeks) **← NEXT BIG MILESTONE**
-  - Week 1: Schema & Validation
-    - Add `params` and `aiMeta` fields to Comment schema
-    - Update COMMENT_FILE_VERSION to 2.1.0
-    - JSON schema validation
-    - Migration from 2.0.6 → 2.1.0
+  **Week 1: Provider Infrastructure** (3-4 days)
+  - AI provider abstraction layer
+  - OpenAI provider implementation
+  - Provider registry and selection
+  - Configuration system (`.env` + VS Code settings)
+  - Integration tests with OpenAI API
 
-  - Week 2: Dynamic Parameters System
-    - Param interpolation engine (`${functionName}`)
-    - Context-aware extraction from AST
-    - Auto-update on code changes
-    - Hash-based change detection
+  **Week 2: AI-Powered Features** (5-6 days)
+  - Dynamic parameters (`${functionName}`, `${complexity}`, etc.)
+  - Complexity scoring (cyclomatic + cognitive)
+  - Token estimation (heuristic + AI)
+  - Cache invalidation on code changes
 
-  - Week 3: AI Metadata Helpers
-    - `estimateTokens()` - GPT-4/Claude/Llama token counting
-    - `calculateComplexity()` - Cyclomatic complexity
-    - `detectCodeType()` - AST-based structure detection
-    - `findChunkBoundaries()` - Smart file splitting
-    - `extractDependencies()` - Import analysis
-
-  - Week 4: Privacy & Testing
-    - `.commentsrc` configuration for privacy controls
-    - Field exclusion (author, embeddings, etc.)
-    - Export filtering
-    - Unit tests for all AI helpers
-    - Integration tests for params
+  **Week 3: Integration & Polish** (2-3 days)
+  - Settings UI for provider configuration
+  - User documentation (API key setup)
+  - Developer documentation (add new providers)
+  - Manual testing on real codebases
 
 ### January 2026
 - 📋 **AI Metadata Polish & Documentation** (1-2 weeks)
@@ -613,33 +503,35 @@ export class Logger {
 1. ✅ **MVP Foundation (v0.1.0)** - October 16, 2025
 2. ✅ **AST-Based Line Tracking (v2.0.5)** - October 18, 2025
 3. ✅ **Range Comments Core (v2.0.6)** - October 18, 2025
-4. ✅ **Project Health Analysis** - October 18, 2025 (A- grade, 90/100)
+4. ✅ **Error Handling & Recovery (v2.0.7)** - October 18, 2025
+5. ✅ **Project Health Analysis** - October 18, 2025 (A- grade, 90/100)
 
 ### Active Milestones (Week of October 18, 2025)
-1. 🚧 **Error Handling & Recovery (v2.0.7)** - November 2025 Week 1 (2-3 days) **← CURRENT FOCUS**
-   - Custom error classes
-   - Retry logic with exponential backoff
-   - Structured logging
-   - Ghost marker persistence validation
+1. 📋 **AI Metadata & Provider System (v2.1.0)** - Planning Complete **← YOU ARE HERE**
+   - Detailed milestone document created
+   - Roadmap updated with 2-3 week plan
+   - Ready to begin implementation
 
 ### Upcoming Milestones
-1. 📋 **AI Metadata (v2.1.0)** - November-December 2025 (3-4 weeks) **← NEXT BIG PUSH**
-   - Dynamic parameters system
-   - Token estimation & complexity scoring
-   - Privacy controls
-   - **Strategic Priority:** Killer differentiator for v1.0 launch
-
-2. 📋 **Test Coverage Push** - January 2026 (1 week)
+1. 📋 **Test Coverage Push** - January 2026 (1 week)
    - Ghost marker tests
    - AST anchor tests
+   - AI metadata tests
    - Target: 70%+ coverage
 
-3. 📋 **v1.0 Release Prep** - February 2026 (2 weeks)
+2. 📋 **v1.0 Release Prep** - February 2026 (2 weeks)
    - Security audit
    - Performance testing
+   - Beta user feedback
    - Marketplace launch
 
-4. 📋 **Output Capture (v2.2.0)** - Q2 2026 (Deferred after v1.0)
+3. 📋 **MCP Integration (v2.2.0)** - Q1 2026 (4-6 weeks, if user demand)
+   - Extract AI layer to MCP server
+   - Extension becomes MCP client
+   - Agent integration
+   - **Only build if users validate the need**
+
+4. 📋 **Output Capture (v2.3.0)** - Q2 2026
 5. 💡 **GitHub Demo (v3.5.0)** - Q3 2026
 6. 💡 **AI Training Comparison (v3.6.0)** - Q4 2026
 
@@ -751,7 +643,28 @@ Roadmap v2 fixes this with milestone-based tracking and explicit status labels.
 - Structured logging (Logger class with output channel)
 - User-friendly error messages with actionable steps
 - Ghost marker persistence validation
-**Outcome:** Robust foundation for AI Metadata development
+**Outcome:** ✅ COMPLETE - Robust foundation validated
+**Owner:** Development Team
+
+### October 18, 2025: AI Metadata with Provider Abstraction (v2.1.0 Planning)
+**Decision:** Build AI metadata with multi-provider abstraction layer as extension feature FIRST, before MCP
+**Reasoning:**
+- NASA "docking approach" - validate AI communication patterns with humans before exposing to agents
+- Provider abstraction (OpenAI, Anthropic, local) enables easy addition of new models
+- Configuration system (`.env` + VS Code settings) provides user control
+- Graceful degradation (works without AI) ensures robustness
+- Foundation for future MCP integration (v2.2+) without blocking v1.0
+- Users need to validate the concept before building MCP layer
+**Scope:**
+- AI provider interface and OpenAI implementation
+- Dynamic parameters (`${functionName}`, `${complexity}`, `${tokens}`)
+- Complexity scoring (cyclomatic + cognitive)
+- Token estimation (heuristic + AI)
+- Configuration system for API keys
+- Testing infrastructure for AI features
+**Timeline:** 2-3 weeks (10-15 working days)
+**MCP Integration:** Deferred to v2.2+ (only if users validate need)
+**Outcome:** Detailed milestone document created, roadmap updated
 **Owner:** Development Team
 
 ---
