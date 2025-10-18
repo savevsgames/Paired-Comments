@@ -96,6 +96,20 @@
       "prevLineText": "",
       "nextLineText": "this.items = this.items.filter(item => item.id !== itemId);",
       "lastVerified": "2025-10-18T05:17:59.197Z"
+    },
+    {
+      "id": "gm-4rboq0g06mgvug1iv",
+      "line": 60,
+      "endLine": 65,
+      "commentIds": [
+        "ad39ef34-5cdb-4acf-9d86-8c02fb2ce3ba"
+      ],
+      "astAnchor": null,
+      "lineHash": "d41d8cd98f00b204",
+      "lineText": "/**",
+      "prevLineText": "  return applyDiscount;",
+      "nextLineText": " * ",
+      "lastVerified": "2025-10-18T05:36:37.474Z"
     }
   ],
   "comments": [

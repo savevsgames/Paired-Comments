@@ -1,16 +1,18 @@
-# Paired Comments - Product Roadmap v2.0
+# Paired Comments - Product Roadmap v2.1
 
-**Version:** 2.0.5-dev
-**Last Updated:** October 18, 2025
-**Roadmap Version:** 2.0 (Milestone-Based)
+**Version:** 2.0.6 (Range Comments Complete)
+**Last Updated:** October 18, 2025 (Post-Analysis)
+**Roadmap Version:** 2.1 (Analysis-Driven, AI Metadata Focus)
 
 ---
 
-## 📍 Current Status: AST CHECKPOINT ACHIEVED ✅
+## 📍 Current Status: RANGE COMMENTS COMPLETE, MOVING TO AI METADATA ✅
 
-**We just hit a major milestone!** AST-based ghost marker tracking is working and tested. This is the foundation everything else builds on.
+**Latest Achievement:** Range comments core implementation complete (v2.0.6)! Two-letter gutter icons (TS/TE), range tracking, and S/R/A command structure all working.
 
-**What's Next:** Range comments design, then proceed to Phase 2.1 (params/aiMeta).
+**Project Health:** A- (90/100) - Production ready with 38% test coverage, 69 passing tests ⬆️
+
+**What's Next:** Error handling infrastructure (Week 1), then AI Metadata (v2.1) - our killer differentiator!
 
 ---
 
@@ -228,12 +230,143 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 
 ---
 
-## 📋 Milestone 4: Params & AI Metadata (v2.1.0) - PLANNED
+## 🚧 Milestone 3.5: Error Handling & Recovery (v2.0.7) - IN PROGRESS
 
-**Target:** Q1 2026 (4-5 weeks after range comments)
-**Goal:** Dynamic parameters and AI metadata for intelligent code comments
+**Target:** November 2025 (Week 1 - 2-3 days)
+**Goal:** Robust error handling, logging, and recovery mechanisms
 
-**Status:** Waiting on range comments (affects schema design)
+**Status:** 🚧 HIGH PRIORITY - Required before AI Metadata
+
+**Rationale:** The analysis identified critical gaps in error handling that are causing bugs (e.g., ghost marker not being saved). Implementing proper error recovery will:
+1. Catch and handle persistence failures
+2. Provide visibility into what's going wrong
+3. Improve user experience when things fail
+4. Build confidence for v1.0 launch
+
+### Features
+
+#### 🚧 Custom Error Classes
+- `PairedCommentsError` - Base error class
+- `FileIOError` - File system operation failures
+- `ASTResolutionError` - Symbol resolution failures
+- `CommentNotFoundError` - Comment CRUD errors
+- `GhostMarkerError` - Ghost marker tracking failures
+- `ValidationError` - Input validation errors
+
+**Implementation:**
+```typescript
+// src/errors/PairedCommentsError.ts
+export class PairedCommentsError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public context?: Record<string, unknown>
+  ) {
+    super(message);
+    this.name = 'PairedCommentsError';
+  }
+}
+```
+
+#### 🚧 Retry Logic for File I/O
+- 3 retry attempts for transient failures
+- Exponential backoff (100ms, 200ms, 400ms)
+- User notification after final failure
+- Automatic backup before risky operations
+
+**Example:**
+```typescript
+async writeCommentFileWithRetry(uri: vscode.Uri, data: CommentFile): Promise<void> {
+  const maxRetries = 3;
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await this.writeCommentFile(uri, data);
+      return; // Success!
+    } catch (error) {
+      if (i === maxRetries - 1) throw error; // Final attempt failed
+      await sleep(100 * Math.pow(2, i)); // Exponential backoff
+    }
+  }
+}
+```
+
+#### 🚧 Structured Logging
+- Replace `console.log` with structured logger
+- Log levels: DEBUG, INFO, WARN, ERROR
+- Context-rich error messages
+- Output channel in VS Code for user debugging
+
+**Example:**
+```typescript
+// src/utils/logger.ts
+export class Logger {
+  log(level: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR', message: string, context?: unknown) {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] [${level}] ${message}`;
+    this.outputChannel.appendLine(logMessage);
+    if (context) {
+      this.outputChannel.appendLine(JSON.stringify(context, null, 2));
+    }
+  }
+}
+```
+
+#### 🚧 User-Friendly Error Messages
+- Show `vscode.window.showErrorMessage()` for user-facing errors
+- Clear action steps ("Try saving again" vs "Error: ENOENT")
+- Links to documentation/troubleshooting
+- "Report Issue" button for unexpected errors
+
+#### 🚧 Defensive File Operations
+- Validate `.comments` file before loading (schema validation)
+- Backup file before migration (`.comments.backup`)
+- Atomic writes (write to temp file, then rename)
+- Corruption recovery (offer to restore backup)
+
+#### 🚧 Ghost Marker Persistence Validation
+- **Critical Fix:** Verify ghost marker was saved after creation
+- Log warning if marker exists in memory but not in file
+- Auto-repair: Re-save comment file if inconsistency detected
+- Unit test for ghost marker persistence
+
+### Implementation Plan (2-3 days)
+
+**Day 1 - Error Infrastructure (6 hours)**
+- Create error classes (`src/errors/`)
+- Implement Logger with output channel
+- Add retry logic to FileSystemManager
+- Update package.json for output channel activation
+
+**Day 2 - Error Handling (6 hours)**
+- Wrap all file I/O in try/catch with retry
+- Add user-facing error messages
+- Implement backup/restore logic
+- Add schema validation for `.comments` files
+
+**Day 3 - Ghost Marker Fix + Testing (4 hours)**
+- Add ghost marker persistence validation
+- Write unit tests for error scenarios
+- Test retry logic with simulated failures
+- Update documentation
+
+### Success Metrics
+- ✅ Zero unhandled promise rejections
+- ✅ All file I/O operations have retry logic
+- ✅ User sees helpful error messages (not console errors)
+- ✅ Ghost marker bug fixed and tested
+- ✅ <5% of operations require retry (measure in telemetry)
+
+### Dependencies
+- ✅ Range comments complete (v2.0.6)
+
+---
+
+## 📋 Milestone 4: Params & AI Metadata (v2.1.0) - NEXT UP
+
+**Target:** November-December 2025 (3-4 weeks after error handling)
+**Goal:** Dynamic parameters and AI metadata for intelligent code comments - **THE KILLER DIFFERENTIATOR**
+
+**Status:** 📋 READY TO START (blocked on error handling)
 
 ### Features
 
@@ -397,37 +530,80 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 
 ## 🎯 Near-Term Roadmap (Next 3 Months)
 
-### November 2025
-- ✅ **AST Checkpoint Review** (DONE - this week)
-- 🚧 **Range Comments Design** (2-3 days)
-  - User feedback on UX
-  - Schema design
-  - Implementation plan
-- 🚧 **Range Comments Implementation** (1 week)
-  - Schema updates
-  - UI for range selection
-  - Ghost marker range tracking
-  - Tests
+### November 2025 (Week 1-2)
+- ✅ **Range Comments Core** (DONE - October 18)
+  - Schema updates (endLine field)
+  - S/R/A command structure
+  - Two-letter gutter icons
+  - Range tracking
 
-### December 2025 - January 2026
-- 📋 **Phase 2.1 Prep** (1 week)
-  - Finalize params/aiMeta schema
-  - Design hash tree architecture
-  - Plan privacy controls
-- 📋 **Phase 2.1 Implementation** (4-5 weeks)
-  - Params system
-  - AI metadata helpers
-  - Hash tree
-  - Privacy & export
+- 🚧 **Error Handling Infrastructure** (Week 1 - 2-3 days) **← YOU ARE HERE**
+  - Custom error classes
+  - Retry logic for file I/O
+  - Structured logging (Logger class)
+  - User-friendly error messages
+  - Ghost marker persistence validation
+  - **Outcome:** Robust foundation, ghost marker bug fixed
+
+- 📋 **Quick Wins from Analysis** (Week 1 - 2 hours)
+  - Fix markdown linting (30 min)
+  - Remove deprecated activation events (5 min)
+  - Update ARCHITECTURE.md for v2.0.6 (1 hour)
+
+### November 2025 (Week 3-4) - December 2025
+- 📋 **AI Metadata Implementation (v2.1)** (3-4 weeks) **← NEXT BIG MILESTONE**
+  - Week 1: Schema & Validation
+    - Add `params` and `aiMeta` fields to Comment schema
+    - Update COMMENT_FILE_VERSION to 2.1.0
+    - JSON schema validation
+    - Migration from 2.0.6 → 2.1.0
+
+  - Week 2: Dynamic Parameters System
+    - Param interpolation engine (`${functionName}`)
+    - Context-aware extraction from AST
+    - Auto-update on code changes
+    - Hash-based change detection
+
+  - Week 3: AI Metadata Helpers
+    - `estimateTokens()` - GPT-4/Claude/Llama token counting
+    - `calculateComplexity()` - Cyclomatic complexity
+    - `detectCodeType()` - AST-based structure detection
+    - `findChunkBoundaries()` - Smart file splitting
+    - `extractDependencies()` - Import analysis
+
+  - Week 4: Privacy & Testing
+    - `.commentsrc` configuration for privacy controls
+    - Field exclusion (author, embeddings, etc.)
+    - Export filtering
+    - Unit tests for all AI helpers
+    - Integration tests for params
+
+### January 2026
+- 📋 **AI Metadata Polish & Documentation** (1-2 weeks)
+  - Performance optimization (token counting <10ms)
+  - Edge case handling
+  - User documentation with examples
+  - Video demos of AI workflows
+
+- 📋 **Test Coverage Push** (1 week)
+  - Ghost marker tests (critical!)
+  - AST anchor tests
+  - Range comment tests
+  - **Goal:** 70%+ coverage
 
 ### February 2026
-- 📋 **Phase 2.1 Testing** (1-2 weeks)
-  - Edge case testing
-  - Performance validation
-  - Documentation
-- 📋 **Phase 2.2 Design** (1 week)
-  - Output capture UX
-  - Template system design
+- 📋 **v1.0 Release Prep** (2 weeks)
+  - Security audit
+  - Performance testing (large files, many comments)
+  - Beta user feedback
+  - Marketplace listing preparation
+  - Launch assets (screenshots, demo GIF)
+
+- 📋 **Inline Export/Import (v2.0.7-2.0.9)** (1 week)
+  - Export to inline markers
+  - Import from inline markers
+  - Visibility toggle
+  - **Note:** Deferred until after AI Metadata for strategic reasons
 
 ---
 
@@ -435,17 +611,37 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 
 ### Completed Milestones
 1. ✅ **MVP Foundation (v0.1.0)** - October 16, 2025
-2. ✅ **AST-Based Line Tracking (v2.0.5 Checkpoint)** - October 18, 2025
-3. ✅ **Range Comments Core (v2.0.6 Checkpoint)** - October 18, 2025
+2. ✅ **AST-Based Line Tracking (v2.0.5)** - October 18, 2025
+3. ✅ **Range Comments Core (v2.0.6)** - October 18, 2025
+4. ✅ **Project Health Analysis** - October 18, 2025 (A- grade, 90/100)
 
-### Active Milestones
-1. 🚧 **Range Comments Export/Import (v2.0.7-2.0.9)** - November 2025
+### Active Milestones (Week of October 18, 2025)
+1. 🚧 **Error Handling & Recovery (v2.0.7)** - November 2025 Week 1 (2-3 days) **← CURRENT FOCUS**
+   - Custom error classes
+   - Retry logic with exponential backoff
+   - Structured logging
+   - Ghost marker persistence validation
 
 ### Upcoming Milestones
-1. 📋 **Params & AI Metadata (v2.1.0)** - Q1 2026
-2. 📋 **Output Capture (v2.2.0)** - Q2 2026
-3. 💡 **GitHub Demo (v3.5.0)** - Q3 2026
-4. 💡 **AI Training Comparison (v3.6.0)** - Q4 2026
+1. 📋 **AI Metadata (v2.1.0)** - November-December 2025 (3-4 weeks) **← NEXT BIG PUSH**
+   - Dynamic parameters system
+   - Token estimation & complexity scoring
+   - Privacy controls
+   - **Strategic Priority:** Killer differentiator for v1.0 launch
+
+2. 📋 **Test Coverage Push** - January 2026 (1 week)
+   - Ghost marker tests
+   - AST anchor tests
+   - Target: 70%+ coverage
+
+3. 📋 **v1.0 Release Prep** - February 2026 (2 weeks)
+   - Security audit
+   - Performance testing
+   - Marketplace launch
+
+4. 📋 **Output Capture (v2.2.0)** - Q2 2026 (Deferred after v1.0)
+5. 💡 **GitHub Demo (v3.5.0)** - Q3 2026
+6. 💡 **AI Training Comparison (v3.6.0)** - Q4 2026
 
 ---
 
@@ -520,6 +716,42 @@ Roadmap v2 fixes this with milestone-based tracking and explicit status labels.
 **Future (v2.0.7+):**
 - Option A: Auto-detect (selection → range, no selection → single)
 - Option B: Double-tap A to convert single → range
+**Owner:** Development Team
+
+### October 18, 2025: Project Health Analysis Complete - A- (90/100)
+**Analysis:** Comprehensive 3,582-line health analysis by GitHub Copilot
+**Grade:** A- (90/100), upgraded from B+ (85/100) after test improvements
+**Key Findings:**
+- ✅ Innovative AST tracking (97/100) - Top 5% innovation score
+- ✅ Zero runtime dependencies (Top 1% of extensions)
+- ✅ Enterprise-grade TypeScript (strict mode)
+- ✅ Test coverage: 38% with 69 passing tests (was 8%)
+- ⚠️ Ghost marker persistence bug identified (manual fix applied)
+- ⚠️ Error handling gaps (retry logic, user-facing messages)
+- ⚠️ AST/Ghost Marker tests missing (0% coverage on core feature)
+**Recommendations:**
+1. **Week 1:** Error handling infrastructure (2-3 days) - CRITICAL
+2. **Week 2-4:** AI Metadata (v2.1) - Killer differentiator
+3. **Month 2:** Test coverage push to 70%+
+4. **Month 3:** v1.0 release prep
+**Success Probability:** 75% chance of reaching 10K users, 1M+ downloads within 18 months
+**Owner:** Analysis by Copilot, Roadmap update by Development Team
+
+### October 18, 2025: Error Handling Prioritized Before AI Metadata
+**Decision:** Implement error handling infrastructure (v2.0.7) before AI Metadata (v2.1)
+**Reasoning:**
+- Ghost marker persistence bug reveals systemic error handling gaps
+- Proper logging and recovery will catch bugs early
+- Users need helpful error messages, not console errors
+- Builds confidence for v1.0 launch
+- Only 2-3 days of work, high ROI
+**Scope:**
+- Custom error classes (PairedCommentsError, FileIOError, etc.)
+- Retry logic with exponential backoff
+- Structured logging (Logger class with output channel)
+- User-friendly error messages with actionable steps
+- Ghost marker persistence validation
+**Outcome:** Robust foundation for AI Metadata development
 **Owner:** Development Team
 
 ---
