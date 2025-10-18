@@ -12,9 +12,12 @@ Store rich comments in separate `.comments` files alongside your code, keeping s
 
 **Commands:**
 - `Ctrl+Alt+P O` - Open paired comments view
-- `Ctrl+Alt+P A` - Add comment to current line
+- `Ctrl+Alt+P S` - Add single-line comment (v2.0.6+)
+- `Ctrl+Alt+P R` - Add range comment (v2.0.6+)
+- `Ctrl+Alt+P A` - Smart add (reserved for v2.0.7+)
 - `Ctrl+Alt+P E` - Edit existing comment
 - `Ctrl+Alt+P D` - Delete comment
+- `Ctrl+Alt+P L` - List all comments (changed from S)
 
 **File Format:**
 ```json
@@ -98,11 +101,18 @@ Hover over gutter icon to see comment preview without opening file.
 Comment entire code blocks (e.g., lines 10-15) instead of single lines.
 
 **How It Works:**
-1. Select lines 10-15 in editor
-2. Press `Ctrl+Alt+P A` (Add Comment)
-3. Prompt shows: "Add comment for lines 10-15"
-4. Type your comment and save
-5. Range is tracked automatically with two-letter gutter icons!
+1. Place cursor on line 10 (start of range)
+2. Press `Ctrl+Alt+P R` (Add Range Comment)
+3. Prompt asks: "Enter end line number:"
+4. Type: `15`
+5. Prompt shows: "Add range comment for lines 10-15"
+6. Type your comment and save
+7. Range is tracked automatically with two-letter gutter icons!
+
+**Command Structure (v2.0.6):**
+- `Ctrl+Alt+P S` - **Single-line comment** (explicit, simple)
+- `Ctrl+Alt+P R` - **Range comment** (explicit, asks for end line)
+- `Ctrl+Alt+P A` - **Reserved for v2.0.7+** (smart auto-detect or double-tap enhancement)
 
 **Visual Indicators:**
 - **Start line:** Two-letter icon (e.g., `TS` = TODO START, orange, larger, bold border)

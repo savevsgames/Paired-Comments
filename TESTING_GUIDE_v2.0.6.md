@@ -8,13 +8,13 @@
 
 ## Quick Start Testing
 
-### 1. Test Single-Line Comment (Existing Feature)
+### 1. Test Single-Line Comment
 
 **Steps:**
 1. Open a JavaScript/TypeScript file
-2. Click on line 10
-3. Press `Ctrl+Alt+P A`
-4. See prompt: `"Add comment for line 10"`
+2. Click on line 10 (place cursor)
+3. Press `Ctrl+Alt+P S` (S = Single)
+4. See prompt: `"Add single-line comment for line 10"`
 5. Type: `"TODO: This needs refactoring"`
 6. Press Enter
 
@@ -30,11 +30,14 @@
 
 **Steps:**
 1. Open a JavaScript/TypeScript file
-2. **Select lines 24-27** (e.g., a function body)
-3. Press `Ctrl+Alt+P A`
-4. See prompt: `"Add comment for lines 24-27"`
-5. Type: `"TODO: This entire function needs validation"`
+2. **Place cursor on line 24** (start of range)
+3. Press `Ctrl+Alt+P R` (R = Range)
+4. See prompt: `"Range comment starting at line 24. Enter end line number:"`
+5. Type: `27`
 6. Press Enter
+7. See prompt: `"Add range comment for lines 24-27"`
+8. Type: `"TODO: This entire function needs validation"`
+9. Press Enter
 
 **Expected Result:**
 - ✅ Range comment created successfully
@@ -47,10 +50,22 @@
 
 ---
 
-### 3. Test Range Tracking
+### 3. Test Command Menu
 
 **Steps:**
-1. Create a range comment on lines 24-27
+1. Press `Ctrl+Alt+P Ctrl+Alt+P` (double-tap P)
+2. See command menu appear
+3. Verify menu shows:
+   - **S - Add Single-Line Comment**
+   - **R - Add Range Comment**
+   - **L - List All Comments** (changed from S)
+
+---
+
+### 4. Test Range Tracking
+
+**Steps:**
+1. Create a range comment on lines 24-27 (use `Ctrl+Alt+P R`)
 2. Verify TS/TE icons appear
 3. **Add 3 blank lines above line 24**
 4. Observe gutter icons
@@ -63,7 +78,19 @@
 
 ---
 
-### 4. Test Different Tags
+### 5. Test Reserved "A" Command
+
+**Steps:**
+1. Press `Ctrl+Alt+P A`
+2. See message: "Smart Add (Ctrl+Alt+P A) is reserved for v2.0.7+..."
+
+**Expected Result:**
+- ✅ Message explains to use S or R instead
+- ✅ No comment is created
+
+---
+
+### 6. Test Different Tags
 
 **Test each tag:**
 - `NOTE: ...` → Blue NS/NE icons

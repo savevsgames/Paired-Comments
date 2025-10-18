@@ -119,8 +119,13 @@ export class CommentManager {
         existingMarker.commentIds.push(id);
         ghostMarkerId = existingMarker.id;
       } else {
-        // Create new ghost marker (now async with AST support)
-        const marker = await this.ghostMarkerManager.createMarker(document, options.line, [id]);
+        // Create new ghost marker (now async with AST support + range support v2.0.6)
+        const marker = await this.ghostMarkerManager.createMarker(
+          document,
+          options.line,
+          [id],
+          options.endLine // Pass endLine for range comments (v2.0.6)
+        );
         this.ghostMarkerManager.addMarker(document, marker, editor);
         ghostMarkerId = marker.id;
 
@@ -135,6 +140,8 @@ export class CommentManager {
     const newComment: Comment = {
       id,
       line: options.line,
+      startLine: options.line, // Always set startLine (v2.0.6)
+      endLine: options.endLine, // Set endLine if provided (v2.0.6)
       text: options.text,
       author,
       created: now,

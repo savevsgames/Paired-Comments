@@ -57,6 +57,15 @@ function createDiscount(percentage) {
   return applyDiscount;
 }
 
+/**
+ * 
+ *  This is a section that will be turned into a ranged comment.
+ * 
+ * 
+ */
+
+
+
 // Test 6: Arrow function
 const validateEmail = (email) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

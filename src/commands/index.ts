@@ -43,10 +43,24 @@ export function registerCommands(
     })
   );
 
-  // Add a new comment
+  // Add a new comment (RESERVED for future auto-detect/smart add - v2.0.7+)
   context.subscriptions.push(
     vscode.commands.registerCommand('pairedComments.addComment', async () => {
       await addComment(deps);
+    })
+  );
+
+  // Add a single-line comment (Ctrl+Alt+P S)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.addSingleComment', async () => {
+      await addSingleComment(deps);
+    })
+  );
+
+  // Add a range comment (Ctrl+Alt+P R)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.addRangeComment', async () => {
+      await addRangeComment(deps);
     })
   );
 
@@ -149,11 +163,18 @@ async function showCommandMenu(_deps: CommandDependencies): Promise<void> {
       command: 'pairedComments.open'
     },
     {
-      label: '$(add) A - Add Comment',
+      label: '$(note) S - Add Single-Line Comment',
       description: 'Add comment to current line',
-      detail: 'Create a new comment for the line where your cursor is',
-      key: 'A',
-      command: 'pairedComments.addComment'
+      detail: 'Create a single-line comment at cursor position',
+      key: 'S',
+      command: 'pairedComments.addSingleComment'
+    },
+    {
+      label: '$(symbol-array) R - Add Range Comment',
+      description: 'Add comment for line range',
+      detail: 'Create a comment spanning multiple lines',
+      key: 'R',
+      command: 'pairedComments.addRangeComment'
     },
     {
       label: '$(edit) E - Edit Comment',
@@ -170,10 +191,10 @@ async function showCommandMenu(_deps: CommandDependencies): Promise<void> {
       command: 'pairedComments.deleteComment'
     },
     {
-      label: '$(list-unordered) S - Show All Comments',
+      label: '$(list-unordered) L - List All Comments',
       description: 'View all comments in file',
       detail: 'Quick pick list of all comments with jump-to functionality',
-      key: 'S',
+      key: 'L',
       command: 'pairedComments.showAllComments'
     },
     {
@@ -367,9 +388,25 @@ async function openAndNavigateToComment(
 }
 
 /**
- * Add a new comment
+ * Add a new comment (AUTO-DETECT - RESERVED for v2.0.7+)
+ *
+ * TODO v2.0.7: Implement smart auto-detect:
+ * - Detect multi-line selection → create range comment
+ * - Single line or no selection → create single-line comment
+ * - Or: Implement "double-tap A" to convert single → range
  */
-async function addComment(deps: CommandDependencies): Promise<void> {
+async function addComment(_deps: CommandDependencies): Promise<void> {
+  void vscode.window.showInformationMessage(
+    'Smart Add (Ctrl+Alt+P A) is reserved for v2.0.7+. Use:\n' +
+    '• Ctrl+Alt+P S for Single-line comments\n' +
+    '• Ctrl+Alt+P R for Range comments'
+  );
+}
+
+/**
+ * Add a single-line comment (Ctrl+Alt+P S)
+ */
+async function addSingleComment(deps: CommandDependencies): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     void vscode.window.showErrorMessage('No active editor');
@@ -382,24 +419,11 @@ async function addComment(deps: CommandDependencies): Promise<void> {
     return;
   }
 
-  // Detect if user has a multi-line selection
-  const selection = editor.selection;
-  const startLine = selection.start.line + 1; // Convert to 1-indexed
-  const endLine = selection.end.line + 1;
-
-  // Check if this is a range comment (multi-line selection)
-  const isRangeComment = !selection.isEmpty && endLine > startLine;
-
-  // Show appropriate prompt
-  let prompt: string;
-  if (isRangeComment) {
-    prompt = `Add comment for lines ${startLine}-${endLine}`;
-  } else {
-    prompt = `Add comment for line ${startLine}`;
-  }
+  // Use cursor line (ignore any selection)
+  const line = editor.selection.active.line + 1; // Convert to 1-indexed
 
   const text = await vscode.window.showInputBox({
-    prompt: prompt,
+    prompt: `Add single-line comment for line ${line}`,
     placeHolder: 'Enter your comment...',
   });
 
@@ -408,20 +432,74 @@ async function addComment(deps: CommandDependencies): Promise<void> {
   }
 
   try {
-    // Pass endLine only if it's a range comment
-    const options = isRangeComment
-      ? { line: startLine, endLine: endLine, text }
-      : { line: startLine, text };
-
-    await deps.commentManager.addComment(editor.document.uri, options);
+    await deps.commentManager.addComment(editor.document.uri, { line, text });
     await deps.decorationManager.refreshDecorations(editor.document.uri);
-
-    const message = isRangeComment
-      ? `Range comment added for lines ${startLine}-${endLine}`
-      : 'Comment added successfully';
-    void vscode.window.showInformationMessage(message);
+    void vscode.window.showInformationMessage('Single-line comment added successfully');
   } catch (error) {
     void vscode.window.showErrorMessage(`Failed to add comment: ${String(error)}`);
+  }
+}
+
+/**
+ * Add a range comment (Ctrl+Alt+P R)
+ */
+async function addRangeComment(deps: CommandDependencies): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    void vscode.window.showErrorMessage('No active editor');
+    return;
+  }
+
+  // Prevent adding comments to .comments files
+  if (editor.document.uri.fsPath.endsWith('.comments')) {
+    void vscode.window.showWarningMessage('Cannot add comments to a .comments file');
+    return;
+  }
+
+  // Get start line from cursor
+  const startLine = editor.selection.active.line + 1; // Convert to 1-indexed
+
+  // Ask for end line
+  const endLineStr = await vscode.window.showInputBox({
+    prompt: `Range comment starting at line ${startLine}. Enter end line number:`,
+    placeHolder: `e.g., ${startLine + 5}`,
+    validateInput: (value) => {
+      const num = parseInt(value);
+      if (isNaN(num)) {
+        return 'Please enter a valid line number';
+      }
+      if (num <= startLine) {
+        return `End line must be greater than ${startLine}`;
+      }
+      if (num > editor.document.lineCount) {
+        return `File only has ${editor.document.lineCount} lines`;
+      }
+      return null;
+    }
+  });
+
+  if (!endLineStr) {
+    return; // User cancelled
+  }
+
+  const endLine = parseInt(endLineStr);
+
+  // Ask for comment text
+  const text = await vscode.window.showInputBox({
+    prompt: `Add range comment for lines ${startLine}-${endLine}`,
+    placeHolder: 'Enter your comment...',
+  });
+
+  if (!text) {
+    return; // User cancelled
+  }
+
+  try {
+    await deps.commentManager.addComment(editor.document.uri, { line: startLine, endLine, text });
+    await deps.decorationManager.refreshDecorations(editor.document.uri);
+    void vscode.window.showInformationMessage(`Range comment added for lines ${startLine}-${endLine}`);
+  } catch (error) {
+    void vscode.window.showErrorMessage(`Failed to add range comment: ${String(error)}`);
   }
 }
 

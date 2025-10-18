@@ -78,3 +78,4 @@
 
   The Vision:
   Paired Comments should become the industry stan
+- remember, when you reset the test files, also make sure there are no .comments files that should not be there, and ensure that the .comments files that may be present are reset to match the test files after establishing which test file(s) should be there.

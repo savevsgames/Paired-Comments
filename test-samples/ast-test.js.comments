@@ -78,25 +78,24 @@
       "lastVerified": "2025-10-18T00:36:37.547Z"
     },
     {
-      "id": "gm-b34xj6olymgvs5kb8",
-      "line": 47,
+      "id": "gm-il10nhqi8mgvtttlp",
+      "line": 35,
       "commentIds": [
-        "b8ee283e-02ab-41ce-9fa1-c5c57729e4e2"
+        "cccb120f-85ac-4953-b57b-57779aa7b8ba"
       ],
       "astAnchor": {
         "symbolPath": [
-          "ShoppingCart",
-          "checkout"
+          "ShoppingCart"
         ],
-        "symbolKind": "Method",
-        "containerName": "ShoppingCart",
-        "offset": 3
+        "symbolKind": "Class",
+        "containerName": null,
+        "offset": 12
       },
-      "lineHash": "d10b36aa74a59bcf",
-      "lineText": "}",
-      "prevLineText": "return this.total;",
-      "nextLineText": "}",
-      "lastVerified": "2025-10-18T04:31:07.796Z"
+      "lineHash": "0db4c4200ff94d8f",
+      "lineText": "removeItem(itemId) {",
+      "prevLineText": "",
+      "nextLineText": "this.items = this.items.filter(item => item.id !== itemId);",
+      "lastVerified": "2025-10-18T05:17:59.197Z"
     }
   ],
   "comments": [
@@ -143,14 +142,26 @@
       "ghostMarkerId": "gm-addItem"
     },
     {
-      "id": "b8ee283e-02ab-41ce-9fa1-c5c57729e4e2",
-      "line": 47,
-      "text": "This is a ranged comment",
+      "id": "cccb120f-85ac-4953-b57b-57779aa7b8ba",
+      "line": 35,
+      "text": "This is a REAL ranged comment now!",
       "author": "Unknown",
-      "created": "2025-10-18T04:31:07.777Z",
-      "updated": "2025-10-18T04:31:07.777Z",
+      "created": "2025-10-18T05:17:59.182Z",
+      "updated": "2025-10-18T05:17:59.182Z",
       "tag": null,
-      "ghostMarkerId": "gm-b34xj6olymgvs5kb8"
+      "ghostMarkerId": "gm-il10nhqi8mgvtttlp"
+    },
+    {
+      "id": "ad39ef34-5cdb-4acf-9d86-8c02fb2ce3ba",
+      "line": 60,
+      "startLine": 60,
+      "endLine": 65,
+      "text": "This is the ranged comment version MANUAL ENTRY STYLE",
+      "author": "Unknown",
+      "created": "2025-10-18T05:36:37.474Z",
+      "updated": "2025-10-18T05:36:37.474Z",
+      "tag": null,
+      "ghostMarkerId": "gm-4rboq0g06mgvug1iv"
     }
   ]
 }

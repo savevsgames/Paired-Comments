@@ -505,6 +505,23 @@ Roadmap v2 fixes this with milestone-based tracking and explicit status labels.
 **Next Steps:** User testing, then proceed to export/import (v2.0.7+)
 **Owner:** Development Team
 
+### October 18, 2025: Command Structure Refactored (S/R/A)
+**Decision:** Split add comment into separate commands: `S` (single-line), `R` (range), `A` (reserved for v2.0.7+)
+**Reasoning:**
+- Clear, explicit user intent - no ambiguity about what's being created
+- Simpler implementation - separate code paths for single vs range
+- Easier debugging - isolated command handlers
+- Reserves `A` for future "smart add" QOL feature (auto-detect or double-tap to extend)
+**Commands:**
+- `Ctrl+Alt+P S` - Add Single-Line Comment (explicit, simple)
+- `Ctrl+Alt+P R` - Add Range Comment (asks for end line number)
+- `Ctrl+Alt+P A` - RESERVED (shows message directing to S or R)
+- `Ctrl+Alt+P L` - List All Comments (changed from S to avoid conflict)
+**Future (v2.0.7+):**
+- Option A: Auto-detect (selection → range, no selection → single)
+- Option B: Double-tap A to convert single → range
+**Owner:** Development Team
+
 ---
 
 ## 🎯 Success Metrics (Overall)
