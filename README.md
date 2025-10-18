@@ -1,8 +1,8 @@
 # Paired Comments - VS Code Extension
 
-**Version:** 2.0-dev (Ghost Markers)
+**Version:** 2.1.1 (Comment Actions Menu)
 **Status:** In Development
-**Last Updated:** October 17, 2025
+**Last Updated:** October 18, 2025
 
 ---
 
@@ -20,7 +20,27 @@
 
 ## ✨ Key Features
 
-### 🚀 v2.0 - Ghost Markers (Current Development)
+### 🚀 v2.1 - Interactive Comment Management (Current)
+
+**Comment Actions Menu** - Click gutter icons for instant access to all comment actions:
+
+- **Quick Pick Menu**: 6 actions available via single click on gutter icon
+- **Visual Gutter Icons**: Color-coded tags (TODO, FIXME, NOTE, etc.) with clickable actions
+- **Tag Switching**: Change comment tags on the fly (TODO → FIXME, etc.)
+- **Resolution Tracking**: Mark comments as resolved or reopen them
+- **Multi-Comment Support**: Multiple comments per line with smart selection
+- **Copy, Edit, Delete**: Full CRUD operations from gutter icon menu
+
+**AI Metadata System** - Foundation for AI-powered comment enrichment:
+
+- **Multi-Provider Architecture**: OpenAI (GPT-4), Anthropic (Claude), local models
+- **Complexity Analysis**: Cyclomatic and cognitive complexity scoring
+- **Token Estimation**: LLM context management for GPT-4, Claude, etc.
+- **Parameter Extraction**: Automatic function/class metadata
+- **Graceful Degradation**: Works perfectly without AI configured
+- **Cost Tracking**: Monitor API usage and costs
+
+### 👻 v2.0 - Ghost Markers (Stable)
 
 **Automatic Line Tracking** - The killer feature that makes Paired Comments reliable:
 
@@ -33,10 +53,9 @@
 
 → [Read the Ghost Markers Documentation](docs/features/ghost-markers.md)
 
-### 🤖 v2.1 - AI Metadata & Params (Coming Q1 2026)
+### 🤖 v2.2 - Dynamic Params & AI Enrichment (Coming Q1 2026)
 
 **Dynamic Parameters** - Comments that auto-update:
-**Security Foundation** - Enterprise-ready architecture:
 ```json
 {
   "text": "The ${functionName} takes ${paramCount} parameters",
@@ -47,23 +66,26 @@
 }
 ```
 
-**AI Metadata** - Rich context for AI workflows:
-- Token estimation (for GPT-4, Claude, etc.)
-- Complexity scoring
+**AI Comment Enrichment** - Automatic metadata when creating comments:
+- Auto-suggested comment text based on code context
+- Token estimation for LLM context management
+- Complexity scoring (cyclomatic, cognitive)
+- Parameter extraction and metadata
 - Chunk boundaries for large files
 - Training labels for ML datasets
-- Vector embeddings for semantic search
 
 → [Read the Params & Hash Tree Documentation](docs/features/params-and-hash-tree.md)
 
-### 📦 Core Features (v0.1 - Stable)
+### 📦 Core Features (Stable)
 
 - ✅ **Dual-Pane View** - Side-by-side source and comments
 - ✅ **Scroll Sync** - Perfect synchronization
-- ✅ **Gutter Icons** - Visual comment indicators with color coding
+- ✅ **Interactive Gutter Icons** - Click for actions menu (v2.1.1)
 - ✅ **Tag System** - TODO, FIXME, NOTE, QUESTION, HACK, WARNING, STAR
+- ✅ **Quick Actions** - View, Edit, Delete, Copy, Change Tag, Resolve (v2.1.1)
 - ✅ **Multi-Language** - 30+ programming languages supported
 - ✅ **Command Menu** - `Ctrl+Alt+P Ctrl+Alt+P` for all commands
+- ✅ **AI Metadata** - Optional AI-powered complexity analysis (v2.1.0)
 
 ---
 
@@ -106,11 +128,23 @@ Opens the side-by-side view with your source file and comments.
 3. Enter your comment text
 4. Ghost marker automatically created!
 
-#### 4. Edit/Delete Comments
+#### 4. Use Gutter Icon Actions (v2.1.1)
+**Interaction:** Click the gutter icon
+
+1. Click the colored icon in the gutter (e.g., 💬 T for TODO)
+2. Select from 6 actions:
+   - 👁️ View Comment - Open paired view
+   - ✏️ Edit Comment - Edit in paired view
+   - 🗑️ Delete Comment - Remove comment
+   - 📋 Copy Comment Text - Copy to clipboard
+   - 🏷️ Change Tag - Switch tag type
+   - ✅ Mark as Resolved / Reopen
+
+#### 5. Keyboard Shortcuts for Edit/Delete
 **Keybinding:** `Ctrl+Alt+P E` (edit) / `Ctrl+Alt+P D` (delete)
 
-#### 5. Show All Comments
-**Keybinding:** `Ctrl+Alt+P S`
+#### 6. Show All Comments
+**Keybinding:** `Ctrl+Alt+P L`
 
 Quick pick list of all comments in the current file.
 
@@ -315,8 +349,8 @@ Comprehensive documentation is available in the `/docs` folder:
 - Tag system (TODO, FIXME, NOTE, etc.)
 - Multi-language support (30+ languages)
 
-### 🚧 v2.0 (Current - Q4 2025) - Ghost Markers
-**Status:** Implementation Complete, Testing Phase
+### ✅ v2.0 (October 2025) - Ghost Markers
+**Status:** Complete
 
 - Automatic line tracking with ghost markers
 - Hash-based drift detection
@@ -324,7 +358,35 @@ Comprehensive documentation is available in the `/docs` folder:
 - Manual conflict resolution UI
 - File format v2.0 with backwards compatibility
 
-### 🔮 v2.1 (Planned - Q1 2026) - AI Metadata & Params
+### ✅ v2.1.0 (October 2025) - AI Metadata Infrastructure
+**Status:** Complete
+
+- Multi-provider AI architecture (OpenAI, Anthropic, local)
+- Complexity analysis operations
+- Token estimation for LLM context management
+- Parameter extraction and metadata
+- Configuration system (.env and VS Code settings)
+- Response caching for cost optimization
+- Graceful degradation (works without AI)
+
+### ✅ v2.1.1 (October 2025) - Comment Actions Menu
+**Status:** Complete (Bug Fixes in Progress)
+
+- Interactive gutter icon actions menu
+- Quick pick menu with 6 actions
+- Tag switching (TODO, FIXME, NOTE, etc.)
+- Resolution tracking (mark resolved/reopen)
+- Copy, edit, delete from gutter icon
+- Multi-comment support
+
+### 🚧 v2.1.2 (Current) - Bug Fixes
+**Status:** In Progress
+
+- Fix backup file path bug (double .comments extension)
+- Fix gutter icon refresh after operations
+- Re-enable persistence validation with proper skip flag
+
+### 🔮 v2.2 (Planned - Q1 2026) - Dynamic Params & AI Enrichment
 - Dynamic parameters with variable interpolation
 - AI metadata (tokens, complexity, embeddings)
 - Hash tree architecture for change detection

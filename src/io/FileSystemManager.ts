@@ -212,7 +212,9 @@ export class FileSystemManager {
       });
 
       // Validate persistence (read back and verify ghost markers)
-      await this.validatePersistence(sourceUri, data);
+      // TEMPORARY: Disabled to prevent infinite recursion during migration (v2.1.1)
+      // TODO: Re-enable with proper skip flag once migration is fixed
+      // await this.validatePersistence(sourceUri, data);
 
     } catch (error) {
       const fileError = new FileIOError(
@@ -652,7 +654,9 @@ export class FileSystemManager {
   /**
    * Validate that ghost markers were persisted correctly
    * This addresses the bug where markers exist in memory but not in file
+   * TEMPORARY: Disabled - see writeCommentFile()
    */
+  // @ts-ignore - Temporarily unused until migration fix
   private async validatePersistence(sourceUri: vscode.Uri, expectedData: CommentFile): Promise<void> {
     try {
       // Wait a brief moment for file system to flush

@@ -1574,18 +1574,31 @@ async function executeChangeTagAction(deps: CommandDependencies, sourceUri: vsco
   });
 
   if (selected) {
-    // Update comment with new tag
-    const commentFile = await deps.commentManager.loadComments(sourceUri);
-    const targetComment = commentFile.comments.find(c => c.id === comment.id);
+    try {
+      // Load comments from file
+      const commentFile = await deps.commentManager.loadComments(sourceUri);
+      const targetComment = commentFile.comments.find(c => c.id === comment.id);
 
-    if (targetComment) {
+      if (!targetComment) {
+        void vscode.window.showErrorMessage('Comment not found');
+        return;
+      }
+
+      // Update tag and timestamp
       targetComment.tag = selected.tag;
       targetComment.updated = new Date().toISOString();
+
+      // Save directly (bypassing updateComment since it only handles text)
       await deps.commentManager.saveComments(sourceUri, commentFile);
+
+      // Refresh decorations and CodeLens
       await deps.decorationManager.refreshDecorations(sourceUri);
 
       const tagName = selected.tag || 'None';
       void vscode.window.showInformationMessage(`Tag changed to: ${tagName}`);
+    } catch (error) {
+      logger.error('Failed to change tag:', error);
+      void vscode.window.showErrorMessage(`Failed to change tag: ${String(error)}`);
     }
   }
 }
@@ -1594,10 +1607,17 @@ async function executeChangeTagAction(deps: CommandDependencies, sourceUri: vsco
  * Execute resolve/reopen action
  */
 async function executeResolveAction(deps: CommandDependencies, sourceUri: vscode.Uri, comment: Comment, resolve: boolean): Promise<void> {
-  const commentFile = await deps.commentManager.loadComments(sourceUri);
-  const targetComment = commentFile.comments.find(c => c.id === comment.id);
+  try {
+    // Load comments from file
+    const commentFile = await deps.commentManager.loadComments(sourceUri);
+    const targetComment = commentFile.comments.find(c => c.id === comment.id);
 
-  if (targetComment) {
+    if (!targetComment) {
+      void vscode.window.showErrorMessage('Comment not found');
+      return;
+    }
+
+    // Update status and related fields
     if (resolve) {
       targetComment.status = 'resolved';
       targetComment.resolvedBy = deps.commentManager['getDefaultAuthor'](); // Access private method
@@ -1609,11 +1629,18 @@ async function executeResolveAction(deps: CommandDependencies, sourceUri: vscode
     }
 
     targetComment.updated = new Date().toISOString();
+
+    // Save directly (bypassing updateComment since it only handles text)
     await deps.commentManager.saveComments(sourceUri, commentFile);
+
+    // Refresh decorations and CodeLens
     await deps.decorationManager.refreshDecorations(sourceUri);
 
     const status = resolve ? 'resolved' : 'reopened';
     void vscode.window.showInformationMessage(`Comment ${status} successfully`);
+  } catch (error) {
+    logger.error('Failed to change status:', error);
+    void vscode.window.showErrorMessage(`Failed to change status: ${String(error)}`);
   }
 }
 

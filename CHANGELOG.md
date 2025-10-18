@@ -5,6 +5,77 @@ All notable changes to the Paired Comments extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2025-10-18
+
+### Added
+- **💬 Comment Actions Menu** - Interactive gutter icon actions for quick comment management
+  - **Quick Pick Menu** - Click gutter icons to show action menu with 6 options:
+    - 👁️ View Comment - Open paired view (read-only)
+    - ✏️ Edit Comment - Open paired view with cursor positioned
+    - 🗑️ Delete Comment - Remove comment with confirmation
+    - 📋 Copy Comment Text - Copy to clipboard
+    - 🏷️ Change Tag - Switch between TODO, FIXME, NOTE, QUESTION, HACK, WARNING, STAR, or None
+    - ✅ Mark as Resolved / Reopen - Toggle comment resolution status
+  - **Multi-Comment Handling** - If multiple comments on same line, choose which one first
+  - **Context-Aware Actions** - Shows "Reopen" for resolved comments, "Mark as Resolved" for active ones
+  - **Tag Picker** - Visual tag selection with emoji indicators and descriptions
+  - **User-Friendly Messages** - Clear success/error feedback for all actions
+- **Updated Gutter Icon Behavior** - Changed from direct view opening to actions menu
+  - Previous: Click gutter icon → Opens paired view
+  - New: Click gutter icon → Shows action menu → Select action
+
+### Changed
+- **CodeLens Command** - Gutter icons now trigger `pairedComments.commentActions` instead of `pairedComments.openAndNavigate`
+- **Gutter Icon Title** - Updated to "Click for actions" (was "Click to open")
+- **Command Registration** - Added new `commentActions` command to extension activation
+
+### Fixed
+- **Infinite Recursion Bug** - Disabled `validatePersistence()` call in `writeCommentFile()` (temporary fix)
+  - Root cause: validatePersistence → readCommentFile → migrateToLatestVersion → writeCommentFile → LOOP
+  - Status: Validation temporarily disabled to prevent crashes
+  - TODO: Re-enable with proper skip flag once migration is fixed
+- **Error Handling** - Added try-catch blocks to all action handlers
+  - Better error messages with file context
+  - Logger integration for debugging
+  - User-friendly error dialogs
+
+### Known Issues (Being Fixed)
+- **🐛 Backup File Path Bug** - Double `.comments` extension in backup files
+  - Error: `ENOENT: no such file or directory, open 'ast-test.js.comments.backup-2025-10-18T20-06-45-832Z.comments'`
+  - Should be: `ast-test.js.comments.backup-2025-10-18T20-06-45-832Z`
+  - Impact: Tag changes and deletions fail with FileIOError
+  - Status: Root cause identified, fix in progress
+- **🐛 Gutter Icons Not Refreshing** - After successful operations, gutter icons don't update
+  - Attempted fix: Added `refreshDecorations()` calls after tag/delete operations
+  - Status: Still investigating, likely blocked by backup file bug
+
+### Technical Details
+- **Files Modified**:
+  - `src/commands/index.ts` - Added 6 new functions (300+ lines):
+    - `showCommentActionsMenu()` - Main menu handler
+    - `executeEditAction()` - Edit comment in paired view
+    - `executeDeleteAction()` - Delete with confirmation
+    - `executeCopyAction()` - Copy to clipboard
+    - `executeChangeTagAction()` - Tag picker and update (with error handling)
+    - `executeResolveAction()` - Toggle resolved status (with error handling)
+  - `src/ui/CommentCodeLensProvider.ts` - Updated command and title
+  - `src/io/FileSystemManager.ts` - Commented out validatePersistence (line 217)
+- **User Experience**:
+  - Single click on gutter icon → Quick access to all comment actions
+  - No need to remember keyboard shortcuts for basic operations
+  - Visual tag selection with emoji indicators
+  - Immediate feedback for all actions
+- **Error Logging**: All actions log errors to Output panel for debugging
+
+### Next Steps (v2.1.2)
+- Fix backup file path bug in `createBackup()` method
+- Fix restore/cleanup methods that reference backup files
+- Re-enable `validatePersistence()` with proper migration skip flag
+- Verify gutter icon refresh works after successful operations
+- Comprehensive testing of tag changes and deletions
+
+---
+
 ## [2.1.0] - 2025-10-18
 
 ### Added
