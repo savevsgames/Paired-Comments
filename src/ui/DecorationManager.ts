@@ -6,14 +6,14 @@
 import * as vscode from 'vscode';
 import { CommentManager } from '../core/CommentManager';
 import { GhostMarkerManager } from '../core/GhostMarkerManager';
-import { Comment, CommentTag, TAG_COLORS, GhostMarker } from '../types';
+import { Comment, CommentTag, TAG_COLORS, GhostMarker, isRangeMarker, getRangeGutterCode, getSingleGutterCode } from '../types';
 
 export class DecorationManager {
   private decorationTypes: Map<string, vscode.TextEditorDecorationType> = new Map();
   private commentManager: CommentManager | null = null;
   private ghostMarkerManager: GhostMarkerManager | null = null;
 
-  constructor(private context: vscode.ExtensionContext) {
+  constructor() {
     this.initializeDecorationTypes();
   }
 
@@ -35,20 +35,55 @@ export class DecorationManager {
    * Initialize decoration types for each tag
    */
   private initializeDecorationTypes(): void {
-    // Default decoration (no tag)
+    // Default decoration (no tag) - single line
     this.decorationTypes.set('default', vscode.window.createTextEditorDecorationType({
-      gutterIconPath: this.context.asAbsolutePath('resources/comment-default.svg'),
+      gutterIconPath: this.createGutterIcon('C', '#4A90E2', false),
       gutterIconSize: 'contain',
       overviewRulerColor: '#4A90E2',
       overviewRulerLane: vscode.OverviewRulerLane.Left,
     }));
 
-    // Tag-specific decorations (now includes STAR)
+    // Default range decorations (start/end)
+    this.decorationTypes.set('default-start', vscode.window.createTextEditorDecorationType({
+      gutterIconPath: this.createGutterIcon('CS', '#4A90E2', true),
+      gutterIconSize: 'contain',
+      overviewRulerColor: '#4A90E2',
+      overviewRulerLane: vscode.OverviewRulerLane.Left,
+    }));
+    this.decorationTypes.set('default-end', vscode.window.createTextEditorDecorationType({
+      gutterIconPath: this.createGutterIcon('CE', '#4A90E2', false),
+      gutterIconSize: 'contain',
+      overviewRulerColor: '#4A90E2',
+      overviewRulerLane: vscode.OverviewRulerLane.Left,
+    }));
+
+    // Tag-specific decorations (single line + range start/end)
     const tags: Array<NonNullable<CommentTag>> = ['TODO', 'FIXME', 'NOTE', 'QUESTION', 'HACK', 'WARNING', 'STAR'];
     for (const tag of tags) {
       const color = TAG_COLORS[tag];
+      const singleCode = getSingleGutterCode(tag);
+      const startCode = getRangeGutterCode(tag, true);
+      const endCode = getRangeGutterCode(tag, false);
+
+      // Single-line decoration
       this.decorationTypes.set(tag, vscode.window.createTextEditorDecorationType({
-        gutterIconPath: this.createGutterIcon(tag, color),
+        gutterIconPath: this.createGutterIcon(singleCode, color, false),
+        gutterIconSize: 'contain',
+        overviewRulerColor: color,
+        overviewRulerLane: vscode.OverviewRulerLane.Left,
+      }));
+
+      // Range start decoration (larger)
+      this.decorationTypes.set(`${tag}-start`, vscode.window.createTextEditorDecorationType({
+        gutterIconPath: this.createGutterIcon(startCode, color, true),
+        gutterIconSize: 'contain',
+        overviewRulerColor: color,
+        overviewRulerLane: vscode.OverviewRulerLane.Left,
+      }));
+
+      // Range end decoration (smaller)
+      this.decorationTypes.set(`${tag}-end`, vscode.window.createTextEditorDecorationType({
+        gutterIconPath: this.createGutterIcon(endCode, color, false),
         gutterIconSize: 'contain',
         overviewRulerColor: color,
         overviewRulerLane: vscode.OverviewRulerLane.Left,
@@ -58,14 +93,34 @@ export class DecorationManager {
 
   /**
    * Create a simple SVG gutter icon
+   * @param code - Single letter (e.g., 'T') or two-letter code (e.g., 'TS', 'TE')
+   * @param color - Hex color for the icon
+   * @param isLarger - True for range start (larger icon), false for single-line or range end
    */
-  private createGutterIcon(tag: string, color: string): vscode.Uri {
-    // Create a simple colored circle with the first letter of the tag
-    const letter = tag.charAt(0);
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-      <circle cx="8" cy="8" r="7" fill="${color}" opacity="0.8"/>
-      <text x="8" y="11" text-anchor="middle" font-size="10" font-weight="bold" fill="white">${letter}</text>
-    </svg>`;
+  private createGutterIcon(code: string, color: string, isLarger: boolean): vscode.Uri {
+    const isTwoLetter = code.length === 2;
+
+    // Size adjustments
+    const radius = isLarger ? 8 : 7; // Larger radius for range start
+    const strokeWidth = isLarger ? 2 : 0; // Thicker border for range start
+    const fontSize = isTwoLetter ? 7 : 10; // Smaller font for two letters
+    const yOffset = isTwoLetter ? 10.5 : 11; // Adjust vertical centering
+
+    let svg: string;
+
+    if (isTwoLetter) {
+      // Two-letter code (e.g., TS, TE)
+      svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+        <circle cx="8" cy="8" r="${radius}" fill="${color}" opacity="0.8" stroke="${isLarger ? color : 'none'}" stroke-width="${strokeWidth}"/>
+        <text x="8" y="${yOffset}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="white">${code}</text>
+      </svg>`;
+    } else {
+      // Single letter (e.g., T, N, F)
+      svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+        <circle cx="8" cy="8" r="${radius}" fill="${color}" opacity="0.8"/>
+        <text x="8" y="${yOffset}" text-anchor="middle" font-size="${fontSize}" font-weight="bold" fill="white">${code}</text>
+      </svg>`;
+    }
 
     // Convert to data URI
     const dataUri = `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
@@ -115,6 +170,7 @@ export class DecorationManager {
   /**
    * Apply decorations using ghost markers (v2.0+)
    * One decoration per ghost marker, not per comment
+   * Now supports range markers with start/end decorations (v2.0.6+)
    */
   private applyGhostMarkerDecorations(
     editor: vscode.TextEditor,
@@ -129,21 +185,32 @@ export class DecorationManager {
       commentMap.set(comment.id, comment);
     }
 
-    // Group ghost markers by tag (use highest priority tag for multi-comment markers)
-    const markersByTag = new Map<string, GhostMarker[]>();
+    // Separate single-line markers and range markers
+    const singleLineMarkers: GhostMarker[] = [];
+    const rangeMarkers: GhostMarker[] = [];
 
     for (const marker of ghostMarkers) {
-      // Determine the tag for this marker
-      const tag = this.getMarkerTag(marker, commentMap);
-      console.log(`[DecorationManager] Marker at line ${marker.line} has tag: ${tag}`);
-      if (!markersByTag.has(tag)) {
-        markersByTag.set(tag, []);
+      if (isRangeMarker(marker)) {
+        rangeMarkers.push(marker);
+      } else {
+        singleLineMarkers.push(marker);
       }
-      markersByTag.get(tag)!.push(marker);
     }
 
-    // Apply decorations for each tag group
-    for (const [tag, markers] of markersByTag.entries()) {
+    console.log(`[DecorationManager] ${singleLineMarkers.length} single-line markers, ${rangeMarkers.length} range markers`);
+
+    // Group single-line markers by tag
+    const singleLineByTag = new Map<string, GhostMarker[]>();
+    for (const marker of singleLineMarkers) {
+      const tag = this.getMarkerTag(marker, commentMap);
+      if (!singleLineByTag.has(tag)) {
+        singleLineByTag.set(tag, []);
+      }
+      singleLineByTag.get(tag)!.push(marker);
+    }
+
+    // Apply single-line decorations
+    for (const [tag, markers] of singleLineByTag.entries()) {
       const decorationType = this.decorationTypes.get(tag);
       if (!decorationType) {
         console.log(`[DecorationManager] ❌ No decoration type found for tag: ${tag}`);
@@ -153,7 +220,59 @@ export class DecorationManager {
       const decorations = markers.map(marker =>
         this.createMarkerDecoration(marker, commentMap, editor.document)
       );
-      console.log(`[DecorationManager] Applying ${decorations.length} decorations with tag '${tag}' at lines: ${markers.map(m => m.line).join(', ')}`);
+      console.log(`[DecorationManager] Applying ${decorations.length} single-line decorations with tag '${tag}' at lines: ${markers.map(m => m.line).join(', ')}`);
+      editor.setDecorations(decorationType, decorations);
+    }
+
+    // Group range markers by tag for start/end decorations
+    const rangeStartByTag = new Map<string, GhostMarker[]>();
+    const rangeEndByTag = new Map<string, GhostMarker[]>();
+
+    for (const marker of rangeMarkers) {
+      const tag = this.getMarkerTag(marker, commentMap);
+
+      // Group for start decorations
+      const startKey = `${tag}-start`;
+      if (!rangeStartByTag.has(startKey)) {
+        rangeStartByTag.set(startKey, []);
+      }
+      rangeStartByTag.get(startKey)!.push(marker);
+
+      // Group for end decorations
+      const endKey = `${tag}-end`;
+      if (!rangeEndByTag.has(endKey)) {
+        rangeEndByTag.set(endKey, []);
+      }
+      rangeEndByTag.get(endKey)!.push(marker);
+    }
+
+    // Apply range START decorations
+    for (const [decorationKey, markers] of rangeStartByTag.entries()) {
+      const decorationType = this.decorationTypes.get(decorationKey);
+      if (!decorationType) {
+        console.log(`[DecorationManager] ❌ No decoration type found for: ${decorationKey}`);
+        continue;
+      }
+
+      const decorations = markers.map(marker =>
+        this.createMarkerDecoration(marker, commentMap, editor.document, 'start')
+      );
+      console.log(`[DecorationManager] Applying ${decorations.length} range START decorations (${decorationKey}) at lines: ${markers.map(m => m.line).join(', ')}`);
+      editor.setDecorations(decorationType, decorations);
+    }
+
+    // Apply range END decorations
+    for (const [decorationKey, markers] of rangeEndByTag.entries()) {
+      const decorationType = this.decorationTypes.get(decorationKey);
+      if (!decorationType) {
+        console.log(`[DecorationManager] ❌ No decoration type found for: ${decorationKey}`);
+        continue;
+      }
+
+      const decorations = markers.map(marker =>
+        this.createMarkerDecoration(marker, commentMap, editor.document, 'end')
+      );
+      console.log(`[DecorationManager] Applying ${decorations.length} range END decorations (${decorationKey}) at lines: ${markers.map(m => m.endLine).join(', ')}`);
       editor.setDecorations(decorationType, decorations);
     }
   }
@@ -220,59 +339,87 @@ export class DecorationManager {
 
   /**
    * Create a decoration for a ghost marker
+   * @param position - 'start' for range start line, 'end' for range end line, undefined for single-line
    */
   private createMarkerDecoration(
     marker: GhostMarker,
     commentMap: Map<string, Comment>,
-    document: vscode.TextDocument
+    document: vscode.TextDocument,
+    position?: 'start' | 'end'
   ): vscode.DecorationOptions {
-    const line = marker.line - 1; // Convert to 0-indexed
+    // Determine which line to decorate
+    let lineNumber: number;
+    if (position === 'end' && marker.endLine) {
+      lineNumber = marker.endLine - 1; // Range end line (0-indexed)
+    } else {
+      lineNumber = marker.line - 1; // Range start or single-line (0-indexed)
+    }
 
     // Validate line number
-    if (line < 0 || line >= document.lineCount) {
+    if (lineNumber < 0 || lineNumber >= document.lineCount) {
       return {
         range: new vscode.Range(0, 0, 0, 0),
         hoverMessage: 'Invalid line number'
       };
     }
 
-    const range = document.lineAt(line).range;
+    const range = document.lineAt(lineNumber).range;
 
     // Create hover message showing all comments on this marker
     const hoverMessage = new vscode.MarkdownString();
     hoverMessage.isTrusted = true; // Enable command URIs
 
-    // Header with count
+    // Header with count and range info
     const commentCount = marker.commentIds.length;
-    if (commentCount === 1) {
-      hoverMessage.appendMarkdown(`**Comment**\n\n`);
+    const isRange = isRangeMarker(marker);
+
+    if (isRange && marker.endLine) {
+      if (position === 'end') {
+        // End marker hover - just show range info
+        hoverMessage.appendMarkdown(`**Range Comment (end)**\n\n`);
+        hoverMessage.appendMarkdown(`Lines ${marker.line}-${marker.endLine}\n\n`);
+        hoverMessage.appendMarkdown(`[Jump to start](#)`);
+      } else {
+        // Start marker hover - show full comment info
+        hoverMessage.appendMarkdown(`**Range Comment (lines ${marker.line}-${marker.endLine})**\n\n`);
+        if (commentCount > 1) {
+          hoverMessage.appendMarkdown(`*${commentCount} comments*\n\n`);
+        }
+      }
     } else {
-      hoverMessage.appendMarkdown(`**${commentCount} Comments**\n\n`);
+      // Single-line marker
+      if (commentCount === 1) {
+        hoverMessage.appendMarkdown(`**Comment**\n\n`);
+      } else {
+        hoverMessage.appendMarkdown(`**${commentCount} Comments**\n\n`);
+      }
     }
 
-    // Add each comment
-    for (let i = 0; i < marker.commentIds.length; i++) {
-      const commentId = marker.commentIds[i];
-      if (!commentId) continue;
+    // Add comment details (skip for end marker)
+    if (position !== 'end') {
+      for (let i = 0; i < marker.commentIds.length; i++) {
+        const commentId = marker.commentIds[i];
+        if (!commentId) continue;
 
-      const comment = commentMap.get(commentId);
-      if (!comment) continue;
+        const comment = commentMap.get(commentId);
+        if (!comment) continue;
 
-      if (i > 0) {
-        hoverMessage.appendMarkdown(`\n\n---\n\n`);
+        if (i > 0) {
+          hoverMessage.appendMarkdown(`\n\n---\n\n`);
+        }
+
+        const tagLabel = comment.tag ? `[${comment.tag}] ` : '';
+        hoverMessage.appendMarkdown(`**${tagLabel}${comment.author}**\n\n`);
+        hoverMessage.appendMarkdown(comment.text);
+        hoverMessage.appendMarkdown(`\n\n*${new Date(comment.created).toLocaleString()}*`);
       }
 
-      const tagLabel = comment.tag ? `[${comment.tag}] ` : '';
-      hoverMessage.appendMarkdown(`**${tagLabel}${comment.author}**\n\n`);
-      hoverMessage.appendMarkdown(comment.text);
-      hoverMessage.appendMarkdown(`\n\n*${new Date(comment.created).toLocaleString()}*`);
+      // Add clickable action link at the bottom
+      const commandUri = vscode.Uri.parse(
+        `command:pairedComments.openAndNavigate?${encodeURIComponent(JSON.stringify([document.uri.toString(), marker.line]))}`
+      );
+      hoverMessage.appendMarkdown(`\n\n---\n\n[$(open-preview) Open Comments File](${commandUri})`);
     }
-
-    // Add clickable action link at the bottom
-    const commandUri = vscode.Uri.parse(
-      `command:pairedComments.openAndNavigate?${encodeURIComponent(JSON.stringify([document.uri.toString(), marker.line]))}`
-    );
-    hoverMessage.appendMarkdown(`\n\n---\n\n[$(open-preview) Open Comments File](${commandUri})`);
 
     return {
       range,

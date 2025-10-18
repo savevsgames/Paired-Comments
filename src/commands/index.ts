@@ -382,9 +382,24 @@ async function addComment(deps: CommandDependencies): Promise<void> {
     return;
   }
 
-  const line = editor.selection.active.line + 1; // Convert to 1-indexed
+  // Detect if user has a multi-line selection
+  const selection = editor.selection;
+  const startLine = selection.start.line + 1; // Convert to 1-indexed
+  const endLine = selection.end.line + 1;
+
+  // Check if this is a range comment (multi-line selection)
+  const isRangeComment = !selection.isEmpty && endLine > startLine;
+
+  // Show appropriate prompt
+  let prompt: string;
+  if (isRangeComment) {
+    prompt = `Add comment for lines ${startLine}-${endLine}`;
+  } else {
+    prompt = `Add comment for line ${startLine}`;
+  }
+
   const text = await vscode.window.showInputBox({
-    prompt: `Add comment for line ${line}`,
+    prompt: prompt,
     placeHolder: 'Enter your comment...',
   });
 
@@ -393,9 +408,18 @@ async function addComment(deps: CommandDependencies): Promise<void> {
   }
 
   try {
-    await deps.commentManager.addComment(editor.document.uri, { line, text });
+    // Pass endLine only if it's a range comment
+    const options = isRangeComment
+      ? { line: startLine, endLine: endLine, text }
+      : { line: startLine, text };
+
+    await deps.commentManager.addComment(editor.document.uri, options);
     await deps.decorationManager.refreshDecorations(editor.document.uri);
-    void vscode.window.showInformationMessage('Comment added successfully');
+
+    const message = isRangeComment
+      ? `Range comment added for lines ${startLine}-${endLine}`
+      : 'Comment added successfully';
+    void vscode.window.showInformationMessage(message);
   } catch (error) {
     void vscode.window.showErrorMessage(`Failed to add comment: ${String(error)}`);
   }

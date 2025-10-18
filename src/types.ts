@@ -110,7 +110,12 @@ export interface GhostMarker {
   id: string;
 
   /** Current line number (1-indexed) - cached value, use AST anchor for resolution in v2.0.5+ */
+  /** For range comments, this is the START line */
   line: number;
+
+  /** End line for range comments (1-indexed) - v2.0.6+ */
+  /** If undefined, this is a single-line marker */
+  endLine?: number;
 
   /** Array of comment IDs anchored to this line */
   commentIds: string[];
@@ -206,8 +211,11 @@ export interface PairedViewSession {
  * Options for adding a new comment
  */
 export interface AddCommentOptions {
-  /** Line number (1-indexed) */
+  /** Line number (1-indexed) - for single-line comments or start of range */
   line: number;
+
+  /** End line for range comments (1-indexed, optional) */
+  endLine?: number;
 
   /** Comment text */
   text: string;
@@ -294,7 +302,7 @@ export class PairedCommentsError extends Error {
 /**
  * Schema version constant
  */
-export const COMMENT_FILE_VERSION = '2.0.5';
+export const COMMENT_FILE_VERSION = '2.0.6';
 
 /**
  * File extension for comment files
@@ -400,3 +408,56 @@ export const COMMENT_SYNTAX_MAP: Record<string, CommentSyntax> = {
   // Assembly
   asm: { singleLine: [';'] },
 };
+
+/**
+ * Check if a comment is a range comment
+ */
+export function isRangeComment(comment: Comment): boolean {
+  return comment.startLine !== undefined && comment.endLine !== undefined && comment.endLine > comment.startLine;
+}
+
+/**
+ * Check if a ghost marker is a range marker
+ */
+export function isRangeMarker(marker: GhostMarker): boolean {
+  return marker.endLine !== undefined && marker.endLine > marker.line;
+}
+
+/**
+ * Get the effective line number for a comment (handles backwards compatibility)
+ */
+export function getCommentLine(comment: Comment): number {
+  return comment.startLine ?? comment.line;
+}
+
+/**
+ * Get the effective end line for a comment (undefined = single line)
+ */
+export function getCommentEndLine(comment: Comment): number | undefined {
+  return comment.endLine;
+}
+
+/**
+ * Create two-letter gutter icon code for range markers
+ * @param tag - Comment tag (TODO, FIXME, etc.)
+ * @param isStart - True for start marker, false for end marker
+ * @returns Two-letter code (e.g., "TS" for TODO START, "TE" for TODO END)
+ */
+export function getRangeGutterCode(tag: CommentTag, isStart: boolean): string {
+  if (!tag) return isStart ? 'CS' : 'CE'; // Comment Start/End for untagged
+
+  const firstLetter = tag.charAt(0); // T, F, N, Q, H, W, S
+  const secondLetter = isStart ? 'S' : 'E'; // Start or End
+
+  return `${firstLetter}${secondLetter}`;
+}
+
+/**
+ * Get single-letter gutter icon code (for backwards compatibility with single-line comments)
+ * @param tag - Comment tag
+ * @returns Single-letter code (e.g., "T" for TODO, "F" for FIXME)
+ */
+export function getSingleGutterCode(tag: CommentTag): string {
+  if (!tag) return 'C'; // Comment (untagged)
+  return tag.charAt(0); // T, F, N, Q, H, W, S
+}

@@ -116,13 +116,15 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 
 ---
 
-## 🚧 Milestone 3: Range Comments (v2.0.6+) - IN PROGRESS (Design Complete)
+## ✅ Milestone 3: Range Comments Core (v2.0.6) - COMPLETE (Checkpoint)
 
-**Target:** November 2025 (1 week core + 1 week export/import)
-**Goal:** Support comments that span multiple lines + inline comment export/import for sharing
+**Completed:** October 18, 2025
+**Goal:** Support comments that span multiple lines with two-letter gutter icons
 
 **User Request (Oct 18, 2025):**
 > "How do i make this a range comment? ie lines 1-10"
+
+**Status:** ✅ CORE IMPLEMENTATION COMPLETE - Ready for Testing
 
 **Design Document:** [docs/milestones/range-comments-design.md](milestones/range-comments-design.md)
 
@@ -156,14 +158,50 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 - ✅ **Keep inline markers by default** (greyed out, gutter icons primary UI)
 - ✅ User setting to remove on import: `pairedComments.removeInlineMarkersOnImport`
 
+### Achievements
+
+#### ✅ Core Implementation (DONE)
+- ✅ **Schema Updates** - Added `endLine` field to `GhostMarker` and `Comment`
+  - Updated `COMMENT_FILE_VERSION` to `2.0.6`
+  - Helper functions: `isRangeMarker()`, `getRangeGutterCode()`, `getSingleGutterCode()`
+
+- ✅ **GhostMarkerManager Range Support**
+  - `createMarker()` accepts optional `endLine` parameter
+  - `getMarkerAtLine()` checks if line is within range (inclusive)
+  - `updateMarkerLine()` supports updating range end lines
+  - Automatic range shifting when document changes
+
+- ✅ **Selection-Based Range Creation**
+  - Add Comment command detects multi-line selections
+  - Shows "Add comment for lines X-Y" prompt
+  - Passes `endLine` to CommentManager for range comments
+
+- ✅ **Two-Letter Gutter Icons**
+  - Created decoration types for all tags with `-start` and `-end` variants
+  - Start icons: TS, NS, FS, QS, HS, WS, SS, CS (larger, radius 8, bold border)
+  - End icons: TE, NE, FE, QE, HE, WE, SE, CE (smaller, radius 7)
+  - Font size: 7px for two-letter codes, 10px for single-letter
+  - Visual distinction: Start icon has thicker border
+
+- ✅ **Smart Hover Messages**
+  - Range start: Shows full comment details + range info ("lines X-Y")
+  - Range end: Shows "Range Comment (end)" with link to start
+  - Single-line: Standard comment hover (unchanged)
+
+### What's NOT Done (Deferred to v2.0.7+)
+- ⚠️ **Inline Export** - Export to `//@paired-comment-range-start` markers (v2.0.7)
+- ⚠️ **Inline Import** - Parse inline markers back to `.comments` (v2.0.8)
+- ⚠️ **Visibility Toggle** - Hide/show inline markers (v2.0.9)
+- ⚠️ **Range Highlighting** - Greyed-out text between start/end (optional)
+
 ### Implementation Phases
 
-**v2.0.6 - Range Comments Core (1 week)**
-- Schema updates (`startLine`, `endLine`)
-- Selection-based range creation
-- Two-letter gutter icons (TS/TE, NS/NE, etc.)
-- Range tracking through cut/paste
-- Tests
+**v2.0.6 - Range Comments Core (COMPLETE) ✅**
+- ✅ Schema updates (`startLine`, `endLine`)
+- ✅ Selection-based range creation
+- ✅ Two-letter gutter icons (TS/TE, NS/NE, etc.)
+- ✅ Range tracking through cut/paste
+- ⚠️ Tests (pending)
 
 **v2.0.7 - Inline Export (3 days)**
 - Export command: `Ctrl+Alt+P Ctrl+Alt+X`
@@ -398,9 +436,10 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 ### Completed Milestones
 1. ✅ **MVP Foundation (v0.1.0)** - October 16, 2025
 2. ✅ **AST-Based Line Tracking (v2.0.5 Checkpoint)** - October 18, 2025
+3. ✅ **Range Comments Core (v2.0.6 Checkpoint)** - October 18, 2025
 
 ### Active Milestones
-1. 🚧 **Range Comments (v2.0.6)** - Starting November 2025
+1. 🚧 **Range Comments Export/Import (v2.0.7-2.0.9)** - November 2025
 
 ### Upcoming Milestones
 1. 📋 **Params & AI Metadata (v2.1.0)** - Q1 2026
@@ -449,6 +488,21 @@ Roadmap v2 fixes this with milestone-based tracking and explicit status labels.
 - Full metadata export by default (easier to remove than add later)
 - Inline format enables sharing with non-extension users
 **Details:** See [docs/milestones/range-comments-design.md](milestones/range-comments-design.md)
+**Owner:** Development Team
+
+### October 18, 2025: Range Comments Core Complete
+**Decision:** Declare range comments core implementation complete (v2.0.6), defer export/import to v2.0.7-2.0.9
+**Reasoning:**
+- Core functionality works: selection detection, range tracking, two-letter icons
+- Export/import can be implemented independently as separate features
+- Allows testing of core functionality before adding export/import complexity
+**Achievements:**
+- Schema updates (endLine field)
+- GhostMarkerManager range support
+- Selection-based range creation in Add Comment command
+- Two-letter gutter icons (TS/TE, NS/NE, etc.)
+- Smart hover messages for range start/end
+**Next Steps:** User testing, then proceed to export/import (v2.0.7+)
 **Owner:** Development Team
 
 ---

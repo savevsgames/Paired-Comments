@@ -75,6 +75,27 @@
       "prevLineText": "",
       "nextLineText": "* AST Anchor Testing File",
       "lastVerified": "2025-10-18T00:36:37.547Z"
+    },
+    {
+      "id": "gm-b34xj6olymgvs5kb8",
+      "line": 47,
+      "commentIds": [
+        "b8ee283e-02ab-41ce-9fa1-c5c57729e4e2"
+      ],
+      "astAnchor": {
+        "symbolPath": [
+          "ShoppingCart",
+          "checkout"
+        ],
+        "symbolKind": "Method",
+        "containerName": "ShoppingCart",
+        "offset": 3
+      },
+      "lineHash": "d10b36aa74a59bcf",
+      "lineText": "}",
+      "prevLineText": "return this.total;",
+      "nextLineText": "}",
+      "lastVerified": "2025-10-18T04:31:07.796Z"
     }
   ],
   "comments": [
@@ -117,6 +138,16 @@
       "updated": "2025-10-17T23:50:00.000Z",
       "tag": "STAR",
       "ghostMarkerId": "gm-addItem"
+    },
+    {
+      "id": "b8ee283e-02ab-41ce-9fa1-c5c57729e4e2",
+      "line": 47,
+      "text": "This is a ranged comment",
+      "author": "Unknown",
+      "created": "2025-10-18T04:31:07.777Z",
+      "updated": "2025-10-18T04:31:07.777Z",
+      "tag": null,
+      "ghostMarkerId": "gm-b34xj6olymgvs5kb8"
     }
   ]
 }

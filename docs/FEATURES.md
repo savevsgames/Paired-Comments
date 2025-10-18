@@ -93,34 +93,53 @@ Hover over gutter icon to see comment preview without opening file.
 
 ---
 
-## Upcoming Features
+## Range Comments (v2.0.6) ✅ COMPLETE
 
-### Range Comments (v2.0.6) - Coming November 2025 ✅ Design Complete
-Comment entire code blocks (e.g., lines 1-10) instead of single lines.
+Comment entire code blocks (e.g., lines 10-15) instead of single lines.
 
 **How It Works:**
 1. Select lines 10-15 in editor
 2. Press `Ctrl+Alt+P A` (Add Comment)
-3. Form shows: "Adding comment to lines 10-15"
+3. Prompt shows: "Add comment for lines 10-15"
 4. Type your comment and save
-5. Range is tracked automatically!
+5. Range is tracked automatically with two-letter gutter icons!
 
 **Visual Indicators:**
-- **Start line:** Two-letter icon (e.g., `TS` = TODO START, orange, larger)
+- **Start line:** Two-letter icon (e.g., `TS` = TODO START, orange, larger, bold border)
 - **End line:** Two-letter icon (e.g., `TE` = TODO END, orange, smaller)
-- **Between lines:** Optional greyed-out text highlight
-- **Hover:** Shows "TODO (lines 10-15): Your comment text"
+- **Start hover:** Shows full comment + "Range Comment (lines 10-15)"
+- **End hover:** Shows "Range Comment (end)" with range info
+
+**Gutter Icon Codes:**
+| Tag | Start | End | Color |
+|-----|-------|-----|-------|
+| TODO | TS | TE | Orange |
+| NOTE | NS | NE | Blue |
+| FIXME | FS | FE | Red |
+| QUESTION | QS | QE | Purple |
+| HACK | HS | HE | Dark Orange |
+| WARNING | WS | WE | Yellow-Orange |
+| STAR | SS | SE | Gold |
+| (none) | CS | CE | Blue |
 
 **Example:**
 ```javascript
-10  TS  function processPayment(order) {      [greyed]
-11        validateOrder(order);                [greyed]
-12        chargeCard(order.total);             [greyed]
-13        sendConfirmation(order.email);       [greyed]
-14  TE  }                                      [greyed]
+10  TS  function processPayment(order) {
+11        validateOrder(order);
+12        chargeCard(order.total);
+13        sendConfirmation(order.email);
+14  TE  }
 ```
 
-**Inline Export (v2.0.7):**
+**Range Tracking:**
+- ✅ Ranges shift automatically when code above is edited
+- ✅ AST tracking follows code movements (cut/paste)
+- ✅ End line adjusts when lines are added/deleted within range
+- ✅ Works with all existing features (hover, CodeLens, etc.)
+
+**What's Coming Next:**
+
+**Inline Export (v2.0.7) - Coming November 2025:**
 Export range comments as inline markers for sharing:
 ```javascript
 //@paired-comment-range-start {"id":"c1","tag":"TODO","text":"Payment processing block"}
@@ -129,6 +148,7 @@ function processPayment(order) { ... }
 ```
 
 **Design Doc:** [Range Comments Design](milestones/range-comments-design.md)
+**Checkpoint:** [v2.0.6 Checkpoint](milestones/v2.0.6-range-comments-checkpoint.md)
 
 ---
 

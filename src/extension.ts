@@ -21,7 +21,7 @@ import { registerCommands } from './commands';
  */
 export function activate(context: vscode.ExtensionContext): void {
   console.log('═══════════════════════════════════════════════════════════');
-  console.log('🚀 PAIRED COMMENTS EXTENSION ACTIVATED - v2.0.5 AST');
+  console.log('🚀 PAIRED COMMENTS EXTENSION ACTIVATED - v2.0.6 RANGE');
   console.log('═══════════════════════════════════════════════════════════');
   console.log('Paired Comments extension is now active');
 
@@ -33,7 +33,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const fileSystemManager = new FileSystemManager(astAnchorManager);
   const ghostMarkerManager = new GhostMarkerManager();
   const commentManager = new CommentManager(fileSystemManager, ghostMarkerManager);
-  const decorationManager = new DecorationManager(context);
+  const decorationManager = new DecorationManager();
   const scrollSyncManager = new ScrollSyncManager();
   const pairedViewManager = new PairedViewManager(
     commentManager,

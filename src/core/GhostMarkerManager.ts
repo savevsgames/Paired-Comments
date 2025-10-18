@@ -47,13 +47,14 @@ export class GhostMarkerManager {
   }
 
   /**
-   * Create a new ghost marker for a line
-   * Now with AST anchor support (v2.0.5+)
+   * Create a new ghost marker for a line or range
+   * Now with AST anchor support (v2.0.5+) and range support (v2.0.6+)
    */
   async createMarker(
     document: vscode.TextDocument,
     line: number,
-    commentIds: string[]
+    commentIds: string[],
+    endLine?: number
   ): Promise<GhostMarker> {
     // Get line text and context
     const lineText = getLineText(document, line);
@@ -87,6 +88,7 @@ export class GhostMarkerManager {
       id: this.generateId(),
       line,
       commentIds,
+      endLine: endLine, // Range support (v2.0.6+) - undefined for single-line comments
       astAnchor: astAnchor, // May be null for non-symbolic lines or unsupported languages
       lineHash: hashLine(effectiveLineText),
       lineText: effectiveLineText.trim(),
@@ -94,6 +96,11 @@ export class GhostMarkerManager {
       nextLineText: nextLineText?.trim() || '',
       lastVerified: new Date().toISOString(),
     };
+
+    // Log range creation if applicable
+    if (endLine && endLine > line) {
+      console.log(`[GhostMarker] Created range marker for lines ${line}-${endLine}`);
+    }
 
     return marker;
   }
@@ -181,20 +188,30 @@ export class GhostMarkerManager {
 
   /**
    * Get ghost marker at a specific line
+   * For range markers, checks if line is within the range (start to end)
    */
   getMarkerAtLine(uri: vscode.Uri, line: number): GhostMarker | undefined {
     const markers = this.getMarkers(uri);
-    return markers.find(m => m.line === line);
+    return markers.find(m => {
+      // Single-line marker: exact match
+      if (!m.endLine) {
+        return m.line === line;
+      }
+      // Range marker: check if line is within range (inclusive)
+      return line >= m.line && line <= m.endLine;
+    });
   }
 
   /**
    * Update ghost marker line position
+   * For range markers, also update the end line
    */
   updateMarkerLine(
     document: vscode.TextDocument,
     markerId: string,
     newLine: number,
-    editor?: vscode.TextEditor
+    editor?: vscode.TextEditor,
+    newEndLine?: number
   ): void {
     const key = document.uri.toString();
     const states = this.markers.get(key);
@@ -205,8 +222,11 @@ export class GhostMarkerManager {
       return;
     }
 
-    // Update line number
+    // Update line number(s)
     markerState.line = newLine;
+    if (newEndLine !== undefined) {
+      markerState.endLine = newEndLine;
+    }
 
     // Update hash and context
     const lineText = getLineText(document, newLine);
@@ -623,10 +643,13 @@ export class GhostMarkerManager {
 
       for (const markerState of states) {
         if (markerState.line > endLine) {
-          // Marker is after the change - shift it
+          // Marker is after the change - shift it (and shift endLine if it's a range)
           const oldLine = markerState.line;
           markerState.line += lineDelta;
-          console.log(`  ✓ Shifted marker "${markerState.lineText.substring(0, 30)}..." from line ${oldLine} → ${markerState.line}`);
+          if (markerState.endLine) {
+            markerState.endLine += lineDelta;
+          }
+          console.log(`  ✓ Shifted marker "${markerState.lineText.substring(0, 30)}..." from line ${oldLine} → ${markerState.line}${markerState.endLine ? ` (range to ${markerState.endLine})` : ''}`);
           markersShifted++;
         } else if (markerState.line >= startLine && markerState.line <= endLine) {
           // Marker is INSIDE the changed range - this is the problem case!
