@@ -1,6 +1,6 @@
 {
   "file": "ast-test.js",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "ghostMarkers": [
     {
       "id": "gm-calculateTotal",
@@ -66,6 +66,7 @@
     {
       "id": "gm-dttgcpse7mgvjrzmz",
       "line": 1,
+      "endLine": 10,
       "commentIds": [
         "c2a2fb96-7cbb-4f19-85f5-8be49a2d18ff"
       ],
@@ -102,11 +103,13 @@
     {
       "id": "c2a2fb96-7cbb-4f19-85f5-8be49a2d18ff",
       "line": 1,
-      "text": "How do i make this a range comment? ie lines 1-10",
+      "startLine": 1,
+      "endLine": 10,
+      "text": "NOTE: This IS NOW a range comment covering lines 1-10! (Updated for v2.0.6)",
       "author": "Unknown",
       "created": "2025-10-18T00:36:37.530Z",
       "updated": "2025-10-18T00:36:37.530Z",
-      "tag": null,
+      "tag": "NOTE",
       "ghostMarkerId": "gm-dttgcpse7mgvjrzmz"
     },
     {
