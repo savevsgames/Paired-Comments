@@ -116,54 +116,77 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 
 ---
 
-## 🚧 Milestone 3: Range Comments (v2.0.6) - IN PROGRESS
+## 🚧 Milestone 3: Range Comments (v2.0.6+) - IN PROGRESS (Design Complete)
 
-**Target:** November 2025 (2-3 days)
-**Goal:** Support comments that span multiple lines (e.g., lines 1-10)
+**Target:** November 2025 (1 week core + 1 week export/import)
+**Goal:** Support comments that span multiple lines + inline comment export/import for sharing
 
 **User Request (Oct 18, 2025):**
 > "How do i make this a range comment? ie lines 1-10"
 
-### Requirements
+**Design Document:** [docs/milestones/range-comments-design.md](milestones/range-comments-design.md)
 
-#### 📋 Schema Changes
-- Add `startLine` and `endLine` to `Comment` type
-- Keep `line` for backwards compatibility (defaults to `startLine`)
-- Ghost marker tracks the START line of range
+### Design Decisions ✅ FINALIZED
 
-#### 📋 UI/UX
-- **Selection Method** (TBD - need user input)
-  - Option A: Select lines in editor → `Ctrl+Alt+P A` → Creates range comment
-  - Option B: Add comment to line → Show "Extend to range" button
-  - Option C: Add fields in comment form: "Start Line", "End Line"
+#### Selection Method
+- ✅ **Option A**: Select lines in editor → `Ctrl+Alt+P A` → Creates range comment
+- Natural workflow, maps cleanly to inline export
 
-- **Visual Indicators**
-  - Gutter icon at start line
-  - Optional: Subtle background highlight for entire range
-  - Hover shows "Lines 1-10: [comment text]"
+#### Visual Indicators
+- ✅ **Two-letter gutter icons**:
+  - Start: `TS` (TODO START - orange, larger icon)
+  - End: `TE` (TODO END - orange, smaller icon)
+  - Same pattern for all tags (NS/NE, FS/FE, SS/SE, etc.)
+- ✅ **Range highlighting**: Greyed-out text between start/end (optional setting)
 
-#### 📋 Behavior
-- **Cut/Paste Entire Range** → Comment moves with range
-- **Cut/Paste Partial Range** (e.g., lines 5-8 of 1-10 range)
-  - Option A: Comment stays with original start (lines 1-10 → 1-7)
-  - Option B: Split into two comments (1-4, 5-10)
-  - Option C: Ask user to resolve conflict
+#### Inline Comment Syntax
+- ✅ **Full metadata by default** (easier to remove later than add)
+- ✅ **JSON object format**:
+  ```javascript
+  //@paired-comment {"id":"c1","tag":"TODO","text":"...","author":"Greg","created":"..."}
+  ```
+- ✅ **Range markers**:
+  ```javascript
+  //@paired-comment-range-start {"id":"c1","tag":"TODO","text":"..."}
+  function processPayment(order) { ... }
+  //@paired-comment-range-end {"id":"c1"}
+  ```
 
-- **Edit Within Range** → Comment stays anchored to start line
+#### Import Behavior
+- ✅ **Keep inline markers by default** (greyed out, gutter icons primary UI)
+- ✅ User setting to remove on import: `pairedComments.removeInlineMarkersOnImport`
 
-#### 📋 Implementation Tasks
-1. Update `src/types.ts` (add `startLine`, `endLine`)
-2. Update `GhostMarkerManager` (track range instead of single line)
-3. Update `DecorationManager` (render range highlights)
-4. Update comment form UI (range selection)
-5. Add tests for range tracking
+### Implementation Phases
+
+**v2.0.6 - Range Comments Core (1 week)**
+- Schema updates (`startLine`, `endLine`)
+- Selection-based range creation
+- Two-letter gutter icons (TS/TE, NS/NE, etc.)
+- Range tracking through cut/paste
+- Tests
+
+**v2.0.7 - Inline Export (3 days)**
+- Export command: `Ctrl+Alt+P Ctrl+Alt+X`
+- JSON object generation (full metadata)
+- Insert inline markers (single + range)
+
+**v2.0.8 - Inline Import (3 days)**
+- Import command: `Ctrl+Alt+P Ctrl+Alt+I`
+- Parse inline markers (regex + JSON)
+- Generate `.comments` file
+- Dim/hide inline markers (optional)
+
+**v2.0.9 - Visibility Toggle (2 days)**
+- Toggle command: `Ctrl+Alt+P H`
+- Hide/show inline markers
+- Gutter icons always visible
 
 ### Dependencies
 - ✅ AST foundation (complete)
-- 🚧 User feedback on UX (which option for selection?)
+- ✅ Design decisions (complete)
 
 ### Blocking
-- ⚠️ Phase 2.1 (params/aiMeta) - Range affects complexity calculation, token counting
+- ⚠️ Phase 2.1 (params/aiMeta) - Range affects complexity/token counting
 
 ---
 
@@ -416,6 +439,16 @@ Roadmap v2 fixes this with milestone-based tracking and explicit status labels.
 ### October 18, 2025: Range Comments Prioritized
 **Decision:** Implement range comments (v2.0.6) before params/aiMeta (v2.1)
 **Reasoning:** User explicitly requested it, and it affects params/aiMeta schema design.
+**Owner:** Development Team
+
+### October 18, 2025: Range Comments Design Finalized
+**Decision:** Selection-based range creation, two-letter gutter icons (TS/TE), full inline export with JSON
+**Reasoning:**
+- Selection-based maps cleanly to inline export/import workflow
+- Two-letter codes (TS/TE) provide clear start/end visual distinction
+- Full metadata export by default (easier to remove than add later)
+- Inline format enables sharing with non-extension users
+**Details:** See [docs/milestones/range-comments-design.md](milestones/range-comments-design.md)
 **Owner:** Development Team
 
 ---

@@ -95,16 +95,40 @@ Hover over gutter icon to see comment preview without opening file.
 
 ## Upcoming Features
 
-### Range Comments (v2.0.6) - Coming November 2025
+### Range Comments (v2.0.6) - Coming November 2025 ✅ Design Complete
 Comment entire code blocks (e.g., lines 1-10) instead of single lines.
 
-**Example Use Case:**
+**How It Works:**
+1. Select lines 10-15 in editor
+2. Press `Ctrl+Alt+P A` (Add Comment)
+3. Form shows: "Adding comment to lines 10-15"
+4. Type your comment and save
+5. Range is tracked automatically!
+
+**Visual Indicators:**
+- **Start line:** Two-letter icon (e.g., `TS` = TODO START, orange, larger)
+- **End line:** Two-letter icon (e.g., `TE` = TODO END, orange, smaller)
+- **Between lines:** Optional greyed-out text highlight
+- **Hover:** Shows "TODO (lines 10-15): Your comment text"
+
+**Example:**
 ```javascript
-// Lines 1-25: Authentication middleware
-// - Validates JWT tokens
-// - Checks user permissions
-// - Handles refresh tokens
+10  TS  function processPayment(order) {      [greyed]
+11        validateOrder(order);                [greyed]
+12        chargeCard(order.total);             [greyed]
+13        sendConfirmation(order.email);       [greyed]
+14  TE  }                                      [greyed]
 ```
+
+**Inline Export (v2.0.7):**
+Export range comments as inline markers for sharing:
+```javascript
+//@paired-comment-range-start {"id":"c1","tag":"TODO","text":"Payment processing block"}
+function processPayment(order) { ... }
+//@paired-comment-range-end {"id":"c1"}
+```
+
+**Design Doc:** [Range Comments Design](milestones/range-comments-design.md)
 
 ---
 
