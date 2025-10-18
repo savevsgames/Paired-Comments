@@ -62,9 +62,32 @@
       "prevLineText": "  // Test 4: Method that we'll move within the class",
       "nextLineText": "    this.items.push(item);",
       "lastVerified": "2025-10-17T23:50:00.000Z"
+    },
+    {
+      "id": "gm-dttgcpse7mgvjrzmz",
+      "line": 1,
+      "commentIds": [
+        "c2a2fb96-7cbb-4f19-85f5-8be49a2d18ff"
+      ],
+      "astAnchor": null,
+      "lineHash": "8d64a30d9de151b6",
+      "lineText": "/**",
+      "prevLineText": "",
+      "nextLineText": "* AST Anchor Testing File",
+      "lastVerified": "2025-10-18T00:36:37.547Z"
     }
   ],
   "comments": [
+    {
+      "id": "c2a2fb96-7cbb-4f19-85f5-8be49a2d18ff",
+      "line": 1,
+      "text": "How do i make this a range comment? ie lines 1-10",
+      "author": "Unknown",
+      "created": "2025-10-18T00:36:37.530Z",
+      "updated": "2025-10-18T00:36:37.530Z",
+      "tag": null,
+      "ghostMarkerId": "gm-dttgcpse7mgvjrzmz"
+    },
     {
       "id": "comment-calculateTotal",
       "line": 13,

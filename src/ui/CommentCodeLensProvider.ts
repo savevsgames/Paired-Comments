@@ -1,15 +1,25 @@
 /**
  * CommentCodeLensProvider - Provides clickable CodeLens for commented lines
+ * Now with ghost marker support for automatic line tracking! 👻
  */
 
 import * as vscode from 'vscode';
 import { CommentManager } from '../core/CommentManager';
+import { GhostMarkerManager } from '../core/GhostMarkerManager';
 
 export class CommentCodeLensProvider implements vscode.CodeLensProvider {
   private _onDidChangeCodeLenses: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
   public readonly onDidChangeCodeLenses: vscode.Event<void> = this._onDidChangeCodeLenses.event;
+  private ghostMarkerManager: GhostMarkerManager | null = null;
 
   constructor(private commentManager: CommentManager) {}
+
+  /**
+   * Set the ghost marker manager (called after initialization)
+   */
+  setGhostMarkerManager(manager: GhostMarkerManager): void {
+    this.ghostMarkerManager = manager;
+  }
 
   /**
    * Refresh CodeLens
@@ -20,6 +30,7 @@ export class CommentCodeLensProvider implements vscode.CodeLensProvider {
 
   /**
    * Provide CodeLens for commented lines
+   * Now uses LIVE ghost markers for automatic position tracking
    */
   async provideCodeLenses(
     document: vscode.TextDocument,
@@ -31,36 +42,71 @@ export class CommentCodeLensProvider implements vscode.CodeLensProvider {
     }
 
     try {
-      const commentFile = await this.commentManager.loadComments(document.uri);
       const codeLenses: vscode.CodeLens[] = [];
 
-      // Group comments by line
-      const commentsByLine = new Map<number, number>();
-      for (const comment of commentFile.comments) {
-        const count = commentsByLine.get(comment.line) || 0;
-        commentsByLine.set(comment.line, count + 1);
-      }
+      // Get LIVE ghost markers from GhostMarkerManager (not from file!)
+      const liveGhostMarkers = this.ghostMarkerManager
+        ? this.ghostMarkerManager.getMarkers(document.uri)
+        : null;
 
-      // Create CodeLens for each line with comments
-      for (const [lineNumber, count] of commentsByLine.entries()) {
-        const line = lineNumber - 1; // Convert to 0-indexed
+      if (liveGhostMarkers && liveGhostMarkers.length > 0) {
+        // Use live ghost markers for accurate positions (v2.0+)
+        console.log(`[CodeLens] Using ${liveGhostMarkers.length} LIVE ghost markers`);
 
-        // Validate line number
-        if (line < 0 || line >= document.lineCount) {
-          continue;
+        for (const marker of liveGhostMarkers) {
+          const line = marker.line - 1; // Convert to 0-indexed
+
+          // Validate line number
+          if (line < 0 || line >= document.lineCount) {
+            continue;
+          }
+
+          const range = new vscode.Range(line, 0, line, 0);
+          const count = marker.commentIds.length;
+
+          // Create CodeLens with clickable command that jumps to this specific line
+          const commentText = count === 1 ? '1 comment' : `${count} comments`;
+          const codeLens = new vscode.CodeLens(range, {
+            title: `💬 ${commentText} - Click to open`,
+            command: 'pairedComments.openAndNavigate',
+            arguments: [document.uri, marker.line] // Use marker's LIVE line number
+          });
+
+          codeLenses.push(codeLens);
+        }
+      } else {
+        // Fallback to file-based comments if live markers not available (legacy mode)
+        const commentFile = await this.commentManager.loadComments(document.uri);
+        console.log(`[CodeLens] Using ${commentFile.comments.length} comments from file (legacy mode)`);
+
+        // Group comments by line
+        const commentsByLine = new Map<number, number>();
+        for (const comment of commentFile.comments) {
+          const count = commentsByLine.get(comment.line) || 0;
+          commentsByLine.set(comment.line, count + 1);
         }
 
-        const range = new vscode.Range(line, 0, line, 0);
+        // Create CodeLens for each line with comments
+        for (const [lineNumber, count] of commentsByLine.entries()) {
+          const line = lineNumber - 1; // Convert to 0-indexed
 
-        // Create CodeLens with clickable command that jumps to this specific line
-        const commentText = count === 1 ? '1 comment' : `${count} comments`;
-        const codeLens = new vscode.CodeLens(range, {
-          title: `💬 ${commentText} - Click to open`,
-          command: 'pairedComments.openAndNavigate',
-          arguments: [document.uri, lineNumber] // Pass 1-indexed line number
-        });
+          // Validate line number
+          if (line < 0 || line >= document.lineCount) {
+            continue;
+          }
 
-        codeLenses.push(codeLens);
+          const range = new vscode.Range(line, 0, line, 0);
+
+          // Create CodeLens with clickable command that jumps to this specific line
+          const commentText = count === 1 ? '1 comment' : `${count} comments`;
+          const codeLens = new vscode.CodeLens(range, {
+            title: `💬 ${commentText} - Click to open`,
+            command: 'pairedComments.openAndNavigate',
+            arguments: [document.uri, lineNumber] // Pass 1-indexed line number
+          });
+
+          codeLenses.push(codeLens);
+        }
       }
 
       return codeLenses;

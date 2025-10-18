@@ -15,6 +15,9 @@ function calculateTotal(items) {
 }
 
 // Test 2: Another top-level function
+function formatCurrency(amount) {
+  return `$${amount.toFixed(2)}`;
+}
 
 // Test 3: Class with methods
 class ShoppingCart {
@@ -113,11 +116,6 @@ class UserManager {
 }
 
 // End of file - space for moving functions around
-  addItem(item) {
-    this.items.push(item);
-    this.updateTotal();
-  }
-
-  function formatCurrency(amount) {
-  return `$${amount.toFixed(2)}`;
+function calculateTotal(items) {
+  return items.reduce((sum, item) => sum + item.price, 0);
 }

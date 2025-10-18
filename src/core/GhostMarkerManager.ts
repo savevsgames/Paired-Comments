@@ -610,6 +610,13 @@ export class GhostMarkerManager {
       console.log(`  Delta: ${lineDelta > 0 ? '+' : ''}${lineDelta}`);
       console.log(`  Text preview: "${newText.substring(0, 50)}${newText.length > 50 ? '...' : ''}"`);
 
+      // Detect copy/paste of code with ghost markers
+      // Check if lines were added (not just replaced) and the text is substantial
+      if (lineDelta > 0 && newText.trim().length > 20) {
+        console.log(`  📋 Potential paste detected (${lineDelta} lines added), checking for copied markers...`);
+        this.detectAndHandleCopiedMarkers(event.document, startLine, newText);
+      }
+
       // Update markers that come after this change
       let markersShifted = 0;
       let markersNeedingVerification = false;
@@ -669,6 +676,125 @@ export class GhostMarkerManager {
 
     for (const markerState of states) {
       this.applyDecoration(editor, markerState);
+    }
+  }
+
+  /**
+   * Detect and handle copied ghost markers (copy/paste detection)
+   * When code is copied (not cut), we need to create new ghost markers for the pasted code
+   */
+  private detectAndHandleCopiedMarkers(
+    document: vscode.TextDocument,
+    pasteStartLine: number,
+    pastedText: string
+  ): void {
+    console.log(`[GhostMarkerManager] 📋 Checking for copied ghost markers at line ${pasteStartLine}...`);
+
+    const key = document.uri.toString();
+    const states = this.markers.get(key);
+    if (!states) return;
+
+    const pastedLines = pastedText.split('\n');
+    const duplicates: Array<{ originalMarker: GhostMarkerState; newLine: number }> = [];
+
+    // Check each pasted line against existing markers
+    for (let i = 0; i < pastedLines.length; i++) {
+      const pastedLine = pastedLines[i];
+      if (!pastedLine) continue;
+
+      const pastedLineNumber = pasteStartLine + i;
+      const pastedHash = hashLine(pastedLine);
+
+      // Check if this line matches an existing marker's hash
+      for (const markerState of states) {
+        // Skip if this is the same line (not a copy)
+        if (markerState.line === pastedLineNumber) {
+          continue;
+        }
+
+        // Check if the pasted line matches the marker's line hash
+        if (pastedHash === markerState.lineHash) {
+          console.log(`[GhostMarkerManager] 🔍 Found copied marker! Line ${markerState.line} → ${pastedLineNumber}`);
+          console.log(`  Original text: "${markerState.lineText}"`);
+          console.log(`  Pasted text: "${pastedLine.trim()}"`);
+
+          duplicates.push({
+            originalMarker: markerState,
+            newLine: pastedLineNumber
+          });
+        }
+      }
+    }
+
+    // If we found duplicates, create new ghost markers for the pasted code
+    if (duplicates.length > 0) {
+      console.log(`[GhostMarkerManager] ⚠️ Detected ${duplicates.length} copied ghost marker(s)!`);
+      console.log(`[GhostMarkerManager] Creating NEW ghost markers for pasted code...`);
+
+      // We can't create comments here (that's CommentManager's job)
+      // But we CAN create the ghost markers and associate them with the same comment IDs
+      // This will make the gutter icon appear on BOTH locations
+      for (const { originalMarker, newLine } of duplicates) {
+        console.log(`[GhostMarkerManager] Creating duplicate marker at line ${newLine} (original at ${originalMarker.line})`);
+
+        // Create a NEW ghost marker with a NEW ID but same comment IDs
+        const newMarker: GhostMarker = {
+          id: this.generateId(), // NEW ID
+          line: newLine,
+          commentIds: [...originalMarker.commentIds], // Same comments
+          astAnchor: originalMarker.astAnchor ? {
+            ...originalMarker.astAnchor,
+            // Keep same AST anchor - both instances are the same symbol
+          } : null,
+          lineHash: originalMarker.lineHash,
+          lineText: originalMarker.lineText,
+          prevLineText: '', // Context will be different
+          nextLineText: '',
+          lastVerified: new Date().toISOString(),
+        };
+
+        // Add to tracking
+        const key = document.uri.toString();
+        const states = this.markers.get(key);
+        if (states) {
+          const decoration = vscode.window.createTextEditorDecorationType({
+            isWholeLine: true,
+            rangeBehavior: vscode.DecorationRangeBehavior.ClosedClosed,
+            before: {
+              contentText: '',
+              margin: '0',
+            },
+          });
+
+          const markerState: GhostMarkerState = {
+            ...newMarker,
+            decoration,
+          };
+
+          states.push(markerState);
+
+          // Apply decoration if editor is open
+          const editor = vscode.window.activeTextEditor;
+          if (editor && editor.document === document) {
+            this.applyDecoration(editor, markerState);
+          }
+
+          console.log(`[GhostMarkerManager] ✅ Created duplicate marker ${newMarker.id} at line ${newLine}`);
+        }
+      }
+
+      // Show info notification
+      void vscode.window.showInformationMessage(
+        `📋 Copied code with ${duplicates.length} comment(s). New ghost markers created at pasted location.`,
+        'OK'
+      );
+
+      // Trigger decoration refresh
+      const editor = vscode.window.activeTextEditor;
+      if (editor && editor.document === document) {
+        console.log('[GhostMarkerManager] Refreshing decorations after copy...');
+        this.refreshDecorations(editor);
+      }
     }
   }
 

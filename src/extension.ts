@@ -56,6 +56,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Register CodeLens provider for clickable comment indicators
   const codeLensProvider = new CommentCodeLensProvider(commentManager);
+  codeLensProvider.setGhostMarkerManager(ghostMarkerManager);
   context.subscriptions.push(
     vscode.languages.registerCodeLensProvider(
       { scheme: 'file' },
