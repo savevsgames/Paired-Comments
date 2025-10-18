@@ -64,11 +64,11 @@ export class CommentCodeLensProvider implements vscode.CodeLensProvider {
           const range = new vscode.Range(line, 0, line, 0);
           const count = marker.commentIds.length;
 
-          // Create CodeLens with clickable command that jumps to this specific line
+          // Create CodeLens with clickable command that shows action menu (v2.1.1)
           const commentText = count === 1 ? '1 comment' : `${count} comments`;
           const codeLens = new vscode.CodeLens(range, {
-            title: `💬 ${commentText} - Click to open`,
-            command: 'pairedComments.openAndNavigate',
+            title: `💬 ${commentText} - Click for actions`,
+            command: 'pairedComments.commentActions',
             arguments: [document.uri, marker.line] // Use marker's LIVE line number
           });
 
@@ -97,11 +97,11 @@ export class CommentCodeLensProvider implements vscode.CodeLensProvider {
 
           const range = new vscode.Range(line, 0, line, 0);
 
-          // Create CodeLens with clickable command that jumps to this specific line
+          // Create CodeLens with clickable command that shows action menu (v2.1.1)
           const commentText = count === 1 ? '1 comment' : `${count} comments`;
           const codeLens = new vscode.CodeLens(range, {
-            title: `💬 ${commentText} - Click to open`,
-            command: 'pairedComments.openAndNavigate',
+            title: `💬 ${commentText} - Click for actions`,
+            command: 'pairedComments.commentActions',
             arguments: [document.uri, lineNumber] // Pass 1-indexed line number
           });
 

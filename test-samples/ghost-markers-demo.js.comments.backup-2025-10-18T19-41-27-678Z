@@ -1,6 +1,6 @@
 {
   "file": "test-samples/ghost-markers-demo.js",
-  "version": "2.0.6",
+  "version": "2.0.5",
   "ghostMarkers": [
     {
       "id": "gm-test-001",
@@ -33,14 +33,7 @@
       "prevLineText": "// Test 2: Class with methods",
       "nextLineText": "constructor() {",
       "lastVerified": "2025-10-17T12:00:00Z",
-      "astAnchor": {
-        "symbolPath": [
-          "UserManager"
-        ],
-        "symbolKind": "Class",
-        "containerName": null,
-        "offset": 0
-      }
+      "astAnchor": null
     },
     {
       "id": "gm-test-003",
@@ -59,7 +52,7 @@
         ],
         "symbolKind": "Class",
         "containerName": null,
-        "offset": 5
+        "offset": 1
       }
     },
     {

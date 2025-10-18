@@ -10,6 +10,7 @@ import { DecorationManager } from '../ui/DecorationManager';
 import { FileSystemManager } from '../io/FileSystemManager';
 import { aiMetadataService } from '../ai/AIMetadataService';
 import { logger } from '../utils/Logger';
+import { Comment, CommentTag } from '../types';
 
 export interface CommandDependencies {
   commentManager: CommentManager;
@@ -170,6 +171,13 @@ export function registerCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand('pairedComments.testAIMetadata', async () => {
       await testAIMetadata();
+    })
+  );
+
+  // Comment actions menu (v2.1.1 - gutter icon quick pick)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.commentActions', async (uri: vscode.Uri, line: number) => {
+      await showCommentActionsMenu(deps, uri, line);
     })
   );
 }
@@ -1292,6 +1300,320 @@ async function convertPairedToInline(deps: CommandDependencies): Promise<void> {
 
   } catch (error) {
     void vscode.window.showErrorMessage(`Failed to convert comment: ${String(error)}`);
+  }
+}
+
+/**
+ * Show comment actions menu (v2.1.1)
+ * Quick pick menu with all available actions for a comment
+ */
+async function showCommentActionsMenu(deps: CommandDependencies, sourceUri: vscode.Uri, lineNumber: number): Promise<void> {
+  // Get comments on this line
+  const comments = deps.commentManager.getCommentsForLine(sourceUri, lineNumber);
+
+  if (comments.length === 0) {
+    void vscode.window.showInformationMessage(`No comments on line ${lineNumber}`);
+    return;
+  }
+
+  // If multiple comments, let user pick which one first
+  let selectedComment = comments[0];
+  if (comments.length > 1) {
+    const commentItems = comments.map(c => ({
+      label: c.text.substring(0, 60) + (c.text.length > 60 ? '...' : ''),
+      description: `by ${c.author}`,
+      detail: c.tag ? `[${c.tag}] ${c.text}` : c.text,
+      comment: c
+    }));
+
+    const selectedItem = await vscode.window.showQuickPick(commentItems, {
+      placeHolder: `${comments.length} comments on line ${lineNumber} - Select one`,
+      title: '💬 Select Comment'
+    });
+
+    if (!selectedItem) {
+      return; // User cancelled
+    }
+
+    selectedComment = selectedItem.comment;
+  }
+
+  if (!selectedComment) {
+    return;
+  }
+
+  // Build action menu items
+  interface ActionMenuItem {
+    label: string;
+    description: string;
+    detail?: string;
+    action: string;
+    icon: string;
+  }
+
+  const actions: ActionMenuItem[] = [
+    {
+      label: '$(eye) View Comment',
+      description: 'Open paired view',
+      detail: 'Opens the .comments file and navigates to this comment',
+      action: 'view',
+      icon: '$(eye)'
+    },
+    {
+      label: '$(edit) Edit Comment',
+      description: 'Edit in paired view',
+      detail: 'Opens the .comments file with cursor at the text field',
+      action: 'edit',
+      icon: '$(edit)'
+    },
+    {
+      label: '$(trash) Delete Comment',
+      description: 'Remove this comment',
+      detail: 'Permanently deletes this comment after confirmation',
+      action: 'delete',
+      icon: '$(trash)'
+    },
+    {
+      label: '$(copy) Copy Comment Text',
+      description: 'Copy to clipboard',
+      detail: 'Copies the comment text to your clipboard',
+      action: 'copy',
+      icon: '$(copy)'
+    },
+    {
+      label: '$(tag) Change Tag',
+      description: 'TODO, FIXME, NOTE, etc.',
+      detail: 'Change the comment tag/category',
+      action: 'tag',
+      icon: '$(tag)'
+    }
+  ];
+
+  // Add resolve/reopen action based on current status
+  if (selectedComment.status === 'resolved') {
+    actions.push({
+      label: '$(issues) Reopen Comment',
+      description: 'Mark as open',
+      detail: 'Marks this comment as open/unresolved',
+      action: 'reopen',
+      icon: '$(issues)'
+    });
+  } else {
+    actions.push({
+      label: '$(check) Mark as Resolved',
+      description: 'Mark as resolved',
+      detail: 'Marks this comment as resolved',
+      action: 'resolve',
+      icon: '$(check)'
+    });
+  }
+
+  // Show comment preview in title
+  const commentPreview = selectedComment.text.substring(0, 80) + (selectedComment.text.length > 80 ? '...' : '');
+  const tagLabel = selectedComment.tag ? `[${selectedComment.tag}] ` : '';
+
+  const selectedAction = await vscode.window.showQuickPick(actions, {
+    placeHolder: 'Select an action',
+    title: `💬 ${tagLabel}${commentPreview}`,
+    matchOnDescription: true,
+    matchOnDetail: true
+  });
+
+  if (!selectedAction) {
+    return; // User cancelled
+  }
+
+  // Execute the selected action
+  try {
+    switch (selectedAction.action) {
+      case 'view':
+        await vscode.commands.executeCommand('pairedComments.openAndNavigate', sourceUri, lineNumber);
+        break;
+
+      case 'edit':
+        await executeEditAction(deps, sourceUri, selectedComment);
+        break;
+
+      case 'delete':
+        await executeDeleteAction(deps, sourceUri, selectedComment);
+        break;
+
+      case 'copy':
+        await executeCopyAction(selectedComment);
+        break;
+
+      case 'tag':
+        await executeChangeTagAction(deps, sourceUri, selectedComment);
+        break;
+
+      case 'resolve':
+        await executeResolveAction(deps, sourceUri, selectedComment, true);
+        break;
+
+      case 'reopen':
+        await executeResolveAction(deps, sourceUri, selectedComment, false);
+        break;
+    }
+  } catch (error) {
+    void vscode.window.showErrorMessage(`Action failed: ${String(error)}`);
+  }
+}
+
+/**
+ * Execute edit action (opens paired view with cursor at text field)
+ */
+async function executeEditAction(deps: CommandDependencies, sourceUri: vscode.Uri, comment: Comment): Promise<void> {
+  // Open the paired view
+  await deps.pairedViewManager.openPairedView(sourceUri);
+
+  // Get session for sync control
+  const session = deps.pairedViewManager.getSession(sourceUri);
+  if (!session) {
+    void vscode.window.showErrorMessage('Failed to get paired view session');
+    return;
+  }
+
+  // Get the comments editor
+  const commentsEditor = deps.pairedViewManager.getCommentsEditor(sourceUri);
+  if (!commentsEditor) {
+    void vscode.window.showErrorMessage('Failed to get comments editor');
+    return;
+  }
+
+  // Search for the comment's text field in the JSON
+  const commentText = await vscode.workspace.fs.readFile(commentsEditor.document.uri);
+  const commentJsonText = Buffer.from(commentText).toString('utf8');
+  const lines = commentJsonText.split('\n');
+
+  // Find the line with this comment's "text" field
+  let targetLine = 0;
+  let targetColumn = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line) continue;
+
+    if (line.includes(`"id": "${comment.id}"`)) {
+      for (let j = i; j < Math.min(i + 20, lines.length); j++) {
+        const textLine = lines[j];
+        if (!textLine) continue;
+
+        const textMatch = textLine.match(/"text":\s*"(.*)"/);
+        if (textMatch) {
+          targetLine = j;
+          const textEnd = textLine.lastIndexOf('"');
+          targetColumn = textEnd;
+          break;
+        }
+      }
+      break;
+    }
+  }
+
+  // Disable auto-scroll while editing
+  session.syncEnabled = false;
+
+  // Navigate to the text field
+  const position = new vscode.Position(targetLine, targetColumn);
+  commentsEditor.selection = new vscode.Selection(position, position);
+  commentsEditor.revealRange(
+    new vscode.Range(position, position),
+    vscode.TextEditorRevealType.InCenter
+  );
+
+  await vscode.window.showTextDocument(commentsEditor.document, {
+    viewColumn: commentsEditor.viewColumn,
+    preserveFocus: false
+  });
+}
+
+/**
+ * Execute delete action (shows comment then confirms deletion)
+ */
+async function executeDeleteAction(deps: CommandDependencies, sourceUri: vscode.Uri, comment: Comment): Promise<void> {
+  const confirm = await vscode.window.showWarningMessage(
+    `Delete comment "${comment.text.substring(0, 50)}..."?`,
+    { modal: true },
+    'Delete',
+    'Cancel'
+  );
+
+  if (confirm === 'Delete') {
+    await deps.commentManager.deleteComment(sourceUri, comment.id);
+    await deps.decorationManager.refreshDecorations(sourceUri);
+    void vscode.window.showInformationMessage('Comment deleted successfully');
+  }
+}
+
+/**
+ * Execute copy action (copies comment text to clipboard)
+ */
+async function executeCopyAction(comment: Comment): Promise<void> {
+  await vscode.env.clipboard.writeText(comment.text);
+  void vscode.window.showInformationMessage('Comment text copied to clipboard');
+}
+
+/**
+ * Execute change tag action (shows tag picker)
+ */
+async function executeChangeTagAction(deps: CommandDependencies, sourceUri: vscode.Uri, comment: Comment): Promise<void> {
+  const tagOptions = [
+    { label: '📝 TODO', description: 'Task to be done', tag: 'TODO' as CommentTag },
+    { label: '🔥 FIXME', description: 'Bug or issue to fix', tag: 'FIXME' as CommentTag },
+    { label: '📌 NOTE', description: 'Important note', tag: 'NOTE' as CommentTag },
+    { label: '❓ QUESTION', description: 'Question or uncertainty', tag: 'QUESTION' as CommentTag },
+    { label: '⚠️ HACK', description: 'Workaround or hack', tag: 'HACK' as CommentTag },
+    { label: '⚡ WARNING', description: 'Warning or caution', tag: 'WARNING' as CommentTag },
+    { label: '⭐ STAR', description: 'Bookmarked or important', tag: 'STAR' as CommentTag },
+    { label: '💬 None', description: 'Remove tag', tag: null as CommentTag }
+  ];
+
+  const currentTag = comment.tag ? `Current: ${comment.tag}` : 'No tag';
+  const selected = await vscode.window.showQuickPick(tagOptions, {
+    placeHolder: `Change tag (${currentTag})`,
+    title: '🔖 Select Tag'
+  });
+
+  if (selected) {
+    // Update comment with new tag
+    const commentFile = await deps.commentManager.loadComments(sourceUri);
+    const targetComment = commentFile.comments.find(c => c.id === comment.id);
+
+    if (targetComment) {
+      targetComment.tag = selected.tag;
+      targetComment.updated = new Date().toISOString();
+      await deps.commentManager.saveComments(sourceUri, commentFile);
+      await deps.decorationManager.refreshDecorations(sourceUri);
+
+      const tagName = selected.tag || 'None';
+      void vscode.window.showInformationMessage(`Tag changed to: ${tagName}`);
+    }
+  }
+}
+
+/**
+ * Execute resolve/reopen action
+ */
+async function executeResolveAction(deps: CommandDependencies, sourceUri: vscode.Uri, comment: Comment, resolve: boolean): Promise<void> {
+  const commentFile = await deps.commentManager.loadComments(sourceUri);
+  const targetComment = commentFile.comments.find(c => c.id === comment.id);
+
+  if (targetComment) {
+    if (resolve) {
+      targetComment.status = 'resolved';
+      targetComment.resolvedBy = deps.commentManager['getDefaultAuthor'](); // Access private method
+      targetComment.resolvedAt = new Date().toISOString();
+    } else {
+      targetComment.status = 'open';
+      targetComment.resolvedBy = undefined;
+      targetComment.resolvedAt = undefined;
+    }
+
+    targetComment.updated = new Date().toISOString();
+    await deps.commentManager.saveComments(sourceUri, commentFile);
+    await deps.decorationManager.refreshDecorations(sourceUri);
+
+    const status = resolve ? 'resolved' : 'reopened';
+    void vscode.window.showInformationMessage(`Comment ${status} successfully`);
   }
 }
 

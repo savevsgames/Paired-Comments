@@ -1,6 +1,6 @@
 {
   "file": "test-samples/ghost-markers-demo.js",
-  "version": "2.0.6",
+  "version": "2.0.5",
   "ghostMarkers": [
     {
       "id": "gm-test-001",

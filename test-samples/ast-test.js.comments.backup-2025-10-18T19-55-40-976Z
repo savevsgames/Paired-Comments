@@ -43,6 +43,27 @@
       "lastVerified": "2025-10-17T23:50:00.000Z"
     },
     {
+      "id": "gm-addItem",
+      "line": 30,
+      "commentIds": [
+        "comment-addItem"
+      ],
+      "astAnchor": {
+        "symbolPath": [
+          "ShoppingCart",
+          "addItem"
+        ],
+        "symbolKind": "Method",
+        "containerName": "ShoppingCart",
+        "offset": 0
+      },
+      "lineHash": "def789ghi012",
+      "lineText": "  addItem(item) {",
+      "prevLineText": "  // Test 4: Method that we'll move within the class",
+      "nextLineText": "    this.items.push(item);",
+      "lastVerified": "2025-10-17T23:50:00.000Z"
+    },
+    {
       "id": "gm-dttgcpse7mgvjrzmz",
       "line": 1,
       "endLine": 10,
@@ -123,6 +144,19 @@
       "updated": "2025-10-17T23:50:00.000Z",
       "tag": "TODO",
       "ghostMarkerId": "gm-formatCurrency"
+    },
+    {
+      "id": "comment-addItem",
+      "line": 30,
+      "text": "Shopping cart item addition - this is the one you'll cut and paste!",
+      "author": "Test User",
+      "created": "2025-10-17T23:50:00.000Z",
+      "updated": "2025-10-18T19:55:33.120Z",
+      "tag": "STAR",
+      "ghostMarkerId": "gm-addItem",
+      "status": "resolved",
+      "resolvedBy": "Unknown",
+      "resolvedAt": "2025-10-18T19:55:33.120Z"
     },
     {
       "id": "cccb120f-85ac-4953-b57b-57779aa7b8ba",
