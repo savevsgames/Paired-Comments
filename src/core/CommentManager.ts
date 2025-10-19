@@ -80,8 +80,9 @@ export class CommentManager {
     }
 
     // Cache and return (use CommentFileCache if available v2.1.4)
+    // markDirty=false because this is initial load, not a modification
     if (this.commentFileCache) {
-      this.commentFileCache.set(sourceUri, commentFile);
+      this.commentFileCache.set(sourceUri, commentFile, false);
     } else {
       this.cache.set(key, commentFile);
     }
@@ -377,7 +378,11 @@ export class CommentManager {
    * Get all comments for a specific line
    */
   getCommentsForLine(sourceUri: vscode.Uri, line: number): Comment[] {
-    const commentFile = this.cache.get(sourceUri.fsPath);
+    // Use CommentFileCache if available (v2.1.4), otherwise fallback to old cache
+    const commentFile = this.commentFileCache
+      ? this.commentFileCache.get(sourceUri)
+      : this.cache.get(sourceUri.fsPath);
+
     if (!commentFile) {
       return [];
     }
@@ -389,7 +394,11 @@ export class CommentManager {
    * Get a comment by ID
    */
   getCommentById(sourceUri: vscode.Uri, commentId: string): Comment | undefined {
-    const commentFile = this.cache.get(sourceUri.fsPath);
+    // Use CommentFileCache if available (v2.1.4), otherwise fallback to old cache
+    const commentFile = this.commentFileCache
+      ? this.commentFileCache.get(sourceUri)
+      : this.cache.get(sourceUri.fsPath);
+
     if (!commentFile) {
       return undefined;
     }

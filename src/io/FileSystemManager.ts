@@ -513,8 +513,13 @@ export class FileSystemManager {
       if (typeof c['line'] !== 'number') return false;
       if (typeof c['text'] !== 'string') return false;
       if (typeof c['author'] !== 'string') return false;
-      if (typeof c['created'] !== 'string') return false;
-      if (typeof c['updated'] !== 'string') return false;
+
+      // Accept either old 'timestamp' field (v1.x-v2.0.5) OR new 'created'/'updated' (v2.0.6+)
+      // Migration will handle converting timestamp -> created/updated
+      const hasOldFormat = typeof c['timestamp'] === 'string';
+      const hasNewFormat = typeof c['created'] === 'string' && typeof c['updated'] === 'string';
+      if (!hasOldFormat && !hasNewFormat) return false;
+
       // ghostMarkerId is optional (only in v2.0+)
     }
 

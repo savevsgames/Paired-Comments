@@ -396,6 +396,30 @@
         "key": "ctrl+alt+p ctrl+alt+u",
         "mac": "cmd+alt+p cmd+alt+u",
         "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.detectOrphans",
+        "key": "ctrl+alt+p ctrl+alt+o",
+        "mac": "cmd+alt+p cmd+alt+o",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.showOrphanReport",
+        "key": "ctrl+alt+p ctrl+alt+r",
+        "mac": "cmd+alt+p cmd+alt+r",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.moveComment",
+        "key": "ctrl+alt+p ctrl+alt+m",
+        "mac": "cmd+alt+p cmd+alt+m",
+        "when": "pairedComments.lineHasComment"
+      },
+      {
+        "command": "pairedComments.copyComment",
+        "key": "ctrl+alt+p ctrl+alt+c",
+        "mac": "cmd+alt+p cmd+alt+c",
+        "when": "pairedComments.lineHasComment"
       }
     ],
     "menus": {

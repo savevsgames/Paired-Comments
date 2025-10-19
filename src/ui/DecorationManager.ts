@@ -165,6 +165,16 @@ export class DecorationManager {
       return;
     }
 
+    // Don't decorate .comments files themselves (PRODUCTION BUG FIX)
+    if (editor.document.uri.fsPath.endsWith('.comments')) {
+      return;
+    }
+
+    // Don't decorate backup files (PRODUCTION BUG FIX)
+    if (editor.document.uri.fsPath.includes('.backup-')) {
+      return;
+    }
+
     try {
       // Load comments for this file
       const commentFile = await this.commentManager.loadComments(editor.document.uri);

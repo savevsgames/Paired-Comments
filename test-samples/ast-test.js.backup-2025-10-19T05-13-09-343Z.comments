@@ -1,0 +1,37 @@
+{
+  "file": "ast-test.js",
+  "version": "2.0.6",
+  "ghostMarkers": [],
+  "comments": [
+    {
+      "id": "test-comment-1",
+      "line": 13,
+      "text": "Test comment for calculateTotal function",
+      "author": "Test User",
+      "timestamp": "2025-10-19T03:49:14.363Z",
+      "tag": "NOTE",
+      "status": "open",
+      "ghostMarkerId": null
+    },
+    {
+      "id": "test-comment-2",
+      "line": 18,
+      "text": "TODO: Add currency formatting validation",
+      "author": "Test User",
+      "timestamp": "2025-10-19T03:49:14.363Z",
+      "tag": "TODO",
+      "status": "open",
+      "ghostMarkerId": null
+    },
+    {
+      "id": "test-comment-3",
+      "line": 30,
+      "text": "STAR: Important method for cart functionality",
+      "author": "Test User",
+      "timestamp": "2025-10-19T03:49:14.363Z",
+      "tag": "STAR",
+      "status": "open",
+      "ghostMarkerId": null
+    }
+  ]
+}

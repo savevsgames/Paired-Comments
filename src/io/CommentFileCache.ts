@@ -76,9 +76,12 @@ export class CommentFileCache {
   }
 
   /**
-   * Update comment file in cache (mark as dirty)
+   * Update comment file in cache (optionally mark as dirty)
+   * @param sourceUri - The source file URI
+   * @param commentFile - The comment file data
+   * @param markDirty - Whether to mark the file as dirty (default: true for updates, false for initial loads)
    */
-  set(sourceUri: vscode.Uri, commentFile: CommentFile): void {
+  set(sourceUri: vscode.Uri, commentFile: CommentFile, markDirty: boolean = true): void {
     const key = sourceUri.fsPath;
     const cached = this.cache.get(key);
 
@@ -87,19 +90,21 @@ export class CommentFileCache {
       commentFile,
       version: (cached?.version || 0) + 1,
       loadedAt: cached?.loadedAt || Date.now(),
-      isDirty: true,
+      isDirty: markDirty,
       lastSavedAt: cached?.lastSavedAt || 0
     });
 
-    logger.debug(`[CommentFileCache] Updated cache for ${sourceUri.fsPath} (v${cached?.version || 0 + 1}, dirty)`);
+    logger.debug(`[CommentFileCache] Updated cache for ${sourceUri.fsPath} (v${cached?.version || 0 + 1}, ${markDirty ? 'dirty' : 'clean'})`);
 
     // Evict if cache too large
     if (this.cache.size > this.maxCacheSize) {
       this.evictOldest();
     }
 
-    // Schedule auto-save
-    this.scheduleAutoSave(sourceUri);
+    // Schedule auto-save only if dirty
+    if (markDirty) {
+      this.scheduleAutoSave(sourceUri);
+    }
   }
 
   /**
