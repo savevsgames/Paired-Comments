@@ -4,6 +4,7 @@
 
 import * as vscode from 'vscode';
 import { CommentManager } from '../core/CommentManager';
+import { ParamManager } from '../core/ParamManager';
 import { PairedViewManager } from '../ui/PairedViewManager';
 import { ScrollSyncManager } from '../ui/ScrollSyncManager';
 import { DecorationManager } from '../ui/DecorationManager';
@@ -18,6 +19,7 @@ export interface CommandDependencies {
   scrollSyncManager: ScrollSyncManager;
   decorationManager: DecorationManager;
   fileSystemManager: FileSystemManager;
+  paramManager: ParamManager;
 }
 
 /**

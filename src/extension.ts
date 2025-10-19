@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import { CommentManager } from './core/CommentManager';
 import { GhostMarkerManager } from './core/GhostMarkerManager';
 import { ASTAnchorManager } from './core/ASTAnchorManager';
+import { ParamManager } from './core/ParamManager';
 import { PairedViewManager } from './ui/PairedViewManager';
 import { ScrollSyncManager } from './ui/ScrollSyncManager';
 import { DecorationManager } from './ui/DecorationManager';
@@ -57,8 +58,9 @@ export function activate(context: vscode.ExtensionContext): void {
     // Non-blocking - extension still works without AI
   });
 
-  // Initialize core managers (order matters: AST → FileSystem → Comment → Ghost)
+  // Initialize core managers (order matters: AST → Param → FileSystem → Comment → Ghost)
   const astAnchorManager = new ASTAnchorManager();
+  const paramManager = new ParamManager(astAnchorManager);
   const fileSystemManager = new FileSystemManager(astAnchorManager);
   const ghostMarkerManager = new GhostMarkerManager();
   const commentManager = new CommentManager(fileSystemManager, ghostMarkerManager);
@@ -106,6 +108,7 @@ export function activate(context: vscode.ExtensionContext): void {
     scrollSyncManager,
     decorationManager,
     fileSystemManager,
+    paramManager,
   });
 
   // Set up event listeners
