@@ -14,6 +14,7 @@ import { ScrollSyncManager } from './ui/ScrollSyncManager';
 import { DecorationManager } from './ui/DecorationManager';
 import { CommentCodeLensProvider } from './ui/CommentCodeLensProvider';
 import { CommentFileDecorationProvider } from './ui/CommentFileDecorationProvider';
+import { GhostCommentProvider } from './ui/GhostCommentProvider';
 import { OrphanStatusBar } from './ui/OrphanStatusBar';
 import { FileSystemManager } from './io/FileSystemManager';
 import { ASTCacheManager } from './core/ASTCacheManager';
@@ -124,6 +125,15 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.registerFileDecorationProvider(fileDecorationProvider)
   );
 
+  // Register Ghost Comment Provider for inline comment visualization (v2.0.9)
+  const ghostCommentProvider = new GhostCommentProvider(commentManager, ghostMarkerManager);
+  context.subscriptions.push(
+    vscode.languages.registerInlayHintsProvider(
+      { pattern: '**/*' }, // All files
+      ghostCommentProvider
+    )
+  );
+
   // Initialize search engine (v2.1.2)
   const searchEngine = new CommentSearchEngine(fileSystemManager);
 
@@ -135,6 +145,7 @@ export function activate(context: vscode.ExtensionContext): void {
     decorationManager,
     fileSystemManager,
     paramManager,
+    ghostCommentProvider,
   });
 
   // Register search commands (v2.1.2)

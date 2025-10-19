@@ -8,6 +8,7 @@ import { ParamManager } from '../core/ParamManager';
 import { PairedViewManager } from '../ui/PairedViewManager';
 import { ScrollSyncManager } from '../ui/ScrollSyncManager';
 import { DecorationManager } from '../ui/DecorationManager';
+import { GhostCommentProvider } from '../ui/GhostCommentProvider';
 import { FileSystemManager } from '../io/FileSystemManager';
 import { aiMetadataService } from '../ai/AIMetadataService';
 import { logger } from '../utils/Logger';
@@ -20,6 +21,7 @@ export interface CommandDependencies {
   decorationManager: DecorationManager;
   fileSystemManager: FileSystemManager;
   paramManager: ParamManager;
+  ghostCommentProvider: GhostCommentProvider;
 }
 
 /**
@@ -145,6 +147,27 @@ export function registerCommands(
   context.subscriptions.push(
     vscode.commands.registerCommand('pairedComments.toggleCommentFilesVisibility', async () => {
       await toggleCommentFilesVisibility();
+    })
+  );
+
+  // Ghost Comment Visibility - Toggle for current line (v2.0.9)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.toggleGhostView', async () => {
+      await toggleGhostView(deps);
+    })
+  );
+
+  // Ghost Comment Visibility - Show all ghosts (v2.0.9)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.showAllGhosts', async () => {
+      await showAllGhosts(deps);
+    })
+  );
+
+  // Ghost Comment Visibility - Hide all ghosts (v2.0.9)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('pairedComments.hideAllGhosts', async () => {
+      await hideAllGhosts(deps);
     })
   );
 
@@ -294,6 +317,27 @@ async function showCommandMenu(_deps: CommandDependencies): Promise<void> {
       detail: 'Toggle visibility of .comments files in file explorer',
       key: '',
       command: 'pairedComments.toggleCommentFilesVisibility'
+    },
+    {
+      label: '$(eye) G - Toggle Ghost View',
+      description: 'Show/hide comment at current line inline',
+      detail: 'Toggle inline comment visibility for the current line',
+      key: 'G',
+      command: 'pairedComments.toggleGhostView'
+    },
+    {
+      label: '$(eye) Show All Ghosts',
+      description: 'Show all comments inline',
+      detail: 'Display all comments as virtual text in the editor',
+      key: '',
+      command: 'pairedComments.showAllGhosts'
+    },
+    {
+      label: '$(eye-closed) Hide All Ghosts',
+      description: 'Hide all inline comments',
+      detail: 'Hide virtual text, keep gutter icons visible',
+      key: '',
+      command: 'pairedComments.hideAllGhosts'
     }
   ];
 
@@ -1052,6 +1096,69 @@ async function toggleCommentFilesVisibility(): Promise<void> {
 
   const status = !currentValue ? 'hidden' : 'visible';
   void vscode.window.showInformationMessage(`.comments files are now ${status}`);
+}
+
+/**
+ * Toggle ghost view for current line
+ * v2.0.9 Ghost Comment Visibility
+ */
+async function toggleGhostView(deps: CommandDependencies): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    void vscode.window.showErrorMessage('No active editor');
+    return;
+  }
+
+  const line = editor.selection.active.line + 1; // Convert to 1-indexed
+  deps.ghostCommentProvider.toggleLine(line);
+
+  // Refresh inlay hints
+  await vscode.commands.executeCommand('editor.action.inlayHints.refresh');
+
+  const enabled = deps.ghostCommentProvider.isLineEnabled(line);
+  const status = enabled ? 'enabled' : 'disabled';
+  void vscode.window.showInformationMessage(`Ghost view ${status} for line ${line}`);
+}
+
+/**
+ * Show all ghost comments inline
+ * v2.0.9 Ghost Comment Visibility
+ */
+async function showAllGhosts(deps: CommandDependencies): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    void vscode.window.showErrorMessage('No active editor');
+    return;
+  }
+
+  deps.ghostCommentProvider.enable();
+
+  // Refresh inlay hints
+  await vscode.commands.executeCommand('editor.action.inlayHints.refresh');
+
+  // Count comments in current file
+  try {
+    const commentFile = await deps.commentManager.loadComments(editor.document.uri);
+    const count = commentFile.comments.length;
+    void vscode.window.showInformationMessage(
+      `Showing all comments inline (${count} comment${count === 1 ? '' : 's'})`
+    );
+  } catch {
+    void vscode.window.showInformationMessage('Showing all comments inline');
+  }
+}
+
+/**
+ * Hide all ghost comments
+ * v2.0.9 Ghost Comment Visibility
+ */
+async function hideAllGhosts(deps: CommandDependencies): Promise<void> {
+  deps.ghostCommentProvider.disable();
+
+  // Refresh inlay hints
+  await vscode.commands.executeCommand('editor.action.inlayHints.refresh');
+
+  void vscode.window.showInformationMessage('Hiding all inline comments');
 }
 
 /**

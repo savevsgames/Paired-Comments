@@ -142,6 +142,39 @@
           "type": "number",
           "default": 30000,
           "description": "Request timeout in milliseconds"
+        },
+        "pairedComments.ghostView.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show comments inline in editor (virtual text)"
+        },
+        "pairedComments.ghostView.maxLines": {
+          "type": "number",
+          "default": 5,
+          "description": "Maximum lines to show for range comments"
+        },
+        "pairedComments.ghostView.opacity": {
+          "type": "number",
+          "default": 0.6,
+          "minimum": 0.1,
+          "maximum": 1.0,
+          "description": "Opacity of ghost comment text (0.1 - 1.0)"
+        },
+        "pairedComments.ghostView.fontStyle": {
+          "type": "string",
+          "enum": ["italic", "normal"],
+          "default": "italic",
+          "description": "Font style for ghost comments"
+        },
+        "pairedComments.ghostView.showAuthor": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show author name in ghost comments"
+        },
+        "pairedComments.ghostView.showTag": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show tag (TODO, NOTE, etc.) in ghost comments"
         }
       }
     },
@@ -250,6 +283,24 @@
         "command": "pairedComments.toggleCommentFilesVisibility",
         "title": "Paired Comments: Toggle .comments Files Visibility",
         "category": "Paired Comments"
+      },
+      {
+        "command": "pairedComments.toggleGhostView",
+        "title": "Paired Comments: Toggle Ghost View (Current Line)",
+        "category": "Paired Comments",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "pairedComments.showAllGhosts",
+        "title": "Paired Comments: Show All Comments Inline",
+        "category": "Paired Comments",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "pairedComments.hideAllGhosts",
+        "title": "Paired Comments: Hide All Inline Comments",
+        "category": "Paired Comments",
+        "icon": "$(eye-closed)"
       },
       {
         "command": "pairedComments.restoreFromBackup",
@@ -420,6 +471,24 @@
         "key": "ctrl+alt+p ctrl+alt+c",
         "mac": "cmd+alt+p cmd+alt+c",
         "when": "pairedComments.lineHasComment"
+      },
+      {
+        "command": "pairedComments.toggleGhostView",
+        "key": "ctrl+alt+p g",
+        "mac": "cmd+alt+p g",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.showAllGhosts",
+        "key": "ctrl+alt+p ctrl+alt+g",
+        "mac": "cmd+alt+p cmd+alt+g",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.hideAllGhosts",
+        "key": "ctrl+alt+p ctrl+alt+h",
+        "mac": "cmd+alt+p cmd+alt+h",
+        "when": "editorTextFocus"
       }
     ],
     "menus": {

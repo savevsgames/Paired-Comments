@@ -1,6 +1,39 @@
 {
   "file": "simple-test.js",
   "version": "2.1.0",
-  "ghostMarkers": [],
-  "comments": []
+  "ghostMarkers": [
+    {
+      "id": "gm-qjr51gk68mgxfecv8",
+      "line": 7,
+      "commentIds": [
+        "9d8e0076-f5d7-420d-a3c9-41f32aab3c8e"
+      ],
+      "astAnchor": {
+        "symbolPath": [
+          "add"
+        ],
+        "symbolKind": "Function",
+        "containerName": null,
+        "offset": 0
+      },
+      "lineHash": "d55a9883b881a4b3",
+      "lineText": "function add(a, b) {",
+      "prevLineText": "// Function 1",
+      "nextLineText": "return a + b;",
+      "lastVerified": "2025-10-19T08:09:35.396Z"
+    }
+  ],
+  "comments": [
+    {
+      "id": "9d8e0076-f5d7-420d-a3c9-41f32aab3c8e",
+      "line": 7,
+      "startLine": 7,
+      "text": "Single line comment that i will try to toggle",
+      "author": "Unknown",
+      "created": "2025-10-19T08:09:35.373Z",
+      "updated": "2025-10-19T08:09:35.373Z",
+      "tag": null,
+      "ghostMarkerId": "gm-qjr51gk68mgxfecv8"
+    }
+  ]
 }

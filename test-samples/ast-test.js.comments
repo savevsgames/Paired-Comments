@@ -1,6 +1,39 @@
 {
   "file": "ast-test.js",
   "version": "2.1.0",
-  "ghostMarkers": [],
-  "comments": []
+  "ghostMarkers": [
+    {
+      "id": "gm-1q9ik318amgxf5r1z",
+      "line": 15,
+      "commentIds": [
+        "858080e9-6eb7-496b-ab73-0284d882d67f"
+      ],
+      "astAnchor": {
+        "symbolPath": [
+          "calculateTotal"
+        ],
+        "symbolKind": "Function",
+        "containerName": null,
+        "offset": 0
+      },
+      "lineHash": "9889baf13f5ec07b",
+      "lineText": "function calculateTotal(items) {",
+      "prevLineText": "// Test 1: Top-level function (will add comment here and move it)",
+      "nextLineText": "return items.reduce((sum, item) => sum + item.price, 0);",
+      "lastVerified": "2025-10-19T08:02:53.879Z"
+    }
+  ],
+  "comments": [
+    {
+      "id": "858080e9-6eb7-496b-ab73-0284d882d67f",
+      "line": 15,
+      "startLine": 15,
+      "text": "Test 1 comment - single line",
+      "author": "Unknown",
+      "created": "2025-10-19T08:02:53.847Z",
+      "updated": "2025-10-19T08:02:53.847Z",
+      "tag": null,
+      "ghostMarkerId": "gm-1q9ik318amgxf5r1z"
+    }
+  ]
 }
