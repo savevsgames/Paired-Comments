@@ -8,7 +8,9 @@
       "Bash(npm run compile:tests)",
       "Bash(timeout 180 npm run test:e2e)",
       "Bash(tee test-output.log)",
-      "Bash(tee temp/unit-test-output.log)"
+      "Bash(tee temp/unit-test-output.log)",
+      "Bash(tee temp/compile-test-output.log)",
+      "Bash(tee temp/ghostmarker-test-run.log)"
     ],
     "deny": [],
     "ask": []

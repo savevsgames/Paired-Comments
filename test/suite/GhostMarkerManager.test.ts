@@ -27,7 +27,7 @@ suite('GhostMarkerManager', () => {
 
       const marker = await ghostMarkerManager.createMarker(
         doc,
-        1, // Line 1 (0-indexed)
+        2, // Line 2 (1-indexed) - "  return 42;"
         ['c1']
       );
 
@@ -49,9 +49,9 @@ suite('GhostMarkerManager', () => {
 
       const marker = await ghostMarkerManager.createMarker(
         doc,
-        0, // Line 0
+        1, // Line 1 (1-indexed) - "function test() {"
         ['c1'],
-        4 // End line (0-indexed)
+        5 // End line (1-indexed) - "}"
       );
 
       expect(marker).to.exist;
@@ -67,7 +67,7 @@ suite('GhostMarkerManager', () => {
         language: 'javascript',
       });
 
-      const marker = await ghostMarkerManager.createMarker(doc, 0, ['c1']);
+      const marker = await ghostMarkerManager.createMarker(doc, 1, ['c1']); // Line 1 (1-indexed)
 
       // AST anchor may or may not be created depending on VS Code symbol provider
       if (marker.astAnchor) {
@@ -83,7 +83,7 @@ suite('GhostMarkerManager', () => {
         language: 'javascript',
       });
 
-      const marker = await ghostMarkerManager.createMarker(doc, 1, ['c1']);
+      const marker = await ghostMarkerManager.createMarker(doc, 2, ['c1']); // Line 2 (1-indexed)
 
       expect(marker).to.exist;
       expect(marker.lineText).to.equal(''); // Trimmed
@@ -98,7 +98,7 @@ suite('GhostMarkerManager', () => {
         language: 'javascript',
       });
 
-      const marker = await ghostMarkerManager.createMarker(doc, 0, ['c1']);
+      const marker = await ghostMarkerManager.createMarker(doc, 1, ['c1']); // Line 1 (1-indexed)
       const retrieved = ghostMarkerManager.getMarkerById(doc.uri, marker.id);
 
       expect(retrieved).to.deep.equal(marker);
@@ -119,7 +119,7 @@ suite('GhostMarkerManager', () => {
         language: 'javascript',
       });
 
-      await ghostMarkerManager.createMarker(doc, 1, ['c1']);
+      await ghostMarkerManager.createMarker(doc, 2, ['c1']); // Line 2 (1-indexed)
 
       const marker = ghostMarkerManager.getMarkerAtLine(doc.uri, 2); // 1-indexed
 
@@ -134,7 +134,7 @@ suite('GhostMarkerManager', () => {
         language: 'javascript',
       });
 
-      await ghostMarkerManager.createMarker(doc, 0, ['c1'], 3); // Lines 0-3
+      await ghostMarkerManager.createMarker(doc, 1, ['c1'], 4); // Lines 1-4 (1-indexed)
 
       // Should find marker at any line in range
       const marker1 = ghostMarkerManager.getMarkerAtLine(doc.uri, 1);
@@ -172,7 +172,7 @@ suite('GhostMarkerManager', () => {
         language: 'javascript',
       });
 
-      const marker = await ghostMarkerManager.createMarker(doc, 0, ['c1']);
+      const marker = await ghostMarkerManager.createMarker(doc, 1, ['c1']); // Line 1 (1-indexed)
       const originalLine = marker.line;
 
       ghostMarkerManager.updateMarkerLine(doc, marker.id, originalLine + 5);
@@ -188,7 +188,7 @@ suite('GhostMarkerManager', () => {
         language: 'javascript',
       });
 
-      const marker = await ghostMarkerManager.createMarker(doc, 0, ['c1'], 2);
+      const marker = await ghostMarkerManager.createMarker(doc, 1, ['c1'], 3); // Lines 1-3 (1-indexed)
 
       ghostMarkerManager.updateMarkerLine(doc, marker.id, 10, undefined, 15);
 
@@ -211,7 +211,7 @@ suite('GhostMarkerManager', () => {
         language: 'javascript',
       });
 
-      const marker = await ghostMarkerManager.createMarker(doc, 0, ['c1']);
+      const marker = await ghostMarkerManager.createMarker(doc, 1, ['c1']); // Line 1 (1-indexed)
       ghostMarkerManager.removeMarker(doc.uri, marker.id);
 
       const retrieved = ghostMarkerManager.getMarkerById(doc.uri, marker.id);
@@ -236,9 +236,9 @@ suite('GhostMarkerManager', () => {
         language: 'javascript',
       });
 
-      await ghostMarkerManager.createMarker(doc, 0, ['c1']);
-      await ghostMarkerManager.createMarker(doc, 1, ['c2']);
-      await ghostMarkerManager.createMarker(doc, 2, ['c3']);
+      await ghostMarkerManager.createMarker(doc, 1, ['c1']); // Line 1 (1-indexed)
+      await ghostMarkerManager.createMarker(doc, 2, ['c2']); // Line 2 (1-indexed)
+      await ghostMarkerManager.createMarker(doc, 3, ['c3']); // Line 3 (1-indexed)
 
       const markers = ghostMarkerManager.getMarkers(doc.uri);
       expect(markers).to.have.lengthOf(3);
@@ -263,9 +263,9 @@ suite('GhostMarkerManager', () => {
       });
 
       // Create in reverse order
-      await ghostMarkerManager.createMarker(doc, 2, ['c3']);
-      await ghostMarkerManager.createMarker(doc, 0, ['c1']);
-      await ghostMarkerManager.createMarker(doc, 1, ['c2']);
+      await ghostMarkerManager.createMarker(doc, 3, ['c3']); // Line 3 (1-indexed)
+      await ghostMarkerManager.createMarker(doc, 1, ['c1']); // Line 1 (1-indexed)
+      await ghostMarkerManager.createMarker(doc, 2, ['c2']); // Line 2 (1-indexed)
 
       const markers = ghostMarkerManager.getMarkers(doc.uri);
       expect(markers).to.have.lengthOf(3);
@@ -343,8 +343,7 @@ suite('GhostMarkerManager', () => {
         language: 'javascript',
       });
 
-      await ghostMarkerManager.createMarker(doc1, 0, ['c1']);
-      // const originalHash = marker.lineHash; // Unused in test
+      await ghostMarkerManager.createMarker(doc1, 1, ['c1']); // Line 1 (1-indexed)
 
       // Simulate document change
       const content2 = 'const x = 10; // Changed!';
@@ -369,7 +368,7 @@ suite('GhostMarkerManager', () => {
         language: 'javascript',
       });
 
-      const marker = await ghostMarkerManager.createMarker(doc, 0, ['c1'], 3);
+      const marker = await ghostMarkerManager.createMarker(doc, 1, ['c1'], 4); // Lines 1-4 (1-indexed)
 
       expect(marker.line).to.equal(1);
       expect(marker.endLine!).to.equal(4);
@@ -397,8 +396,8 @@ suite('GhostMarkerManager', () => {
         language: 'javascript',
       });
 
-      // Mark lines 2-5 (the complex logic)
-      const marker = await ghostMarkerManager.createMarker(doc, 1, ['c1'], 5);
+      // Mark lines 2-6 (the complex logic) - 1-indexed
+      const marker = await ghostMarkerManager.createMarker(doc, 2, ['c1'], 6);
 
       expect(marker.line).to.equal(2);
       expect(marker.endLine).to.equal(6);
@@ -413,9 +412,8 @@ suite('GhostMarkerManager', () => {
         language: 'javascript',
       });
 
-      const marker = await ghostMarkerManager.createMarker(doc, 0, ['c1']);
-      // ghostMarkerManager.addCommentToMarker(marker.id, 'c2');
-      // ghostMarkerManager.addCommentToMarker(marker.id, 'c3');
+      // Create marker with multiple comment IDs from the start
+      const marker = await ghostMarkerManager.createMarker(doc, 1, ['c1', 'c2', 'c3']); // Line 1 (1-indexed)
 
       const updated = ghostMarkerManager.getMarkerById(doc.uri, marker.id);
       expect(updated?.commentIds).to.have.lengthOf(3);
@@ -436,7 +434,7 @@ suite('GhostMarkerManager', () => {
         language: 'javascript',
       });
 
-      await ghostMarkerManager.createMarker(doc, 0, ['c1']);
+      await ghostMarkerManager.createMarker(doc, 1, ['c1']); // Line 1 (1-indexed)
       ghostMarkerManager.dispose();
 
       // After disposal, manager should be clean
