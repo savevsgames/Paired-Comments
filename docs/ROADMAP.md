@@ -438,17 +438,35 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 - Cost tracking ($0.045 per 1K tokens)
 - Response caching with TTL (1 hour default)
 
-#### ⏳ Phase 2: Dynamic Parameters (NEXT)
-**Planned:**
-- 📋 AST-based parameter extraction
-- 📋 AI-based metadata extraction
-- 📋 Template substitution in comments
-- 📋 Cache invalidation on code changes
+#### ✅ Phase 2: Dynamic Parameters (COMPLETE - Oct 19, 2025)
+**Implemented:**
+- ✅ ParamManager class (348 lines)
+- ✅ AST-based parameter extraction (functionName, className, variableName)
+- ✅ AI-based metadata extraction (complexity, tokens, paramCount)
+- ✅ Template substitution in comments (${var} syntax)
+- ✅ Cache invalidation on code changes
 
-#### 📋 Remaining Phases
-- Phase 3: Complexity Scoring (2-3 days)
-- Phase 4: Token Estimation (1-2 days)
-- Phase 5: Integration & Polish (2-3 days)
+#### ✅ Phase 3: Complexity Scoring (COMPLETE - Oct 19, 2025)
+**Implemented:**
+- ✅ AI integration via AIMetadataService.analyzeComplexity()
+- ✅ Parallel execution with other AI ops
+- ✅ Hover message display (Cyclomatic, Cognitive, Maintainability)
+- ✅ Fallback to local heuristics when AI unavailable
+
+#### ✅ Phase 4: Token Estimation (COMPLETE - Oct 19, 2025)
+**Implemented:**
+- ✅ AI integration via AIMetadataService.estimateTokens()
+- ✅ Heuristic fallback (chars/4)
+- ✅ Hover message display
+- ✅ Cost tracking
+
+#### ✅ Phase 5: Integration & Polish (COMPLETE - Oct 19, 2025)
+**Implemented:**
+- ✅ AI metadata in CommentManager.addComment()
+- ✅ Hover messages show complexity + tokens + params
+- ✅ Dynamic parameter interpolation in UI
+- ✅ Settings schema in package.json
+- ⏳ User/developer documentation (in progress)
 
 ### Dependencies
 - ✅ Error handling complete (v2.0.7)

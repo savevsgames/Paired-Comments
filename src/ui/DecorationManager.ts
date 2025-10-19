@@ -459,8 +459,39 @@ export class DecorationManager {
 
         const tagLabel = comment.tag ? `[${comment.tag}] ` : '';
         hoverMessage.appendMarkdown(`**${tagLabel}${comment.author}**\n\n`);
-        hoverMessage.appendMarkdown(comment.text);
+
+        // Interpolate dynamic parameters if present
+        let displayText = comment.text;
+        if (comment.params && Object.keys(comment.params).length > 0) {
+          // Use ParamManager to interpolate if available
+          // For now, simple replacement (TODO: inject ParamManager)
+          for (const [key, param] of Object.entries(comment.params)) {
+            displayText = displayText.replace(new RegExp(`\\$\\{${key}\\}`, 'g'), String(param.value));
+          }
+        }
+
+        hoverMessage.appendMarkdown(displayText);
         hoverMessage.appendMarkdown(`\n\n*${new Date(comment.created).toLocaleString()}*`);
+
+        // Show AI metadata if available
+        if (comment.aiMetadata) {
+          hoverMessage.appendMarkdown(`\n\n---\n\n**AI Metadata:**\n\n`);
+
+          if (comment.aiMetadata.complexity) {
+            const c = comment.aiMetadata.complexity;
+            hoverMessage.appendMarkdown(`**Complexity:** Cyclomatic ${c.cyclomatic}, Cognitive ${c.cognitive} (Maintainability: ${c.maintainability}%)\n\n`);
+          }
+
+          if (comment.aiMetadata.tokens) {
+            const t = comment.aiMetadata.tokens;
+            hoverMessage.appendMarkdown(`**Tokens:** ~${t.validated || t.heuristic}\n\n`);
+          }
+
+          if (comment.aiMetadata.parameters) {
+            const p = comment.aiMetadata.parameters;
+            hoverMessage.appendMarkdown(`**Function:** ${p.name} (${p.parameters.length} param${p.parameters.length === 1 ? '' : 's'}, ${p.lineCount} lines)\n\n`);
+          }
+        }
       }
 
       // Add clickable action link at the bottom
@@ -497,8 +528,37 @@ export class DecorationManager {
     const hoverMessage = new vscode.MarkdownString();
     hoverMessage.isTrusted = true; // Enable command URIs
     hoverMessage.appendMarkdown(`**${tagLabel}Comment by ${comment.author}**\n\n`);
-    hoverMessage.appendMarkdown(comment.text);
+
+    // Interpolate dynamic parameters if present
+    let displayText = comment.text;
+    if (comment.params && Object.keys(comment.params).length > 0) {
+      for (const [key, param] of Object.entries(comment.params)) {
+        displayText = displayText.replace(new RegExp(`\\$\\{${key}\\}`, 'g'), String(param.value));
+      }
+    }
+
+    hoverMessage.appendMarkdown(displayText);
     hoverMessage.appendMarkdown(`\n\n*Created: ${new Date(comment.created).toLocaleString()}*`);
+
+    // Show AI metadata if available
+    if (comment.aiMetadata) {
+      hoverMessage.appendMarkdown(`\n\n---\n\n**AI Metadata:**\n\n`);
+
+      if (comment.aiMetadata.complexity) {
+        const c = comment.aiMetadata.complexity;
+        hoverMessage.appendMarkdown(`**Complexity:** Cyclomatic ${c.cyclomatic}, Cognitive ${c.cognitive} (Maintainability: ${c.maintainability}%)\n\n`);
+      }
+
+      if (comment.aiMetadata.tokens) {
+        const t = comment.aiMetadata.tokens;
+        hoverMessage.appendMarkdown(`**Tokens:** ~${t.validated || t.heuristic}\n\n`);
+      }
+
+      if (comment.aiMetadata.parameters) {
+        const p = comment.aiMetadata.parameters;
+        hoverMessage.appendMarkdown(`**Function:** ${p.name} (${p.parameters.length} param${p.parameters.length === 1 ? '' : 's'}, ${p.lineCount} lines)\n\n`);
+      }
+    }
 
     // Add clickable action link at the bottom
     const commandUri = vscode.Uri.parse(
