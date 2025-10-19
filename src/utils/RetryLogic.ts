@@ -201,7 +201,12 @@ export async function retry<T>(
     return result.result;
   }
 
-  throw result.error;
+  // Ensure we always throw an Error object, not undefined
+  if (result.error) {
+    throw result.error;
+  } else {
+    throw new Error('Operation failed with unknown error');
+  }
 }
 
 /**

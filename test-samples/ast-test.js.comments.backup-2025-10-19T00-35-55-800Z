@@ -3,26 +3,6 @@
   "version": "2.0.6",
   "ghostMarkers": [
     {
-      "id": "gm-calculateTotal",
-      "line": 13,
-      "commentIds": [
-        "comment-calculateTotal"
-      ],
-      "astAnchor": {
-        "symbolPath": [
-          "calculateTotal"
-        ],
-        "symbolKind": "Function",
-        "containerName": null,
-        "offset": 0
-      },
-      "lineHash": "9889baf13f5ec07b",
-      "lineText": "function calculateTotal(items) {",
-      "prevLineText": "// Test 1: Top-level function (will add comment here and move it)",
-      "nextLineText": "  return items.reduce((sum, item) => sum + item.price, 0);",
-      "lastVerified": "2025-10-17T23:50:00.000Z"
-    },
-    {
       "id": "gm-formatCurrency",
       "line": 18,
       "commentIds": [
@@ -40,27 +20,6 @@
       "lineText": "function formatCurrency(amount) {",
       "prevLineText": "// Test 2: Another top-level function",
       "nextLineText": "  return `$${amount.toFixed(2)}`;",
-      "lastVerified": "2025-10-17T23:50:00.000Z"
-    },
-    {
-      "id": "gm-addItem",
-      "line": 30,
-      "commentIds": [
-        "comment-addItem"
-      ],
-      "astAnchor": {
-        "symbolPath": [
-          "ShoppingCart",
-          "addItem"
-        ],
-        "symbolKind": "Method",
-        "containerName": "ShoppingCart",
-        "offset": 0
-      },
-      "lineHash": "def789ghi012",
-      "lineText": "  addItem(item) {",
-      "prevLineText": "  // Test 4: Method that we'll move within the class",
-      "nextLineText": "    this.items.push(item);",
       "lastVerified": "2025-10-17T23:50:00.000Z"
     },
     {
@@ -126,16 +85,6 @@
       "ghostMarkerId": "gm-dttgcpse7mgvjrzmz"
     },
     {
-      "id": "comment-calculateTotal",
-      "line": 13,
-      "text": "Main pricing calculation - sums all item prices in the cart",
-      "author": "Test User",
-      "created": "2025-10-17T23:50:00.000Z",
-      "updated": "2025-10-17T23:50:00.000Z",
-      "tag": "NOTE",
-      "ghostMarkerId": "gm-calculateTotal"
-    },
-    {
       "id": "comment-formatCurrency",
       "line": 18,
       "text": "Currency formatter - ensures consistent $ formatting",
@@ -144,17 +93,6 @@
       "updated": "2025-10-17T23:50:00.000Z",
       "tag": "TODO",
       "ghostMarkerId": "gm-formatCurrency"
-    },
-    {
-      "id": "comment-addItem",
-      "line": 30,
-      "text": "Shopping cart item addition - this is the one you'll cut and paste!",
-      "author": "Test User",
-      "created": "2025-10-17T23:50:00.000Z",
-      "updated": "2025-10-18T19:55:40.958Z",
-      "tag": "STAR",
-      "ghostMarkerId": "gm-addItem",
-      "status": "open"
     },
     {
       "id": "cccb120f-85ac-4953-b57b-57779aa7b8ba",
