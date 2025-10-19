@@ -123,6 +123,14 @@ export async function retryWithBackoff<T>(
     } catch (error) {
       lastError = error;
 
+      // Log the error for debugging
+      logger.debug(`Operation attempt ${attempt} failed`, {
+        error,
+        errorType: error?.constructor?.name,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorCode: error && typeof error === 'object' && 'code' in error ? (error as any).code : undefined
+      });
+
       // Check if we should retry
       const shouldRetry = opts.shouldRetry
         ? opts.shouldRetry(error, attempt)
@@ -200,6 +208,11 @@ export async function retry<T>(
 
   if (result.success && result.result !== undefined) {
     return result.result;
+  }
+
+  // Handle void/undefined results (like writeFile which returns Promise<void>)
+  if (result.success) {
+    return result.result as T;
   }
 
   // Ensure we always throw an Error object, not undefined

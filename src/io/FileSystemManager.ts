@@ -197,6 +197,13 @@ export class FileSystemManager {
       await retryFileOperation(async () => {
         const text = JSON.stringify(data, null, 2);
         const buffer = Buffer.from(text, 'utf8');
+
+        // Log the write attempt for debugging
+        logger.debug('Attempting to write file', {
+          path: commentUri.fsPath,
+          sizeBytes: buffer.length
+        });
+
         await vscode.workspace.fs.writeFile(commentUri, buffer);
       }, `write ${commentUri.fsPath}`);
 
