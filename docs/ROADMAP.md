@@ -1142,54 +1142,81 @@ See **Milestone 6 (UX Enhancements)** for higher-priority features.
      - ✅ Graceful degradation (works without AI)
    - **Next:** Phase 2 - Dynamic Parameters
 
-### Upcoming Milestones
-1. 📋 **Advanced Search & Filtering (v2.1.2)** - December 2025 (1 week)
-   - Google-like search with field:value syntax
-   - Multi-field search (text, author, tag, symbol, date, AI metadata)
-   - Quick filters (TODO only, my comments, orphaned, AI-enriched)
-   - Search results view with grouping and sorting
-   - Export search results to Markdown/JSON/CSV
-   - **New Commands:** `Ctrl+Alt+P F` (search panel)
-   - **Design Complete:** [v2.1.2-advanced-search.md](milestones/v2.1.2-advanced-search.md)
+### Upcoming Milestones (Updated Strategy)
 
-2. 📋 **Orphan Detection UI (v2.1.3)** - December 2025 (1-2 weeks)
+**New Phase Order:** Core Demo → MCP → Scale Features (data-driven development)
+
+1. 📋 **Orphan Detection UI (v2.1.2)** - November 2025 (1-2 weeks) **← NEXT UP**
    - Automatic orphan detection with confidence scoring
    - Visual indicators (gutter icons, status bar, hover messages)
    - Re-anchor UI with CodeLens actions
    - Batch operations for fixing multiple orphans
    - Orphan report view with workspace scan
+   - **Rationale:** Core UX requirement - prevents data loss for single users
    - **Design Complete:** [v2.1.3-orphan-detection-ui.md](milestones/v2.1.3-orphan-detection-ui.md)
 
-3. 📋 **Performance Cache (v2.1.4)** - December 2025 (1 week)
-   - AST parse cache (60-90x faster warm cache)
-   - Comment file cache with dirty tracking and auto-save
-   - Ghost marker verification cache (50x faster)
-   - Incremental updates (only verify changed regions)
-   - **Goal:** Parse 1000-line files in <100ms, 100 comments in <100ms
-   - **Design Complete:** [v2.1.4-performance-cache.md](milestones/v2.1.4-performance-cache.md)
+2. 📋 **GitHub Demo Playground (v2.1.3)** - December 2025 (2-3 weeks)
+   - Containerized Next.js app (Docker + Docker Compose)
+   - Fake GitHub UI with Monaco editor
+   - Paired Comments extension embedded
+   - 20+ curated examples (real-world scenarios)
+   - Export & share functionality
+   - **Rationale:** Validates product-market fit, creates marketing asset, provides testing playground
+   - **Design Document:** [v2.1.3-github-demo-playground.md](milestones/v2.1.3-github-demo-playground.md) ← TO BE CREATED
 
-4. 📋 **Cross-File Comment Movement (v2.1.5)** - December 2025 (1 week)
-   - Move/copy comments between files with metadata preservation
-   - Bulk move operations for refactoring workflows
-   - Git rename detection and auto-update .comments files
-   - Export/import between workspaces
-   - **Design Complete:** [cross-file-comment-movement.md](../features/cross-file-comment-movement.md)
+3. 📋 **MCP Integration (v2.2.0)** - January 2026 (4-6 weeks)
+   - Extract AI layer to MCP server
+   - Extension becomes MCP client
+   - MCP event hooks (anchor updates, comment changes)
+   - Context provider for AI (read/write comments)
+   - JSON-RPC interface for agents
+   - **Rationale:** Aligns with AI Training core mission, enables LLM integration
 
-5. 📋 **Test Coverage Push** - January 2026 (1 week)
+4. 📋 **MCP Demo Playground (v2.2.1)** - February 2026 (1 week)
+   - Add MCP server to containerized demo
+   - Live AI interaction showcase
+   - Claude/GPT reading and writing comments
+   - Training data export visualization
+   - **Rationale:** Shows AI integration in action, validates MCP value prop
+
+5. 📋 **Scale Features (v2.3.x)** - March 2026+ (deferred until we have real data)
+   - **Advanced Search & Filtering (v2.3.1)** - 1 week
+     - Google-like search with field:value syntax
+     - Multi-field search (text, author, tag, symbol, date, AI metadata)
+     - Quick filters (TODO only, my comments, orphaned, AI-enriched)
+     - Search results view with grouping and sorting
+     - Export search results to Markdown/JSON/CSV
+     - **Design Complete:** [v2.1.2-advanced-search.md](milestones/v2.1.2-advanced-search.md)
+
+   - **Performance Cache (v2.3.2)** - 1 week
+     - AST parse cache (60-90x faster warm cache)
+     - Comment file cache with dirty tracking and auto-save
+     - Ghost marker verification cache (50x faster)
+     - Incremental updates (only verify changed regions)
+     - **Design Complete:** [v2.1.4-performance-cache.md](milestones/v2.1.4-performance-cache.md)
+
+   - **Cross-File Comment Movement (v2.3.3)** - 1 week
+     - Move/copy comments between files with metadata preservation
+     - Bulk move operations for refactoring workflows
+     - Git rename detection and auto-update .comments files
+     - Export/import between workspaces
+     - **Design Complete:** [cross-file-comment-movement.md](../features/cross-file-comment-movement.md)
+
+6. 📋 **Test Coverage Push** - Ongoing (after each milestone)
    - ✅ Ghost marker tests (40 existing, 4 skipped deprecated)
    - ✅ ParamManager tests (15 existing, all passing)
    - ✅ Range comment tests (35 existing, all passing)
    - ⚠️ Fix File I/O test failures (25 failures)
    - ⚠️ Fix extension activation tests (3 failures)
    - ⚠️ AST anchor tests (need to add ~20 tests)
-   - ⚠️ Cross-file movement tests (need to add ~15 tests)
-   - ⚠️ Search engine tests (need to add ~20 tests)
-   - ⚠️ Orphan detection tests (need to add ~15 tests)
-   - ⚠️ AI metadata tests (need to add ~35 tests when feature ready)
+   - ⚠️ Orphan detection tests (need to add ~15 tests after v2.1.2)
+   - ⚠️ AI metadata tests (need to add ~35 tests)
+   - ⚠️ Demo playground tests (need to add ~25 tests after v2.1.3)
+   - ⚠️ MCP integration tests (need to add ~30 tests after v2.2.0)
    - **Current:** 89 passing (39 unit + 50 E2E)
    - **Target:** 250+ total tests, 70%+ coverage
 
-6. 📋 **v1.0 Release Prep** - February 2026 (2 weeks)
+7. 📋 **v1.0 Release Prep** - April 2026 (2 weeks)
    - Security audit (OWASP top 10)
    - Performance testing (large files, many comments)
    - Beta user feedback (10+ testers)
@@ -1198,27 +1225,22 @@ See **Milestone 6 (UX Enhancements)** for higher-priority features.
    - Professional README + user guide
    - Contributing guidelines
 
-7. 📋 **MCP Integration (v2.2.0)** - Q1 2026 (4-6 weeks, if user demand)
-   - Extract AI layer to MCP server
-   - Extension becomes MCP client
-   - MCP event hooks (anchor updates, comment changes)
-   - Context provider for AI
-   - JSON-RPC interface for agents
-   - **Only build if users validate the need**
-
-8. 📋 **UX Enhancements (v2.3.0)** - Q2 2026 (2 weeks)
+8. 📋 **UX Enhancements (v2.4.0)** - Q2 2026 (2 weeks)
    - Comment templates (Why/What/How quick-insert)
    - PR Review Exporter (Markdown grouped by symbol)
    - Symbol-scoped view mode (filter to current function/class)
    - Multi-file navigation (jump between related .comments)
 
-9. 💡 **Advanced AI Features (v2.4.0)** - Q2 2026
+9. 💡 **Advanced AI Features (v2.5.0)** - Q2 2026
    - AI Summarization (summarize threads per symbol)
    - Symbol Metrics Overlay (complexity + coverage viz)
    - Semantic Search (vector embeddings)
 
-10. 💡 **GitHub Demo (v3.5.0)** - Q3 2026
-11. 💡 **AI Training Comparison (v3.6.0)** - Q4 2026
+10. 💡 **AI Training Comparison (v3.0.0)** - Q3 2026
+    - Split-screen training comparison dashboard
+    - Pre-built training scenarios
+    - Azure ML integration
+    - Evaluation metrics (accuracy, pass@k, functional correctness)
 
 ---
 
