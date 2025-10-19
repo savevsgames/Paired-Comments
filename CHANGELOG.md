@@ -5,6 +5,50 @@ All notable changes to the Paired Comments extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0 - MCP Server] - 2025-10-19
+
+### Added - MCP Integration
+- **🔌 MCP Server Implementation** - Complete Model Context Protocol server for AI integration
+  - **7 MCP Tools**: add_comment, edit_comment, delete_comment, search_comments, get_file_comments, move_comment, export_comments
+  - **8 MCP Resources**: workspace/all, file comments, tags/*, orphaned, AI-enriched
+  - **Core Services**: CommentService (244 lines), SearchService (181 lines), ExportService (166 lines)
+  - **File System Manager**: Secure I/O with path validation (268 lines)
+  - **AST Parser**: Symbol resolution for 10+ languages (177 lines)
+  - **Event Bus**: Real-time pub/sub system (95 lines)
+  - **Type Safety**: Full TypeScript with Zod validation
+  - **Total**: 2,097 lines of production TypeScript code
+
+- **📊 MCP Features**
+  - **AI Training Data Export**: JSONL format with source context for ML pipelines
+  - **Advanced Search**: Multi-field queries with relevance scoring
+  - **Security**: Path validation prevents directory traversal attacks
+  - **Performance**: Stateless design, efficient caching
+  - **Extensibility**: Event-driven architecture for real-time sync
+
+- **📖 Comprehensive Documentation** (2,880 lines)
+  - **ARCHITECTURE.md**: System design, communication patterns, data flow
+  - **PROTOCOL_SPEC.md**: Complete MCP protocol implementation (650+ lines)
+  - **API_REFERENCE.md**: All tools/resources/prompts documented (500+ lines)
+  - **INTEGRATION_GUIDE.md**: VS Code integration guide (550+ lines)
+  - **DEPLOYMENT.md**: Docker & production deployment (550+ lines)
+  - **QUICKSTART.md**: Quick start testing guide
+
+### Technical - MCP Server
+- **Project Structure**: mcp-server/ folder with src/, dist/, docs/, test-workspace/
+- **Build System**: TypeScript with ES modules, Jest for testing
+- **Dependencies**: MCP SDK (^0.6.0) + Zod (^3.22.4) - minimal, production-ready
+- **Testing**: Unit tests for EventBus and ASTParser included
+- **Build Status**: ✅ Clean TypeScript compilation with zero errors
+- **Ready For**: Testing with Claude Desktop, MCP Inspector, VS Code integration
+
+### Integration - Claude Desktop
+- **Configuration**: claude_desktop_config.json setup documented
+- **Real-Time Tools**: Claude can read, write, search, and export comments
+- **AI Training**: Export comments as JSONL for Azure ML/OpenAI training
+- **Resource Access**: Browse workspace comments via URI patterns
+
+---
+
 ## [2.1.6 - Demo Playground] - 2025-10-19
 
 ### Added - Demo Playground (Phases 5-7)
