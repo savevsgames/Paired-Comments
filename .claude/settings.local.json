@@ -10,7 +10,9 @@
       "Bash(tee test-output.log)",
       "Bash(tee temp/unit-test-output.log)",
       "Bash(tee temp/compile-test-output.log)",
-      "Bash(tee temp/ghostmarker-test-run.log)"
+      "Bash(tee temp/ghostmarker-test-run.log)",
+      "Bash(cloc src --quiet)",
+      "Bash(find test -name \"*.ts\" -exec wc -l {} +)"
     ],
     "deny": [],
     "ask": []
