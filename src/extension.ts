@@ -16,6 +16,8 @@ import { CommentCodeLensProvider } from './ui/CommentCodeLensProvider';
 import { CommentFileDecorationProvider } from './ui/CommentFileDecorationProvider';
 import { OrphanStatusBar } from './ui/OrphanStatusBar';
 import { FileSystemManager } from './io/FileSystemManager';
+import { ASTCacheManager } from './core/ASTCacheManager';
+import { CommentFileCache } from './io/CommentFileCache';
 import { CommentSearchEngine } from './features/CommentSearchEngine';
 import { registerCommands } from './commands';
 import { registerSearchCommands } from './commands/search';
@@ -63,14 +65,24 @@ export function activate(context: vscode.ExtensionContext): void {
     // Non-blocking - extension still works without AI
   });
 
+  // Initialize performance caches (v2.1.4 - order matters: AST cache first)
+  const astCacheManager = new ASTCacheManager();
+
   // Initialize core managers (order matters: AST → Param → FileSystem → Comment → Ghost → Orphan)
   const astAnchorManager = new ASTAnchorManager();
   const paramManager = new ParamManager(astAnchorManager);
   const fileSystemManager = new FileSystemManager(astAnchorManager);
+
+  // Initialize comment file cache after FileSystemManager (v2.1.4)
+  const commentFileCache = new CommentFileCache(fileSystemManager);
   const ghostMarkerManager = new GhostMarkerManager();
   const orphanDetector = new OrphanDetector(astAnchorManager, ghostMarkerManager); // v2.1.3
   const orphanStatusBar = new OrphanStatusBar(); // v2.1.3
   const commentManager = new CommentManager(fileSystemManager, ghostMarkerManager, paramManager);
+
+  // Wire up performance caches (v2.1.4)
+  astAnchorManager.setASTCacheManager(astCacheManager);
+  commentManager.setCommentFileCache(commentFileCache);
   const decorationManager = new DecorationManager();
   const scrollSyncManager = new ScrollSyncManager();
   const pairedViewManager = new PairedViewManager(

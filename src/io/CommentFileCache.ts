@@ -57,9 +57,9 @@ export class CommentFileCache {
   }
 
   /**
-   * Get comment file from cache or load from disk
+   * Get comment file from cache (sync - does NOT load from disk)
    */
-  async get(sourceUri: vscode.Uri): Promise<CommentFile | null> {
+  get(sourceUri: vscode.Uri): CommentFile | null {
     const key = sourceUri.fsPath;
     const cached = this.cache.get(key);
 
@@ -69,29 +69,10 @@ export class CommentFileCache {
       return cached.commentFile;
     }
 
-    // Cache miss - load from disk
+    // Cache miss
     this.stats.misses++;
     logger.debug(`[CommentFileCache] Cache MISS for ${sourceUri.fsPath}`);
-
-    const commentFile = await this.fileSystemManager.readCommentFile(sourceUri);
-
-    if (commentFile) {
-      this.cache.set(key, {
-        sourceUri: key,
-        commentFile,
-        version: 1,
-        loadedAt: Date.now(),
-        isDirty: false,
-        lastSavedAt: Date.now()
-      });
-
-      // Evict if cache too large
-      if (this.cache.size > this.maxCacheSize) {
-        this.evictOldest();
-      }
-    }
-
-    return commentFile;
+    return null;
   }
 
   /**
@@ -111,6 +92,11 @@ export class CommentFileCache {
     });
 
     logger.debug(`[CommentFileCache] Updated cache for ${sourceUri.fsPath} (v${cached?.version || 0 + 1}, dirty)`);
+
+    // Evict if cache too large
+    if (this.cache.size > this.maxCacheSize) {
+      this.evictOldest();
+    }
 
     // Schedule auto-save
     this.scheduleAutoSave(sourceUri);
