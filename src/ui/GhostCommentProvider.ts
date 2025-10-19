@@ -14,6 +14,10 @@ export class GhostCommentProvider implements vscode.InlayHintsProvider {
   private enabled: boolean = false;
   private enabledLines: Set<number> = new Set(); // Per-line toggle (1-indexed)
 
+  // Event emitter for triggering InlayHints refresh
+  private readonly _onDidChangeInlayHints = new vscode.EventEmitter<void>();
+  public readonly onDidChangeInlayHints = this._onDidChangeInlayHints.event;
+
   constructor(
     private commentManager: CommentManager,
     private ghostMarkerManager: GhostMarkerManager
@@ -27,8 +31,22 @@ export class GhostCommentProvider implements vscode.InlayHintsProvider {
     range: vscode.Range,
     _token: vscode.CancellationToken
   ): Promise<vscode.InlayHint[]> {
+    console.log('[GhostCommentProvider] provideInlayHints called', {
+      file: document.fileName,
+      enabled: this.enabled,
+      enabledLinesCount: this.enabledLines.size,
+      enabledLines: Array.from(this.enabledLines)
+    });
+
     // Early exit if ghost view is completely disabled
     if (!this.enabled && this.enabledLines.size === 0) {
+      console.log('[GhostCommentProvider] Skipping - ghost view disabled');
+      return [];
+    }
+
+    // Skip .comments files (they're JSON metadata, not source code)
+    if (document.uri.fsPath.endsWith('.comments')) {
+      console.log('[GhostCommentProvider] Skipping - .comments file');
       return [];
     }
 
@@ -58,12 +76,14 @@ export class GhostCommentProvider implements vscode.InlayHintsProvider {
         const hint = this.createInlayHint(comment, document);
         if (hint) {
           hints.push(hint);
+          console.log('[GhostCommentProvider] Created hint for line', comment.line, ':', hint.label);
         }
       }
     } catch (error) {
       console.error('[GhostCommentProvider] Error providing inlay hints:', error);
     }
 
+    console.log('[GhostCommentProvider] Returning', hints.length, 'hints');
     return hints;
   }
 
@@ -168,6 +188,7 @@ export class GhostCommentProvider implements vscode.InlayHintsProvider {
    */
   public enable(): void {
     this.enabled = true;
+    this._onDidChangeInlayHints.fire(); // Trigger refresh
   }
 
   /**
@@ -176,6 +197,7 @@ export class GhostCommentProvider implements vscode.InlayHintsProvider {
   public disable(): void {
     this.enabled = false;
     this.enabledLines.clear();
+    this._onDidChangeInlayHints.fire(); // Trigger refresh
   }
 
   /**
@@ -187,6 +209,7 @@ export class GhostCommentProvider implements vscode.InlayHintsProvider {
     } else {
       this.enabledLines.add(line);
     }
+    this._onDidChangeInlayHints.fire(); // Trigger refresh
   }
 
   /**

@@ -338,6 +338,20 @@ async function showCommandMenu(_deps: CommandDependencies): Promise<void> {
       detail: 'Hide virtual text, keep gutter icons visible',
       key: '',
       command: 'pairedComments.hideAllGhosts'
+    },
+    {
+      label: '$(warning) Detect Orphaned Comments',
+      description: 'Find comments without valid markers',
+      detail: 'Scan for comments whose code has been deleted or moved',
+      key: '',
+      command: 'pairedComments.detectOrphans'
+    },
+    {
+      label: '$(list-unordered) Show Orphan Report',
+      description: 'View all orphaned comments',
+      detail: 'Show a report of all orphaned comments with fix options',
+      key: '',
+      command: 'pairedComments.showOrphanReport'
     }
   ];
 
@@ -1112,8 +1126,7 @@ async function toggleGhostView(deps: CommandDependencies): Promise<void> {
   const line = editor.selection.active.line + 1; // Convert to 1-indexed
   deps.ghostCommentProvider.toggleLine(line);
 
-  // Refresh inlay hints
-  await vscode.commands.executeCommand('editor.action.inlayHints.refresh');
+  // Note: InlayHints refresh automatically - no manual refresh needed
 
   const enabled = deps.ghostCommentProvider.isLineEnabled(line);
   const status = enabled ? 'enabled' : 'disabled';
@@ -1133,8 +1146,7 @@ async function showAllGhosts(deps: CommandDependencies): Promise<void> {
 
   deps.ghostCommentProvider.enable();
 
-  // Refresh inlay hints
-  await vscode.commands.executeCommand('editor.action.inlayHints.refresh');
+  // Note: InlayHints refresh automatically - no manual refresh needed
 
   // Count comments in current file
   try {
@@ -1155,8 +1167,7 @@ async function showAllGhosts(deps: CommandDependencies): Promise<void> {
 async function hideAllGhosts(deps: CommandDependencies): Promise<void> {
   deps.ghostCommentProvider.disable();
 
-  // Refresh inlay hints
-  await vscode.commands.executeCommand('editor.action.inlayHints.refresh');
+  // Note: InlayHints refresh automatically - no manual refresh needed
 
   void vscode.window.showInformationMessage('Hiding all inline comments');
 }
@@ -1516,8 +1527,28 @@ async function showCommentActionsMenu(deps: CommandDependencies, sourceUri: vsco
       detail: 'Change the comment tag/category',
       action: 'tag',
       icon: '$(tag)'
+    },
+    {
+      label: '$(eye) Toggle Ghost View',
+      description: 'Show/hide inline',
+      detail: 'Toggle inline comment visibility for this line',
+      action: 'toggleGhost',
+      icon: '$(eye)'
     }
   ];
+
+  // Check if comment is orphaned (no valid ghost marker ID)
+  // Note: A missing or undefined ghostMarkerId indicates an orphaned comment
+  if (!selectedComment.ghostMarkerId) {
+    // Add re-anchor option for orphaned comments
+    actions.unshift({
+      label: '$(warning) Re-anchor Comment',
+      description: 'Fix orphaned comment',
+      detail: 'This comment has no valid marker - re-anchor it to the current line',
+      action: 'reanchor',
+      icon: '$(warning)'
+    });
+  }
 
   // Add resolve/reopen action based on current status
   if (selectedComment.status === 'resolved') {
@@ -1582,6 +1613,25 @@ async function showCommentActionsMenu(deps: CommandDependencies, sourceUri: vsco
 
       case 'reopen':
         await executeResolveAction(deps, sourceUri, selectedComment, false);
+        break;
+
+      case 'toggleGhost':
+        // Toggle ghost view for this specific line
+        deps.ghostCommentProvider.toggleLine(lineNumber);
+
+        // Note: InlayHints refresh automatically - no need to manually trigger refresh
+
+        const enabled = deps.ghostCommentProvider.isLineEnabled(lineNumber);
+        const status = enabled ? 'enabled' : 'disabled';
+        void vscode.window.showInformationMessage(`Ghost view ${status} for line ${lineNumber}`);
+        break;
+
+      case 'reanchor':
+        // Re-anchor orphaned comment to current line
+        await vscode.commands.executeCommand(
+          'pairedComments.reanchorComment',
+          { uri: sourceUri.toString(), line: lineNumber }
+        );
         break;
     }
   } catch (error) {

@@ -134,6 +134,18 @@ export function activate(context: vscode.ExtensionContext): void {
     )
   );
 
+  // Enable InlayHints in VS Code settings (required for Ghost View to work)
+  // This ensures users don't need to manually enable the setting
+  const config = vscode.workspace.getConfiguration('editor');
+  const inlayHintsEnabled = config.get('inlayHints.enabled');
+
+  if (inlayHintsEnabled === 'off' || inlayHintsEnabled === false) {
+    // Auto-enable InlayHints for Ghost View feature (async, don't wait)
+    void config.update('inlayHints.enabled', 'on', vscode.ConfigurationTarget.Global).then(() => {
+      console.log('[PairedComments] Auto-enabled InlayHints for Ghost View feature');
+    });
+  }
+
   // Initialize search engine (v2.1.2)
   const searchEngine = new CommentSearchEngine(fileSystemManager);
 

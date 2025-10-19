@@ -404,4 +404,85 @@ suite('GhostCommentProvider Tests', () => {
     assert.ok(hints[0], 'First hint should exist');
     assert.strictEqual(hints[0]!.position.line, 2, 'Hint should be for line 3 (0-indexed: 2)');
   });
+
+  test('onDidChangeInlayHints event should fire when enable() is called', (done) => {
+    let eventFired = false;
+
+    // Subscribe to event
+    const disposable = provider.onDidChangeInlayHints(() => {
+      eventFired = true;
+    });
+
+    // Enable ghost view (should trigger event)
+    provider.enable();
+
+    // Give event time to fire
+    setTimeout(() => {
+      assert.strictEqual(eventFired, true, 'Event should have fired after enable()');
+      disposable.dispose();
+      done();
+    }, 50);
+  });
+
+  test('onDidChangeInlayHints event should fire when disable() is called', (done) => {
+    let eventFired = false;
+
+    provider.enable(); // Enable first
+
+    // Subscribe to event
+    const disposable = provider.onDidChangeInlayHints(() => {
+      eventFired = true;
+    });
+
+    // Disable ghost view (should trigger event)
+    provider.disable();
+
+    // Give event time to fire
+    setTimeout(() => {
+      assert.strictEqual(eventFired, true, 'Event should have fired after disable()');
+      disposable.dispose();
+      done();
+    }, 50);
+  });
+
+  test('onDidChangeInlayHints event should fire when toggleLine() is called', (done) => {
+    let eventFired = false;
+
+    // Subscribe to event
+    const disposable = provider.onDidChangeInlayHints(() => {
+      eventFired = true;
+    });
+
+    // Toggle line (should trigger event)
+    provider.toggleLine(10);
+
+    // Give event time to fire
+    setTimeout(() => {
+      assert.strictEqual(eventFired, true, 'Event should have fired after toggleLine()');
+      disposable.dispose();
+      done();
+    }, 50);
+  });
+
+  test('provideInlayHints() should skip .comments files', async () => {
+    const document = await vscode.workspace.openTextDocument({
+      content: '{"file": "test.js", "comments": []}',
+      language: 'json'
+    });
+
+    // Override the document URI to simulate a .comments file
+    Object.defineProperty(document, 'uri', {
+      value: vscode.Uri.file('/test/path/test.js.comments'),
+      writable: false
+    });
+
+    provider.enable();
+
+    const range = new vscode.Range(0, 0, document.lineCount, 0);
+    const token = new vscode.CancellationTokenSource().token;
+
+    const hints = await provider.provideInlayHints(document, range, token);
+
+    assert.strictEqual(hints.length, 0, 'Should return no hints for .comments files');
+  });
 });

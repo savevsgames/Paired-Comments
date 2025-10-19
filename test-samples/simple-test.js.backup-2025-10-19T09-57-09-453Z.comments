@@ -21,27 +21,6 @@
       "prevLineText": "// Function 1",
       "nextLineText": "return a + b;",
       "lastVerified": "2025-10-19T09:29:55.625Z"
-    },
-    {
-      "id": "gm-klc5qszj2mgxj8ou7",
-      "line": 12,
-      "commentIds": [
-        "d2af57c6-a994-4bb9-b2ac-98b85ad32d45"
-      ],
-      "endLine": 22,
-      "astAnchor": {
-        "symbolPath": [
-          "multiply"
-        ],
-        "symbolKind": "Function",
-        "containerName": null,
-        "offset": 0
-      },
-      "lineHash": "0ff08590f3d280a2",
-      "lineText": "function multiply(a, b) {",
-      "prevLineText": "// Function 2",
-      "nextLineText": "return a * b;",
-      "lastVerified": "2025-10-19T09:57:09.440Z"
     }
   ],
   "comments": [
@@ -56,18 +35,6 @@
       "tag": "QUESTION",
       "ghostMarkerId": "gm-hbkjsanbimgxi9o6h",
       "status": "open"
-    },
-    {
-      "id": "d2af57c6-a994-4bb9-b2ac-98b85ad32d45",
-      "line": 12,
-      "startLine": 12,
-      "endLine": 22,
-      "text": "These are operator functions! what a comment!",
-      "author": "Unknown",
-      "created": "2025-10-19T09:57:09.438Z",
-      "updated": "2025-10-19T09:57:19.295Z",
-      "tag": "STAR",
-      "ghostMarkerId": "gm-klc5qszj2mgxj8ou7"
     }
   ]
 }
