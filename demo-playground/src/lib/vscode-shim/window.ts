@@ -29,7 +29,7 @@ class Window {
 
     // Simple browser-based dialog for demo
     if (items.length > 0) {
-      const choice = window.confirm(`${message}\n\nOptions: ${items.map((i) => (typeof i === 'string' ? i : i.title)).join(', ')}`);
+      const choice = confirm(`${message}\n\nOptions: ${items.map((i) => (typeof i === 'string' ? i : i.title)).join(', ')}`);
       return choice ? items[0] : undefined;
     }
 
@@ -45,7 +45,7 @@ class Window {
     console.warn('[VS Code] WARNING:', message);
 
     if (items.length > 0) {
-      const choice = window.confirm(`⚠️ ${message}\n\nOptions: ${items.map((i) => (typeof i === 'string' ? i : i.title)).join(', ')}`);
+      const choice = confirm(`⚠️ ${message}\n\nOptions: ${items.map((i) => (typeof i === 'string' ? i : i.title)).join(', ')}`);
       return choice ? items[0] : undefined;
     }
 
@@ -61,7 +61,7 @@ class Window {
     console.error('[VS Code] ERROR:', message);
 
     if (items.length > 0) {
-      const choice = window.confirm(`❌ ${message}\n\nOptions: ${items.map((i) => (typeof i === 'string' ? i : i.title)).join(', ')}`);
+      const choice = confirm(`❌ ${message}\n\nOptions: ${items.map((i) => (typeof i === 'string' ? i : i.title)).join(', ')}`);
       return choice ? items[0] : undefined;
     }
 
@@ -75,7 +75,7 @@ class Window {
     console.log('[VS Code] QuickPick:', items);
 
     const labels = items.map((item) => (typeof item === 'string' ? item : item.label));
-    const choice = window.prompt(`${options?.placeHolder || 'Select an option'}\n\n${labels.map((label, i) => `${i + 1}. ${label}`).join('\n')}`);
+    const choice = prompt(`${options?.placeHolder || 'Select an option'}\n\n${labels.map((label, i) => `${i + 1}. ${label}`).join('\n')}`);
 
     if (choice) {
       const index = parseInt(choice) - 1;
@@ -93,7 +93,7 @@ class Window {
   async showInputBox(options?: InputBoxOptions): Promise<string | undefined> {
     console.log('[VS Code] InputBox:', options);
 
-    const result = window.prompt(options?.prompt || 'Enter value', options?.value || '');
+    const result = prompt(options?.prompt || 'Enter value', options?.value || '');
     return result || undefined;
   }
 
