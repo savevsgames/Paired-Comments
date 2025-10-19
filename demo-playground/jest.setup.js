@@ -1,10 +1,26 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
-// Mock IndexedDB for tests
-const { indexedDB } = require('fake-indexeddb');
+// Polyfill structuredClone for Node < 17
+if (typeof global.structuredClone === 'undefined') {
+  global.structuredClone = (val) => JSON.parse(JSON.stringify(val));
+}
 
-global.indexedDB = indexedDB;
+// Mock IndexedDB for tests
+const fakeIndexedDB = require('fake-indexeddb');
+const FDBFactory = require('fake-indexeddb/lib/FDBFactory');
+const FDBKeyRange = require('fake-indexeddb/lib/FDBKeyRange');
+
+global.indexedDB = new FDBFactory();
+global.IDBKeyRange = FDBKeyRange;
+global.IDBRequest = fakeIndexedDB.IDBRequest;
+global.IDBOpenDBRequest = fakeIndexedDB.IDBOpenDBRequest;
+global.IDBDatabase = fakeIndexedDB.IDBDatabase;
+global.IDBObjectStore = fakeIndexedDB.IDBObjectStore;
+global.IDBIndex = fakeIndexedDB.IDBIndex;
+global.IDBCursor = fakeIndexedDB.IDBCursor;
+global.IDBCursorWithValue = fakeIndexedDB.IDBCursorWithValue;
+global.IDBTransaction = fakeIndexedDB.IDBTransaction;
 
 // Mock window.matchMedia (used by some components)
 Object.defineProperty(window, 'matchMedia', {
