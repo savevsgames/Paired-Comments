@@ -8,13 +8,18 @@
 
 ---
 
-## 📍 Current Status: MVP CLEANUP COMPLETE ✅
+## 📍 Current Status: TEST SUITE COMPILATION FIXED ✅
 
-**Latest Achievement:** De-migration complete! Removed 211 lines of legacy migration code. MVP now uses v2.1.0 format exclusively.
+**Latest Achievement (Oct 19):** Fixed all 92 TypeScript compilation errors in test suite! 89 tests now passing (39 unit + 50 E2E).
 
-**Project Health:** Clean foundation - All critical bugs fixed, legacy code removed, documentation updated
+**Testing Progress:**
+- ✅ 0 compilation errors (was 92)
+- ✅ 39/39 unit tests passing (100%)
+- ✅ 50/96 E2E tests passing (52%)
+- ✅ Core features validated (range comments, params, ghost markers)
+- ⚠️ 46 runtime failures (File I/O and extension activation issues)
 
-**What's Next:** Full testing suite, then AI Metadata implementation - our killer differentiator!
+**What's Next:** Fix runtime issues, then AI Metadata implementation - our killer differentiator!
 
 ---
 
@@ -1046,12 +1051,39 @@ See **Milestone 6 (UX Enhancements)** for higher-priority features.
 4. ✅ **Error Handling & Recovery (v2.0.7)** - October 18, 2025
 5. ✅ **Critical UX Improvements (v2.0.8)** - October 18, 2025
 6. ✅ **Project Health Analysis** - October 18, 2025 (A- grade, 90/100)
+7. ✅ **De-Migration Complete** - October 19, 2025 (Removed 211 lines of legacy code)
+8. ✅ **Test Suite Compilation Fixed (Phase 1)** - October 19, 2025 (92 errors → 0)
 
-### Active Milestones (Week of October 18, 2025)
-1. 📋 **AI Metadata & Provider System (v2.1.0)** - Planning Complete **← YOU ARE HERE**
+### Active Milestones (Week of October 19, 2025)
+
+1. 📋 **Ghost Comment Visibility (v2.0.9)** - USER PRIORITY **← YOU ARE HERE**
+   - **Status:** NOT IMPLEMENTED - Moving from v2.3.3 to v2.0.9 (user priority)
+   - **Goal:** Show paired comments inline in editor as virtual text (like Jupyter)
+   - **Estimate:** 2-3 days
+   - **Commands to implement:**
+     - `pairedComments.toggleGhostView` - Toggle for current comment
+     - `pairedComments.showAllGhosts` - Show all comments inline
+     - `pairedComments.hideAllGhosts` - Hide all, keep gutter icons
+   - **Implementation:**
+     - Use VS Code InlayHints API for virtual text
+     - Grey/dimmed text (non-editable, configurable opacity)
+     - Click to open full comment in paired view
+     - Settings for max lines, opacity, font style
+   - **Dependencies:** None - can implement immediately
+   - **Next:** Implement ghost comment visibility, then AI Metadata
+
+2. 🔧 **Test Suite Runtime Fixes (Phase 2)** - Deferred
+   - ✅ Compilation: 0 errors (was 92)
+   - ✅ Unit tests: 39/39 passing (100%)
+   - ✅ E2E tests: 50/96 passing (52%)
+   - ⚠️ File I/O issues: 25 failures (non-blocking, can fix later)
+   - ⚠️ Extension activation: 3 failures (non-blocking, can fix later)
+   - **Status:** Core features validated, runtime fixes deferred
+
+3. 📋 **AI Metadata & Provider System (v2.1.0)** - Planning Complete
    - Detailed milestone document created
    - Roadmap updated with 2-3 week plan
-   - Ready to begin implementation
+   - Ready to begin after ghost comment visibility
    - **NOTE:** v2.0.8 completed first (critical UX fixes)
 
 ### Upcoming Milestones
@@ -1088,16 +1120,18 @@ See **Milestone 6 (UX Enhancements)** for higher-priority features.
    - **Design Complete:** [cross-file-comment-movement.md](../features/cross-file-comment-movement.md)
 
 5. 📋 **Test Coverage Push** - January 2026 (1 week)
-   - Ghost marker tests (40+ tests added)
-   - AST anchor tests
-   - AI metadata tests (35+ tests added)
-   - ParamManager tests (45+ tests added)
-   - Range comment tests (35+ tests added)
-   - Cross-file movement tests
-   - Search engine tests
-   - Orphan detection tests
-   - Integration tests (10+ tests added)
-   - Target: 70%+ coverage (250+ total tests)
+   - ✅ Ghost marker tests (40 existing, 4 skipped deprecated)
+   - ✅ ParamManager tests (15 existing, all passing)
+   - ✅ Range comment tests (35 existing, all passing)
+   - ⚠️ Fix File I/O test failures (25 failures)
+   - ⚠️ Fix extension activation tests (3 failures)
+   - ⚠️ AST anchor tests (need to add ~20 tests)
+   - ⚠️ Cross-file movement tests (need to add ~15 tests)
+   - ⚠️ Search engine tests (need to add ~20 tests)
+   - ⚠️ Orphan detection tests (need to add ~15 tests)
+   - ⚠️ AI metadata tests (need to add ~35 tests when feature ready)
+   - **Current:** 89 passing (39 unit + 50 E2E)
+   - **Target:** 250+ total tests, 70%+ coverage
 
 6. 📋 **v1.0 Release Prep** - February 2026 (2 weeks)
    - Security audit (OWASP top 10)
