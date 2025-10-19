@@ -33,6 +33,9 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
+# Copy source files needed by client-side code (extension)
+COPY --from=builder /app/src ./src
+
 # Set ownership
 RUN chown -R nextjs:nodejs /app
 
