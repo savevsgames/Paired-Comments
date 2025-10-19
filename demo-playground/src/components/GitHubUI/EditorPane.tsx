@@ -81,6 +81,7 @@ export default function EditorPane({ file, onChange }: EditorPaneProps) {
           language={getLanguage(file.language)}
           onChange={handleChange}
           readOnly={false}
+          fileName={file.name}
         />
       </Suspense>
     </div>

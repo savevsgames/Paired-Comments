@@ -14,6 +14,11 @@ interface QueryOptions<T> {
   offset?: number;
 }
 
+// Define DatabaseConnection interface
+interface DatabaseConnection {
+  query<T>(sql: string, params?: any[]): Promise<{ rows: T[]; rowCount: number }>;
+}
+
 class Repository<T extends Entity> {
   constructor(
     private tableName: string,
@@ -95,10 +100,14 @@ class Repository<T extends Entity> {
   }
 }
 
+// Example usage
 interface User extends Entity {
   email: string;
   name: string;
   role: 'admin' | 'user';
 }
+
+// Declare db variable for example
+declare const db: DatabaseConnection;
 
 const userRepo = new Repository<User>('users', db);
