@@ -5,6 +5,62 @@ All notable changes to the Paired Comments extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.6 - Demo Playground] - 2025-10-19
+
+### Added - Demo Playground (Phases 5-7)
+- **🎨 Phase 5: Extension Integration** - Full Monaco Editor integration with Paired Comments
+  - Browser-compatible extension at `demo-playground/src/lib/extension/browser-extension.ts`
+  - Gutter icons with color-coded comment tags (TODO, NOTE, FIXME, STAR, QUESTION)
+  - CodeLens links showing comment metadata above commented lines
+  - Hover tooltips with full comment text and author info
+  - CSS styling with inline SVG icons (no external dependencies)
+  - Fixed Docker deployment - Added src/ folder to container
+  - Organized .comments files in correct subdirectories by language
+
+- **📚 Phase 6: Example Files** - 10 curated code examples with paired comments
+  - **JavaScript (4)**: react-component, async-patterns, event-emitter, closure-module
+  - **TypeScript (2)**: generic-repository, dependency-injection
+  - **Python (2)**: data-pipeline, async-crawler
+  - **Go (1)**: goroutines
+  - **SQL (1)**: complex-queries
+  - All examples include 4 comments with diverse tags (NOTE, FIXME, STAR, QUESTION)
+  - AI metadata: complexity ratings, token estimates, parameter documentation
+  - Production-quality code patterns for AI training datasets
+
+- **⚡ Phase 7: Export/Share/Reset** - Full-featured action buttons
+  - **Export Modal** with 3 formats: ZIP Archive, JSON File, Markdown Documentation
+  - **Share Button** - Copy demo URL to clipboard
+  - **Reset Button** - Restore examples with confirmation
+  - Export utilities using jszip library
+  - GitHub-themed UI components
+
+### Changed - Demo Playground
+- Updated Dockerfile to copy src/ folder (fixes Monaco extension loading)
+- Enhanced page.tsx with export/share/reset handlers
+- Added confirmation dialogs for destructive actions
+- Better error handling with user-friendly messages
+
+### Testing - Demo Playground
+- Test suite at `demo-playground/src/lib/__tests__/export.test.ts`
+- Validates all example files have correct comment structure
+- Tests for ZIP/JSON/Markdown export functionality
+
+### Technical
+- Added jszip dependency
+- Docker multi-stage build includes source files
+- 10 example files + 10 .comments files in public/examples/
+- 1389+ additions across 16 files
+- Commits: 3e7bfa8 (Phase 5), e0d25d0 (Phases 6 & 7)
+
+---
+
+# Changelog
+
+All notable changes to the Paired Comments extension will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## [2.1.1] - 2025-10-19
 
 ### Removed
