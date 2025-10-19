@@ -431,7 +431,104 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 
 ---
 
-## 📋 Milestone 5: Output Capture Excellence (v2.2.0) - PLANNED
+## 📋 Milestone 4.5: Search & Filtering (v2.1.2) - PLANNED
+
+**Target:** December 2025 (1-2 weeks)
+**Goal:** Advanced search and filtering for large codebases
+**Priority:** HIGH - Critical for usability with many comments
+
+### Features
+
+#### Multi-Field Search
+- Search by text content, author, tag, symbol name
+- Date range filters (created, updated, resolved)
+- Status filters (open, resolved, orphaned)
+- Regex support for advanced queries
+
+#### Quick Filters
+- Show only TODO/FIXME
+- Show only my comments
+- Show only orphaned markers
+- Show only AI-enriched comments
+- Show only range comments
+
+#### Search Results View
+- List view with snippets
+- Group by file, author, tag, or symbol
+- Click to navigate to code
+- Export search results to Markdown
+- Save search queries as presets
+
+### Commands
+- `Ctrl+Alt+P F` - Open advanced search panel
+- `Ctrl+Alt+P Ctrl+Alt+F` - Find in current file comments
+
+### Implementation
+- `src/features/CommentSearch.ts` - Search engine with indexing
+- `src/ui/SearchPanel.ts` - Search UI webview
+- Integration with existing `showAllComments` command
+
+### Success Metrics
+- Search 1000 comments in <50ms
+- Support complex queries (AND/OR/NOT)
+- Export results maintain formatting
+- Saved searches persist across sessions
+
+### Dependencies
+- ✅ Range comments complete (v2.0.6)
+- ✅ Tags system complete (v0.1.0)
+
+---
+
+## 📋 Milestone 4.8: Performance Optimizations (v2.1.3) - PLANNED
+
+**Target:** December 2025 (1 week)
+**Goal:** Handle large files (1000+ lines) and many comments (100+)
+**Priority:** HIGH - Essential for enterprise adoption
+
+### Features
+
+#### Incremental Parse Cache
+- Cache AST node maps per file
+- Invalidate only changed regions
+- Reuse partial ASTs for large files
+- LRU cache with configurable size
+
+#### Lazy Loading
+- Load comments on-demand for visible regions
+- Virtual scrolling for comment lists (100+ comments)
+- Debounce AST updates (300ms delay)
+- Progressive rendering for search results
+
+#### Background Processing
+- Async AST parsing with progress indicator
+- Non-blocking ghost marker updates
+- Batched file system writes (reduce I/O)
+- Web worker for intensive operations
+
+### Success Metrics
+- Parse 1000-line file in <100ms
+- Update 100 ghost markers in <50ms
+- No UI freezing during AST updates
+- Memory usage <50MB for 1000 comments
+
+### Implementation
+- `src/cache/ASTCache.ts` - Incremental parse cache
+- `src/workers/ASTWorker.ts` - Background AST processing
+- Update `ASTAnchorManager` with caching layer
+
+### Dependencies
+- ✅ AST foundation complete (v2.0.5)
+- ✅ Error handling complete (v2.0.7)
+
+---
+
+## 📋 Milestone 5: Output Capture Excellence (v2.2.0) - DEFERRED
+
+**NOTE:** Originally planned for Q2 2026, now deferred to v2.4+ based on user feedback priority.
+See **Milestone 6 (UX Enhancements)** for higher-priority features.
+
+
 
 **Target:** Q2 2026 (6-7 weeks after v2.1)
 **Goal:** Jupyter notebook-style runtime value capture for any code
@@ -475,7 +572,57 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 
 ---
 
-## 💡 Milestone 6: GitHub Demo Playground (v3.5.0) - VISION
+## 📋 Milestone 6: UX Enhancements (v2.3.0) - PLANNED
+
+**Target:** Q2 2026 (2 weeks)
+**Goal:** Improve user experience for common workflows
+**Priority:** MEDIUM - Quality of life improvements
+
+### Features
+
+#### Comment Templates
+- Quick-insert templates for common comment patterns
+- Pre-built: "Why", "What", "How", "TODO", "Refactor", "Bug"
+- Custom template creator
+- Template variables (e.g., `${author}`, `${date}`, `${functionName}`)
+
+#### PR Review Exporter
+- Export comments to Markdown for GitHub/GitLab PRs
+- Group by file, symbol, or tag
+- Include code snippets in export
+- Auto-link to file locations
+- Support for review comments vs. general notes
+
+#### Symbol-Scoped View Mode
+- Filter comments to current function/class
+- "Focus mode" - hide unrelated comments
+- Breadcrumb navigation (file → class → method)
+- Quick toggle between full and scoped view
+
+#### Multi-File Navigation
+- Jump between related `.comments` files
+- "Go to definition" for cross-file comment references
+- Workspace-wide comment tree view
+- Recent comments history
+
+### Commands
+- `Ctrl+Alt+P T` - Insert template
+- `Ctrl+Alt+P Ctrl+Alt+M` - Export to Markdown for PR
+- `Ctrl+Alt+P Ctrl+Alt+S` - Toggle symbol-scoped view
+
+### Success Metrics
+- Templates reduce comment creation time by 50%
+- PR export used by 30%+ of users
+- Symbol-scoped view improves focus for large files
+
+### Dependencies
+- ✅ AST foundation complete (v2.0.5)
+- ✅ Range comments complete (v2.0.6)
+- ✅ Conversion system complete (v2.0.8)
+
+---
+
+## 💡 Milestone 7: GitHub Demo Playground (v3.5.0) - VISION
 
 **Target:** Q3 2026
 **Goal:** Live, interactive demo in fake GitHub UI
@@ -689,26 +836,57 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 
 ### Upcoming Milestones
 1. 📋 **Test Coverage Push** - January 2026 (1 week)
-   - Ghost marker tests
+   - Ghost marker tests (40+ tests added)
    - AST anchor tests
-   - AI metadata tests
-   - Target: 70%+ coverage
+   - AI metadata tests (35+ tests added)
+   - ParamManager tests (45+ tests added)
+   - Range comment tests (35+ tests added)
+   - Integration tests (10+ tests added)
+   - Target: 70%+ coverage (190 total tests)
 
-2. 📋 **v1.0 Release Prep** - February 2026 (2 weeks)
-   - Security audit
-   - Performance testing
-   - Beta user feedback
-   - Marketplace launch
+2. 📋 **Search & Filtering (v2.1.2)** - December 2025 (1-2 weeks)
+   - Multi-field search (text, author, tag, symbol, date)
+   - Quick filters (TODO only, my comments, orphaned, AI-enriched)
+   - Search results view with grouping
+   - Export search results to Markdown
+   - **New Commands:** `Ctrl+Alt+P F` (search panel)
 
-3. 📋 **MCP Integration (v2.2.0)** - Q1 2026 (4-6 weeks, if user demand)
+3. 📋 **Performance Optimizations (v2.1.3)** - December 2025 (1 week)
+   - Incremental AST parse cache
+   - Lazy loading for large comment lists
+   - Background processing with progress indicators
+   - **Goal:** Parse 1000-line files in <100ms
+
+4. 📋 **v1.0 Release Prep** - February 2026 (2 weeks)
+   - Security audit (OWASP top 10)
+   - Performance testing (large files, many comments)
+   - Beta user feedback (10+ testers)
+   - Marketplace listing preparation
+   - Launch assets (screenshots, demo GIF, banner)
+   - Professional README + user guide
+   - Contributing guidelines
+
+5. 📋 **MCP Integration (v2.2.0)** - Q1 2026 (4-6 weeks, if user demand)
    - Extract AI layer to MCP server
    - Extension becomes MCP client
-   - Agent integration
+   - MCP event hooks (anchor updates, comment changes)
+   - Context provider for AI
+   - JSON-RPC interface for agents
    - **Only build if users validate the need**
 
-4. 📋 **Output Capture (v2.3.0)** - Q2 2026
-5. 💡 **GitHub Demo (v3.5.0)** - Q3 2026
-6. 💡 **AI Training Comparison (v3.6.0)** - Q4 2026
+6. 📋 **UX Enhancements (v2.3.0)** - Q2 2026 (2 weeks)
+   - Comment templates (Why/What/How quick-insert)
+   - PR Review Exporter (Markdown grouped by symbol)
+   - Symbol-scoped view mode (filter to current function/class)
+   - Multi-file navigation (jump between related .comments)
+
+7. 💡 **Advanced AI Features (v2.4.0)** - Q2 2026
+   - AI Summarization (summarize threads per symbol)
+   - Symbol Metrics Overlay (complexity + coverage viz)
+   - Semantic Search (vector embeddings)
+
+8. 💡 **GitHub Demo (v3.5.0)** - Q3 2026
+9. 💡 **AI Training Comparison (v3.6.0)** - Q4 2026
 
 ---
 
