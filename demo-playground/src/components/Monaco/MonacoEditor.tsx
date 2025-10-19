@@ -10,7 +10,7 @@ interface MonacoEditorProps {
   language: string;
   onChange?: (value: string | undefined) => void;
   readOnly?: boolean;
-  fileName?: string;
+  filePath?: string;
 }
 
 export default function MonacoEditor({
@@ -18,7 +18,7 @@ export default function MonacoEditor({
   language,
   onChange,
   readOnly = false,
-  fileName,
+  filePath,
 }: MonacoEditorProps) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const extensionRef = useRef<PairedCommentsExtension | null>(null);
@@ -44,27 +44,29 @@ export default function MonacoEditor({
 
   // Load comments when file changes
   useEffect(() => {
-    if (!extensionRef.current || !fileName) {
+    if (!extensionRef.current || !filePath) {
       return;
     }
 
     // Try to load .comments file for this source file
     const loadComments = async () => {
       try {
-        const response = await fetch(`/examples/${fileName}.comments`);
+        const response = await fetch(`/examples/${filePath}.comments`);
         if (response.ok) {
           const commentFile = await response.json();
           extensionRef.current?.loadComments(commentFile);
-          console.log(`[MonacoEditor] Loaded comments for ${fileName}`);
+          console.log(`[MonacoEditor] Loaded comments for ${filePath}`);
+        } else {
+          console.log(`[MonacoEditor] No comments file found at /examples/${filePath}.comments (${response.status})`);
         }
       } catch (error) {
         // No comments file - that's okay, not all files have comments
-        console.log(`[MonacoEditor] No comments file for ${fileName}`);
+        console.log(`[MonacoEditor] Error loading comments for ${filePath}:`, error);
       }
     };
 
     loadComments();
-  }, [fileName]);
+  }, [filePath]);
 
   // Cleanup on unmount
   useEffect(() => {
