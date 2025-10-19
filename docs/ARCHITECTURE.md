@@ -1,7 +1,10 @@
 # Paired Comments - Technical Architecture
 
-**Version:** 2.0.6 (Range Comments + AST-Based)
-**Last Updated:** October 18, 2025 (Post-Range Comments)
+**Version:** 2.1.0 (MVP Format - AST-Based + Range Comments)
+**Last Updated:** October 19, 2025 (Post-De-Migration)
+
+> **Note:** This document describes the current MVP architecture. All legacy migration code has been removed.
+> MVP uses v2.1.0 format exclusively - no backward compatibility with pre-v2.1.0 formats.
 
 ---
 
@@ -233,11 +236,11 @@ export class CommentCodeLensProvider implements vscode.CodeLensProvider {
 
 ---
 
-## File Format (v2.0.6 - Range Comments)
+## File Format (v2.1.0 - MVP Format)
 
 ```json
 {
-  "version": "2.0.6",
+  "version": "2.1.0",
   "ghostMarkers": [
     {
       "id": "gm-abc123",
@@ -275,27 +278,28 @@ export class CommentCodeLensProvider implements vscode.CodeLensProvider {
 }
 ```
 
-### Range Comments (v2.0.6)
+### Range Comments (v2.1.0)
 
 **Single-Line vs Range Comments:**
 
-**Single-line** (v2.0.5 and earlier):
+**Single-line:**
 - Ghost marker has `line` only
 - Comment has `line` only
 - One gutter icon (single letter: `T`, `N`, `F`, etc.)
 
-**Range** (v2.0.6+):
+**Range:**
 - Ghost marker has `line` (start) + `endLine` (end)
 - Comment has `line`, `startLine`, and `endLine`
 - Two gutter icons (two letters: `TS`/`TE`, `NS`/`NE`, etc.)
 
-**Backwards Compatibility:**
-- v2.0.6 reads v2.0.5 files (no `endLine` = single-line)
-- v2.0.5 can't read range comments (will ignore `endLine` field)
+**Format Compatibility:**
+- v2.1.0 ONLY reads v2.1.0 files (no backward compatibility)
+- Missing `endLine` field = single-line comment
+- No migration support in MVP
 
 ---
 
-## Range Comments Deep Dive (v2.0.6)
+## Range Comments Deep Dive (v2.1.0)
 
 ### Two-Letter Gutter Icons
 
@@ -501,7 +505,7 @@ provideHover(document, position): vscode.Hover | null {
 
 ### Command Structure (S/R/A)
 
-**v2.0.6 Command Architecture:**
+**v2.1.0 Command Architecture:**
 
 ```typescript
 // Ctrl+Alt+P S - Single-line comment
@@ -538,10 +542,10 @@ async function addRangeComment() {
   await commentManager.addComment(uri, { line: startLine, endLine, text });
 }
 
-// Ctrl+Alt+P A - Reserved for v2.0.7+ (smart add)
+// Ctrl+Alt+P A - Reserved for future versions (smart add)
 async function addComment() {
   void vscode.window.showInformationMessage(
-    'Smart Add (Ctrl+Alt+P A) is reserved for v2.0.7+. Use:\n' +
+    'Smart Add (Ctrl+Alt+P A) is reserved for future updates. Use:\n' +
     '• Ctrl+Alt+P S for Single-line comments\n' +
     '• Ctrl+Alt+P R for Range comments'
   );
@@ -554,24 +558,21 @@ async function addComment() {
 - **Separate code paths** - Easier debugging and maintenance
 - **Changed L command** - "List All Comments" moved from S to L (avoid conflict)
 
-### Migration from v2.0.5 → v2.0.6
+### v2.1.0 Format (No Migration Support)
 
-**Schema Changes:**
-1. `COMMENT_FILE_VERSION`: `'2.0.5'` → `'2.0.6'`
-2. `GhostMarker`: Added optional `endLine?: number`
-3. `Comment`: Added optional `startLine?: number` and `endLine?: number`
+**Schema Requirements:**
+1. `COMMENT_FILE_VERSION`: Must be `'2.1.0'`
+2. `GhostMarker`: Optional `endLine?: number` for ranges
+3. `Comment`: Optional `startLine?: number` and `endLine?: number` for ranges
+4. All comments must have `created` and `updated` fields (ISO 8601 timestamps)
+5. No `timestamp` field support (pre-v2.1.0 format)
 
-**Migration Logic:**
+**Migration Removed:**
 ```typescript
-// v2.0.5 files are valid v2.0.6 files (no migration needed)
-// All existing markers are treated as single-line (no endLine)
-// New range comments will have endLine field
-
-if (commentFile.version === '2.0.5') {
-  // No changes needed - v2.0.6 is backwards compatible
-  // Just update version string
-  commentFile.version = '2.0.6';
-}
+// MVP uses v2.1.0 format only - no migration support
+// All legacy migration code removed (211 lines)
+// Files must be in v2.1.0 format or will be rejected
+// Migration support can be added post-MVP if needed
 ```
 
 **Helper Functions (types.ts):**
@@ -633,10 +634,10 @@ const symbols = await vscode.commands.executeCommand(
 **Supported Languages** (via VS Code's built-in language servers):
 - JavaScript ✅
 - TypeScript ✅
-- Python 📋 (v2.0.7+)
-- Go 📋 (v2.0.7+)
-- Rust 📋 (v2.0.7+)
-- Java 📋 (v2.0.7+)
+- Python 📋 (Future)
+- Go 📋 (Future)
+- Rust 📋 (Future)
+- Java 📋 (Future)
 
 ---
 
@@ -694,34 +695,37 @@ const symbols = await vscode.commands.executeCommand(
 
 ## Future Enhancements
 
-### v2.0.7: Error Handling & Recovery (Next)
-- Custom error classes (PairedCommentsError, FileIOError, etc.)
-- Retry logic with exponential backoff for file I/O
-- Structured logging with VS Code output channel ✅ IMPLEMENTED
-- User-friendly error messages
-- Ghost marker persistence validation
+### Post-MVP: Error Handling & Recovery Improvements
+- Enhanced retry strategies
+- Better error recovery mechanisms
+- More detailed error messages
 
-### v2.0.8: Inline Export/Import
+### Post-MVP: Inline Export/Import
 - Export range comments as inline markers
 - Import inline comments back to `.comments` files
 - Visibility toggle for inline markers
 
-### v2.1.0: Params & AI Metadata (KILLER FEATURE)
+### Post-MVP: Params & AI Metadata (KILLER FEATURE)
 - Dynamic parameters (`${functionName}`, `${propCount}`)
 - AI metadata (token estimation, complexity scoring)
 - Privacy controls (.commentsrc configuration)
 - Hash tree architecture for efficient change tracking
 
-### v2.2.0: Output Capture
+### Post-MVP: Output Capture
 - Jupyter notebook-style runtime value capture
 - Template system for common patterns
 - Debug adapter integration
 
-### Future: Multi-Language AST
+### Post-MVP: Multi-Language AST
 - Python support (using Pyright language server)
 - Go support (using gopls)
 - Rust support (using rust-analyzer)
 - Java, C#, C++ support
+
+### Post-MVP: Legacy Migration Support
+- Migration from v1.x, v2.0.x formats to v2.1.0
+- Backward compatibility for existing users
+- Migration tools and documentation
 
 ---
 

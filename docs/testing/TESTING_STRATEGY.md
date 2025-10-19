@@ -1,7 +1,9 @@
 # Testing Strategy
 
-**Version:** 2.1.0
-**Last Updated:** October 18, 2025
+**Version:** 2.1.0 (MVP)
+**Last Updated:** October 19, 2025 (Post-De-Migration)
+
+> **Note:** Based on v2.1.0 MVP format (no legacy migration support).
 
 ---
 

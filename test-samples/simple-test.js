@@ -1,6 +1,6 @@
 /**
  * Simple Test File for Manual Testing
- * This file has 3 simple comments to test basic functionality
+ * Clean file - add comments using Ctrl+Alt+P > Ctrl+Alt+A
  */
 
 // Function 1

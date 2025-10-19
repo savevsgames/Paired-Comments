@@ -41,6 +41,7 @@ const DEFAULT_OPTIONS: Required<Omit<RetryOptions, 'onRetry'>> = {
     if (error && typeof error === 'object' && 'name' in error) {
       const errorName = (error as { name: string }).name;
       // Don't retry validation or schema errors - these won't fix themselves
+      // Note: MigrationError check kept for backward compatibility (migration removed in MVP)
       if (errorName === 'ValidationError' || errorName === 'MigrationError') {
         return false;
       }

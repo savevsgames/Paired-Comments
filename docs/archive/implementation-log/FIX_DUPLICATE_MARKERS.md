@@ -1,3 +1,6 @@
+> **Historical Document:** This contains references to v1.0, v2.0.x formats.
+> **Current MVP (2025-10-19):** Uses v2.1.0 format only - no migration support.
+
 # Critical Bug Fix: Duplicate Ghost Markers
 
 ## Issue Discovered

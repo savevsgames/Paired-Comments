@@ -1,8 +1,11 @@
 # Paired Comments - VS Code Extension
 
-**Version:** 2.1.1 (Comment Actions Menu)
-**Status:** In Development
-**Last Updated:** October 18, 2025
+**Version:** 2.1.0 (MVP Format)
+**Status:** MVP Development
+**Last Updated:** October 19, 2025 (Post-De-Migration)
+
+> **MVP Note:** Uses v2.1.0 format exclusively - no backward compatibility with older formats.
+> All legacy migration code has been removed for cleaner, faster MVP launch.
 
 ---
 
@@ -11,16 +14,16 @@
 **Paired Comments** is a revolutionary VS Code extension that separates code commentary from source files using intelligent sidecar `.comments` files. Unlike traditional inline comments, Paired Comments offers:
 
 - 🎨 **Clean Code** - Keep your source files pristine and focused
-- 👻 **Ghost Markers** - Comments automatically track code as it moves (v2.0)
-- 🤖 **AI-Ready** - Dynamic params and metadata for AI workflows (v2.1)
+- 👻 **Ghost Markers** - Comments automatically track code as it moves (v2.1.0)
+- 🤖 **AI-Ready** - Foundation for dynamic params and metadata (Post-MVP)
 - 🔄 **Git-Friendly** - JSON format that merges cleanly
-- 📝 **Rich Features** - Tags, threads, status tracking, and more
+- 📝 **Rich Features** - Tags, status tracking, range comments, and more
 
 ---
 
 ## ✨ Key Features
 
-### 🚀 v2.1 - Interactive Comment Management (Current)
+### 🚀 v2.1.0 - MVP Format (Current)
 
 **Comment Actions Menu** - Click gutter icons for instant access to all comment actions:
 
@@ -40,7 +43,7 @@
 - **Graceful Degradation**: Works perfectly without AI configured
 - **Cost Tracking**: Monitor API usage and costs
 
-### 👻 v2.0 - Ghost Markers (Stable)
+### 👻 Ghost Markers & AST Tracking (Stable)
 
 **Automatic Line Tracking** - The killer feature that makes Paired Comments reliable:
 
@@ -53,7 +56,7 @@
 
 → [Read the Ghost Markers Documentation](docs/features/ghost-markers.md)
 
-### 🤖 v2.2 - Dynamic Params & AI Enrichment (Coming Q1 2026)
+### 🤖 Post-MVP - Dynamic Params & AI Enrichment (Future)
 
 **Dynamic Parameters** - Comments that auto-update:
 ```json

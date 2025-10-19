@@ -1,18 +1,20 @@
 # Paired Comments - Product Roadmap v2.1
 
-**Version:** 2.0.6 (Range Comments Complete)
-**Last Updated:** October 18, 2025 (Post-Analysis)
-**Roadmap Version:** 2.1 (Analysis-Driven, AI Metadata Focus)
+**Version:** 2.1.0 (MVP Format)
+**Last Updated:** October 19, 2025 (Post-De-Migration)
+**Roadmap Version:** 2.1 (MVP-Focused, AI Metadata Future)
+
+> **Note:** All legacy migration code removed. MVP uses v2.1.0 format exclusively.
 
 ---
 
-## 📍 Current Status: RANGE COMMENTS COMPLETE, MOVING TO AI METADATA ✅
+## 📍 Current Status: MVP CLEANUP COMPLETE ✅
 
-**Latest Achievement:** Range comments core implementation complete (v2.0.6)! Two-letter gutter icons (TS/TE), range tracking, and S/R/A command structure all working.
+**Latest Achievement:** De-migration complete! Removed 211 lines of legacy migration code. MVP now uses v2.1.0 format exclusively.
 
-**Project Health:** A- (90/100) - Production ready with 38% test coverage, 69 passing tests ⬆️
+**Project Health:** Clean foundation - All critical bugs fixed, legacy code removed, documentation updated
 
-**What's Next:** Error handling infrastructure (Week 1), then AI Metadata (v2.1) - our killer differentiator!
+**What's Next:** Full testing suite, then AI Metadata implementation - our killer differentiator!
 
 ---
 
@@ -55,14 +57,12 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 
 ---
 
-## ✅ Milestone 2: AST-Based Line Tracking (v2.0.5) - COMPLETE (Checkpoint)
+## ✅ Milestone 2: AST-Based Line Tracking (v2.1.0) - COMPLETE
 
-**Completed:** October 18, 2025
+**Completed:** October 19, 2025
 **Goal:** Automatic comment tracking through code refactoring using AST
 
-**Status:** ✅ CORE IMPLEMENTATION COMPLETE - Testing & Refinement Phase
-
-**Analysis:** See [docs/milestones/phase-2.0.5-ast-checkpoint.md](docs/milestones/phase-2.0.5-ast-checkpoint.md)
+**Status:** ✅ COMPLETE - MVP format standardized, legacy code removed
 
 ### Achievements
 
@@ -86,11 +86,12 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
   - Gutter icons follow code movements
   - Hover previews update automatically
 
-- ✅ **File Format v2.0.5** - AST anchor schema
+- ✅ **File Format v2.1.0** - AST anchor schema
   - `astAnchor` field (optional, for JS/TS)
   - `symbolPath` for nested symbols
   - `symbolKind` (Function, Method, Class, etc.)
-  - Backwards compatible with v2.0
+  - `created` and `updated` timestamp fields (ISO 8601)
+  - NO backward compatibility (MVP only)
 
 #### ✅ Tested Scenarios (VERIFIED)
 - ✅ Cut/paste function → Icon moves

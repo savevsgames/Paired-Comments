@@ -133,3 +133,48 @@
   - ✅ test/manual/core-features/01-smoke-test.test.md - Ready to run
   - ✅ Compilation: Clean, no TypeScript errors
   - ✅ All bug fixes: Committed and int
+- DO NOT Support Old Formats - MVP Rule
+
+  If you encounter ANY errors related to old comment file formats or migrations:
+
+  1. DO NOT add migration code - We have ZERO users, ZERO legacy to support
+  2. DO NOT add backward compatibility - Delete old format handling instead
+  3. DO NOT accept old timestamp field - Only created/updated (v2.1.0)
+  4. DO NOT validate multiple versions - Only v2.1.0 is valid
+
+  The Only Valid Format (v2.1.0)
+
+  {
+    "version": "2.1.0",
+    "created": "ISO-8601-string",
+    "updated": "ISO-8601-string",
+    "ghostMarkerId": "required-not-null"
+  }
+
+  Old formats that should be REJECTED:
+  - ❌ "timestamp" field (v1.x, v2.0.5)
+  - ❌ "version": "2.0.6" or lower
+  - ❌ ghostMarkerId: null (all comments need markers)
+
+  What We Just Removed (Oct 19, 2025)
+
+  - Deleted 211 lines of migration code from FileSystemManager.ts
+  - Removed migrateToLatestVersion(), migrateV10ToV20(), migrateV20ToV205(), hashString()
+  - Removed ASTAnchorManager dependency from FileSystemManager
+  - Simplified validation to ONLY accept v2.1.0
+
+  If Format Changes Before MVP Launch
+
+  Example: We decide to change something in v2.1.0
+
+  1. ✅ Update COMMENT_FILE_VERSION in types.ts
+  2. ✅ Update ALL test .comments files to new format
+  3. ✅ Delete old format handling code
+  4. ✅ Update validation to new format only
+  5. ❌ DO NOT keep old format support
+  6. ❌ DO NOT add migration between v2.1.0 variants
+
+  Post-MVP Strategy
+
+  Only AFTER launch with real users:
+  - THEN we can add

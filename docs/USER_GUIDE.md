@@ -1,7 +1,10 @@
 # Paired Comments - Feature Guide
 
-**Version:** 2.0.5-dev
-**Last Updated:** October 18, 2025
+**Version:** 2.1.0 (MVP)
+**Last Updated:** October 19, 2025 (Post-De-Migration)
+
+> **Note:** This is the MVP version. All legacy migration code has been removed.
+> Uses v2.1.0 format exclusively - no backward compatibility with pre-v2.1.0 formats.
 
 ---
 
@@ -12,17 +15,17 @@ Store rich comments in separate `.comments` files alongside your code, keeping s
 
 **Commands:**
 - `Ctrl+Alt+P O` - Open paired comments view
-- `Ctrl+Alt+P S` - Add single-line comment (v2.0.6+)
-- `Ctrl+Alt+P R` - Add range comment (v2.0.6+)
-- `Ctrl+Alt+P A` - Smart add (reserved for v2.0.7+)
+- `Ctrl+Alt+P S` - Add single-line comment
+- `Ctrl+Alt+P R` - Add range comment
+- `Ctrl+Alt+P A` - Smart add (reserved for future)
 - `Ctrl+Alt+P E` - Edit existing comment
 - `Ctrl+Alt+P D` - Delete comment
-- `Ctrl+Alt+P L` - List all comments (changed from S)
+- `Ctrl+Alt+P L` - List all comments
 
-**File Format:**
+**File Format (v2.1.0):**
 ```json
 {
-  "version": "2.0.5",
+  "version": "2.1.0",
   "ghostMarkers": [ ... ],
   "comments": [ ... ]
 }
@@ -30,7 +33,7 @@ Store rich comments in separate `.comments` files alongside your code, keeping s
 
 ---
 
-### 2. AST-Based Line Tracking (v2.0.5) ✨ NEW
+### 2. AST-Based Line Tracking (v2.1.0) ✨
 Comments automatically follow your code as it moves! Cut/paste a function, and its comment travels with it.
 
 **How it Works:**
@@ -96,7 +99,7 @@ Hover over gutter icon to see comment preview without opening file.
 
 ---
 
-## Range Comments (v2.0.6) ✅ COMPLETE
+## Range Comments (v2.1.0) ✅ COMPLETE
 
 Comment entire code blocks (e.g., lines 10-15) instead of single lines.
 

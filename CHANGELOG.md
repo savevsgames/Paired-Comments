@@ -5,6 +5,26 @@ All notable changes to the Paired Comments extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2025-10-19
+
+### Removed
+- **🧹 Legacy Migration Code** - Removed all backward compatibility support (MVP cleanup)
+  - Removed 211 lines of migration code from FileSystemManager
+  - Removed `migrateToLatestVersion()`, `migrateV10ToV20()`, `migrateV20ToV205()`, `hashString()` methods
+  - Removed ASTAnchorManager dependency from FileSystemManager
+  - Removed MigrationError handling for old formats
+  - **Rationale**: No users yet = no legacy to support. MVP uses v2.1.0 format exclusively.
+  - **Impact**: Extension only accepts v2.1.0 format files (created/updated fields, ghostMarkers required)
+
+### Changed
+- **File Format Validation** - Now strictly validates v2.1.0 format only
+  - Requires `created` and `updated` fields (rejects old `timestamp` field)
+  - Requires valid ghostMarkers (no null values)
+  - Rejects files with version < 2.1.0
+- **Test Files** - Updated all test samples to v2.1.0 format
+  - Updated ast-test.js header (v2.0.5 → v2.1.0)
+  - Updated simple-test.js to reflect empty state
+
 ## [2.1.1] - 2025-10-18
 
 ### Added

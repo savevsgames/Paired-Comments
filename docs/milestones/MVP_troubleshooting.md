@@ -1,7 +1,10 @@
 # MVP Smoke Test Troubleshooting Log
 
-**Last Updated:** October 18, 2025
-**Status:** In Progress - Fixing smoke test failures
+**Last Updated:** October 19, 2025
+**Status:** ✅ All critical bugs fixed. Legacy migration code removed (MVP uses v2.1.0 only)
+
+> **Note (2025-10-19):** This document contains historical references to migration support.
+> **Current MVP:** Uses v2.1.0 format exclusively - all migration code has been removed.
 
 ---
 
@@ -47,13 +50,14 @@ if (uri.fsPath.includes('.backup-')) {
 - **Symptom:** `ValidationError: Comment file failed schema validation`
 - **Root Cause:** Validator only accepted `created`/`updated` fields, rejected old `timestamp` field
 - **Impact:** All v1.x-v2.0.5 files couldn't be loaded (migration runs AFTER validation)
-- **Fix:** Accept EITHER old `timestamp` OR new `created`/`updated` format
-- **File:** `src/io/FileSystemManager.ts` (lines 517-521)
+- **Fix (Historical):** Initially accepted EITHER format, but this was later removed
+- **Current (2025-10-19):** ✅ **REMOVED** - MVP uses v2.1.0 only, no backward compatibility
+- **File:** `src/io/FileSystemManager.ts` (lines 315-317)
 - **Code:**
 ```typescript
-const hasOldFormat = typeof c['timestamp'] === 'string';
-const hasNewFormat = typeof c['created'] === 'string' && typeof c['updated'] === 'string';
-if (!hasOldFormat && !hasNewFormat) return false;
+// Require created and updated fields (v2.1.0 format - no legacy support)
+if (typeof c['created'] !== 'string') return false;
+if (typeof c['updated'] !== 'string') return false;
 ```
 
 ### Bug #3: Extension Processing Its Own `.comments` Files
@@ -67,11 +71,12 @@ if (!hasOldFormat && !hasNewFormat) return false;
 
 ## 📝 Schema Compatibility Notes
 
-### Comment Field Naming (Historical)
-- **v1.x - v2.0.5:** Used `timestamp` field
-- **v2.0.6+:** Uses `created` and `updated` fields
-- **Migration:** Happens in `FileSystemManager.migrateToLatestVersion()` (line 123)
-- **Important:** Migration runs AFTER validation, so validator must accept both formats
+### Comment Field Naming (Historical - For Reference Only)
+- **v1.x - v2.0.5 (Historical):** Used `timestamp` field
+- **v2.0.6 (Historical):** Used `created` and `updated` fields
+- **v2.1.0 (CURRENT MVP):** Uses `created` and `updated` fields - **NO LEGACY SUPPORT**
+- **Migration:** ✅ **REMOVED** (2025-10-19) - No backward compatibility in MVP
+- **Validation:** Only accepts v2.1.0 format (rejects `timestamp` field)
 
 ### Comment Interface (Current - v2.1.x)
 ```typescript

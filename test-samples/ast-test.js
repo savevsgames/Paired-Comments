@@ -1,12 +1,14 @@
 /**
  * AST Anchor Testing File
  *
- * This file tests AST-based ghost marker tracking (v2.0.5)
+ * This file tests AST-based ghost marker tracking (v2.1.0)
  * Test scenarios:
  * 1. Function moves (up/down in file)
  * 2. Function renames
  * 3. Class method moves
  * 4. Nested symbols
+ *
+ * Clean file - add comments using Ctrl+Alt+P > Ctrl+Alt+A
  */
 
 // Test 1: Top-level function (will add comment here and move it)

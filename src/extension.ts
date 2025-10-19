@@ -72,7 +72,7 @@ export function activate(context: vscode.ExtensionContext): void {
   // Initialize core managers (order matters: AST → Param → FileSystem → Comment → Ghost → Orphan)
   const astAnchorManager = new ASTAnchorManager();
   const paramManager = new ParamManager(astAnchorManager);
-  const fileSystemManager = new FileSystemManager(astAnchorManager);
+  const fileSystemManager = new FileSystemManager();
 
   // Initialize comment file cache after FileSystemManager (v2.1.4)
   const commentFileCache = new CommentFileCache(fileSystemManager);

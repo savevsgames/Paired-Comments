@@ -1,8 +1,8 @@
 /**
  * FileSystemManager - Handles file I/O for .comments files
- * Supports v1.0 (basic), v2.0 (ghost markers), v2.0.5 (AST anchors), v2.0.6 (range comments)
+ * MVP: Supports v2.1.0 format only (no legacy migration support)
  *
- * v2.0.7 Enhancements:
+ * Features:
  * - Custom error classes with user-friendly messages
  * - Retry logic with exponential backoff
  * - Ghost marker persistence validation
@@ -11,21 +11,18 @@
 
 import * as vscode from 'vscode';
 import { CommentFile, COMMENT_FILE_EXTENSION, COMMENT_FILE_VERSION } from '../types';
-import { ASTAnchorManager } from '../core/ASTAnchorManager';
 import { logger } from '../utils/Logger';
 import { retryFileOperation } from '../utils/RetryLogic';
 import {
   FileIOError,
   ValidationError,
-  MigrationError,
   GhostMarkerError
 } from '../errors/PairedCommentsError';
 
 export class FileSystemManager {
-  private astManager: ASTAnchorManager;
-
-  constructor(astManager: ASTAnchorManager) {
-    this.astManager = astManager;
+  // No longer need ASTAnchorManager - migration code removed
+  constructor() {
+    // Constructor now empty - kept for potential future use
   }
 
   /**
@@ -254,222 +251,13 @@ export class FileSystemManager {
     return commentFile;
   }
 
-  /**
-   * Migrate a comment file to the latest version (2.1.0)
-   * Handles: v1.0 → v2.0 → v2.0.5 → v2.0.6 → v2.1.0
-   */
-  async migrateToLatestVersion(data: CommentFile, sourceUri: vscode.Uri): Promise<CommentFile> {
-    const currentVersion = data.version;
-    const targetVersion = COMMENT_FILE_VERSION; // Current is 2.1.0
-
-    // Already at latest version
-    if (currentVersion === targetVersion) {
-      logger.debug(`Already at v${targetVersion}, no migration needed`);
-      return data;
-    }
-
-    logger.info(`Starting migration: v${currentVersion} → v${targetVersion}`, {
-      sourceUri: sourceUri.fsPath,
-      currentVersion,
-      targetVersion
-    });
-
-    let migratedData = data;
-
-    try {
-      // v1.0 → v2.0 (add ghost markers)
-      if (currentVersion === '1.0') {
-        logger.info('Migrating v1.0 → v2.0 (adding ghost markers)');
-        migratedData = await this.migrateV10ToV20(migratedData, sourceUri);
-      }
-
-      // v2.0 → v2.0.5 (add AST anchors)
-      if (migratedData.version === '2.0') {
-        logger.info('Migrating v2.0 → v2.0.5 (adding AST anchors)');
-        migratedData = await this.migrateV20ToV205(migratedData, sourceUri);
-      }
-
-      // v2.0.5 → v2.0.6 (no schema changes, just version bump)
-      if (migratedData.version === '2.0.5') {
-        logger.info('Migrating v2.0.5 → v2.0.6 (range comments support)');
-        migratedData = {
-          ...migratedData,
-          version: '2.0.6'
-        };
-      }
-
-      // v2.0.6 → v2.1.0 (no schema changes, just version bump for v2.1.x features)
-      if (migratedData.version === '2.0.6') {
-        logger.info('Migrating v2.0.6 → v2.1.0 (Phase 1 features)');
-        migratedData = {
-          ...migratedData,
-          version: '2.1.0'
-        };
-      }
-
-      // Save migrated file
-      if (migratedData.version !== currentVersion) {
-        logger.info(`Saving migrated file: v${currentVersion} → v${migratedData.version}`);
-        await this.writeCommentFile(sourceUri, migratedData);
-      }
-
-      return migratedData;
-    } catch (error) {
-      const migrationError = new MigrationError(
-        `Migration failed: ${error}`,
-        currentVersion,
-        targetVersion,
-        `Could not upgrade .comments file from v${currentVersion} to v${targetVersion}`,
-        [
-          'Create a backup of your .comments file',
-          'Try manually updating the version field',
-          'Report this issue with the file contents'
-        ],
-        { originalError: error, sourceUri: sourceUri.fsPath }
-      );
-
-      logger.error('Migration failed', migrationError);
-      throw migrationError;
-    }
-  }
-
-  /**
-   * Migrate v1.0 → v2.0 (add ghost markers)
-   */
-  private async migrateV10ToV20(data: CommentFile, sourceUri: vscode.Uri): Promise<CommentFile> {
-    // This migration was already implemented in the previous version
-    // Just ensure ghost markers array exists and link comments to markers
-
-    const ghostMarkers = [];
-    const lineToMarkerMap = new Map<number, string>();
-
-    // Group comments by line and create ghost markers
-    const commentsByLine = new Map<number, string[]>();
-    for (const comment of data.comments) {
-      const line = comment.line;
-      if (!commentsByLine.has(line)) {
-        commentsByLine.set(line, []);
-      }
-      commentsByLine.get(line)!.push(comment.id);
-    }
-
-    // Create ghost markers
-    const document = await vscode.workspace.openTextDocument(sourceUri);
-    for (const [line, commentIds] of commentsByLine.entries()) {
-      const zeroIndexedLine = line - 1;
-      if (zeroIndexedLine < 0 || zeroIndexedLine >= document.lineCount) {
-        continue;
-      }
-
-      const lineText = document.lineAt(zeroIndexedLine).text.trim();
-      const prevLineText = zeroIndexedLine > 0
-        ? document.lineAt(zeroIndexedLine - 1).text.trim()
-        : '';
-      const nextLineText = zeroIndexedLine < document.lineCount - 1
-        ? document.lineAt(zeroIndexedLine + 1).text.trim()
-        : '';
-
-      const markerId = `gm-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-      lineToMarkerMap.set(line, markerId);
-
-      ghostMarkers.push({
-        id: markerId,
-        line: line,
-        commentIds: commentIds,
-        lineHash: this.hashString(lineText).substring(0, 16),
-        lineText: lineText,
-        prevLineText: prevLineText,
-        nextLineText: nextLineText,
-        lastVerified: new Date().toISOString()
-      });
-    }
-
-    // Update comments with ghost marker references
-    for (const comment of data.comments) {
-      const markerId = lineToMarkerMap.get(comment.line);
-      if (markerId) {
-        comment.ghostMarkerId = markerId;
-      }
-    }
-
-    return {
-      ...data,
-      version: '2.0',
-      ghostMarkers: ghostMarkers
-    };
-  }
-
-  /**
-   * Migrate v2.0 → v2.0.5 (add AST anchors)
-   */
-  private async migrateV20ToV205(data: CommentFile, sourceUri: vscode.Uri): Promise<CommentFile> {
-    if (!data.ghostMarkers || data.ghostMarkers.length === 0) {
-      // No ghost markers to migrate
-      return {
-        ...data,
-        version: '2.0.5'
-      };
-    }
-
-    // Open the source document
-    const document = await vscode.workspace.openTextDocument(sourceUri);
-
-    // Check if AST is supported for this file
-    if (!this.astManager.isSupported(document)) {
-      logger.debug('AST not supported for this file type, using line-based fallback', {
-        languageId: document.languageId
-      });
-      return {
-        ...data,
-        version: '2.0.5'
-      };
-    }
-
-    // Add AST anchors to each ghost marker
-    for (const marker of data.ghostMarkers) {
-      try {
-        const astAnchor = await this.astManager.createAnchor(document, marker.line);
-        marker.astAnchor = astAnchor; // May be null for non-symbolic lines
-
-        if (astAnchor) {
-          logger.debug(`Added AST anchor to marker at line ${marker.line}`, {
-            symbolPath: astAnchor.symbolPath.join('.'),
-            symbolKind: astAnchor.symbolKind
-          });
-        } else {
-          logger.debug(`No symbol found at line ${marker.line}, using line-based fallback`);
-        }
-      } catch (error) {
-        logger.warn(`Failed to create AST anchor for marker at line ${marker.line}`, {
-          error,
-          markerId: marker.id
-        });
-        marker.astAnchor = null; // Fallback to line-based
-      }
-    }
-
-    return {
-      ...data,
-      version: '2.0.5'
-    };
-  }
-
-  /**
-   * Simple hash function for line content
-   */
-  private hashString(str: string): string {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    return Math.abs(hash).toString(16).padStart(16, '0');
-  }
+  // REMOVED: Legacy migration code (migrateToLatestVersion, migrateV10ToV20, migrateV20ToV205, hashString)
+  // MVP uses v2.1.0 format only - no backward compatibility needed
+  // Migration support can be added post-MVP if real users need it
 
   /**
    * Validate comment file schema
-   * Supports v1.0 (basic), v2.0 (ghost markers), and v2.0.5 (AST anchors)
+   * MVP: Validates v2.1.0 format only - no legacy support
    */
   validateCommentFile(data: unknown): data is CommentFile {
     if (!data || typeof data !== 'object') {
@@ -500,7 +288,7 @@ export class FileSystemManager {
         if (typeof m['nextLineText'] !== 'string') return false;
         if (typeof m['lastVerified'] !== 'string') return false;
 
-        // Validate astAnchor (optional, only in v2.0.5+)
+        // Validate astAnchor (optional in v2.1.0)
         if (m['astAnchor'] !== undefined && m['astAnchor'] !== null) {
           const anchor = m['astAnchor'] as Record<string, unknown>;
           if (!Array.isArray(anchor['symbolPath'])) return false;
@@ -521,13 +309,11 @@ export class FileSystemManager {
       if (typeof c['text'] !== 'string') return false;
       if (typeof c['author'] !== 'string') return false;
 
-      // Accept either old 'timestamp' field (v1.x-v2.0.5) OR new 'created'/'updated' (v2.0.6+)
-      // Migration will handle converting timestamp -> created/updated
-      const hasOldFormat = typeof c['timestamp'] === 'string';
-      const hasNewFormat = typeof c['created'] === 'string' && typeof c['updated'] === 'string';
-      if (!hasOldFormat && !hasNewFormat) return false;
+      // Require created and updated fields (v2.1.0 format - no legacy support)
+      if (typeof c['created'] !== 'string') return false;
+      if (typeof c['updated'] !== 'string') return false;
 
-      // ghostMarkerId is optional (only in v2.0+)
+      // ghostMarkerId should exist for all comments (v2.1.0 format)
     }
 
     return true;

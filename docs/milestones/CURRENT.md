@@ -1,8 +1,12 @@
 # Phase 2.0.5: AST-Based Anchoring - Checkpoint Analysis
 
+> **Historical Document:** This describes the v2.0.5 development phase.
+> **Current MVP (2025-10-19):** Uses v2.1.0 format only - no migration support.
+> This document is kept for historical reference and architecture insights.
+
 **Date:** October 18, 2025
-**Status:** AST MILESTONE ACHIEVED ✅ - Testing & Refinement Phase
-**Version:** v2.0.5-dev
+**Status:** ✅ COMPLETE - Now v2.1.0 MVP (de-migration complete)
+**Version:** v2.1.0 (was v2.0.5-dev)
 
 ---
 

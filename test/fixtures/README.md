@@ -1,5 +1,8 @@
 # Test Fixtures
 
+> **MVP Note (2025-10-19):** Legacy migration removed. MVP uses v2.1.0 format only.
+> Legacy fixture files kept for historical reference but are no longer used in tests.
+
 This directory contains test files for manual and automated testing of the Paired Comments extension.
 
 ## Files
@@ -19,7 +22,7 @@ Comprehensive test file covering various JavaScript patterns:
 - Single-line comments (all tag types: TODO, NOTE, FIXME, STAR, QUESTION, HACK, WARNING)
 - Range comments (lines 6-13, 23-64, 79-90, 127-180)
 - Ghost markers with AST anchors
-- Demonstrates v2.0.6 schema with `endLine` fields
+- Demonstrates v2.1.0 schema with `endLine` fields
 
 **Use for:**
 - Manual testing of range comments
@@ -29,29 +32,25 @@ Comprehensive test file covering various JavaScript patterns:
 
 ---
 
-### **legacy-v1.0.comments**
+### **legacy-v1.0.comments** ⚠️ DEPRECATED
 Legacy file format from v1.0 (no ghost markers):
 - Simple comment structure
 - No AST tracking
 - No range support
 
-**Use for:**
-- Testing migration from v1.0 → v2.0.6
-- Verifying backwards compatibility
-- Testing auto-upgrade functionality
+**Status:** DEPRECATED - Migration removed in MVP
+**Kept for:** Historical reference only
 
 ---
 
-### **legacy-v2.0.comments**
+### **legacy-v2.0.comments** ⚠️ DEPRECATED
 Legacy file format from v2.0 (ghost markers, no AST):
 - Has ghost markers
 - No AST anchors (added in v2.0.5)
 - No range support (added in v2.0.6)
 
-**Use for:**
-- Testing migration from v2.0 → v2.0.6
-- Testing AST anchor addition
-- Testing range comment migration
+**Status:** DEPRECATED - Migration removed in MVP
+**Kept for:** Historical reference only
 
 ---
 
@@ -100,18 +99,16 @@ const fixturePath = path.join(__dirname, 'fixtures', 'sample.js.comments');
 const commentFile = await fileSystemManager.readCommentFile(vscode.Uri.file(fixturePath));
 
 // Verify structure
-assert.equal(commentFile.version, '2.0.6');
+assert.equal(commentFile.version, '2.1.0');
 assert.equal(commentFile.ghostMarkers.length, 9);
 assert.equal(commentFile.comments.length, 9);
 ```
 
-### Migration Testing
+### Migration Testing ⚠️ REMOVED
 ```typescript
-// Test v1.0 → v2.0.6 migration
-const legacyPath = path.join(__dirname, 'fixtures', 'legacy-v1.0.comments');
-const migrated = await fileSystemManager.migrateToLatestVersion(legacyData, sourceUri);
-assert.equal(migrated.version, '2.0.6');
-assert.ok(migrated.ghostMarkers);
+// MIGRATION REMOVED IN MVP - Legacy code deleted
+// MVP only supports v2.1.0 format
+// Migration support can be added post-MVP if needed
 ```
 
 ### Error Handling Testing
@@ -143,10 +140,10 @@ To add more test scenarios:
 
 When updating file format versions:
 - Update `sample.js.comments` to latest version
-- Keep legacy files unchanged (they test migration)
-- Add new legacy file for previous version
+- Keep legacy files for historical reference only
 - Update this README with changes
+- **Note:** No migration logic in MVP - all files must be v2.1.0 format
 
 ---
 
-Last Updated: October 18, 2025 (v2.0.6)
+Last Updated: October 19, 2025 (v2.1.0 MVP - De-migration complete)

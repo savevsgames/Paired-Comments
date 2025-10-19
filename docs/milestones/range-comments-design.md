@@ -1,4 +1,7 @@
 # Range Comments - Design Specification
+n> **Historical Document:** This describes range comments design/implementation.
+> **Current MVP (2025-10-19):** Range comments integrated into v2.1.0 format.
+
 
 **Milestone:** v2.0.6
 **Status:** 🚧 Design Phase

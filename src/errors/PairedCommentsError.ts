@@ -208,6 +208,8 @@ export class DecorationError extends PairedCommentsError {
 
 /**
  * Migration errors (version upgrades)
+ * @deprecated Migration support removed in MVP (v2.1.0) - kept for backward compatibility
+ * This class may be removed in future versions
  */
 export class MigrationError extends PairedCommentsError {
   public readonly fromVersion: string;

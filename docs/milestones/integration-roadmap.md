@@ -1,8 +1,10 @@
 # Integration Roadmap - v2.1.x Features
 
+> **Note:** Based on v2.1.0 MVP format (no legacy migration support).
+
 **Status:** In Progress
 **Target Completion:** 1-2 weeks
-**Last Updated:** October 18, 2025
+**Last Updated:** October 19, 2025 (Post-De-Migration)
 
 ---
 

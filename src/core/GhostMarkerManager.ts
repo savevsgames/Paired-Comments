@@ -3,7 +3,7 @@
  *
  * Ghost markers are invisible decorations that track comment positions
  * and automatically move with code edits. They use AST-based anchoring
- * (v2.0.5+) with line-based fallback for unsupported languages.
+ * (v2.1.0) with line-based fallback for unsupported languages.
  */
 
 import * as vscode from 'vscode';
@@ -48,7 +48,7 @@ export class GhostMarkerManager {
 
   /**
    * Create a new ghost marker for a line or range
-   * Now with AST anchor support (v2.0.5+) and range support (v2.0.6+)
+   * Now with AST anchor support and range support (v2.1.0)
    */
   async createMarker(
     document: vscode.TextDocument,
@@ -320,7 +320,7 @@ export class GhostMarkerManager {
     document: vscode.TextDocument,
     markerState: GhostMarkerState
   ): Promise<ReconciliationResult> {
-    // Try AST-based resolution first (v2.0.5+)
+    // Try AST-based resolution first (v2.1.0)
     if (markerState.astAnchor && this.astManager) {
       const astResult = await this.verifyMarkerWithAST(document, markerState);
       if (astResult) {
