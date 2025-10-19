@@ -8,15 +8,18 @@ import { CommentManager } from './core/CommentManager';
 import { GhostMarkerManager } from './core/GhostMarkerManager';
 import { ASTAnchorManager } from './core/ASTAnchorManager';
 import { ParamManager } from './core/ParamManager';
+import { OrphanDetector } from './core/OrphanDetector';
 import { PairedViewManager } from './ui/PairedViewManager';
 import { ScrollSyncManager } from './ui/ScrollSyncManager';
 import { DecorationManager } from './ui/DecorationManager';
 import { CommentCodeLensProvider } from './ui/CommentCodeLensProvider';
 import { CommentFileDecorationProvider } from './ui/CommentFileDecorationProvider';
+import { OrphanStatusBar } from './ui/OrphanStatusBar';
 import { FileSystemManager } from './io/FileSystemManager';
 import { CommentSearchEngine } from './features/CommentSearchEngine';
 import { registerCommands } from './commands';
 import { registerSearchCommands } from './commands/search';
+import { registerOrphanCommands } from './commands/orphans';
 import { logger } from './utils/Logger';
 import {
   isPairedCommentsError,
@@ -60,11 +63,13 @@ export function activate(context: vscode.ExtensionContext): void {
     // Non-blocking - extension still works without AI
   });
 
-  // Initialize core managers (order matters: AST → Param → FileSystem → Comment → Ghost)
+  // Initialize core managers (order matters: AST → Param → FileSystem → Comment → Ghost → Orphan)
   const astAnchorManager = new ASTAnchorManager();
   const paramManager = new ParamManager(astAnchorManager);
   const fileSystemManager = new FileSystemManager(astAnchorManager);
   const ghostMarkerManager = new GhostMarkerManager();
+  const orphanDetector = new OrphanDetector(astAnchorManager, ghostMarkerManager); // v2.1.3
+  const orphanStatusBar = new OrphanStatusBar(); // v2.1.3
   const commentManager = new CommentManager(fileSystemManager, ghostMarkerManager, paramManager);
   const decorationManager = new DecorationManager();
   const scrollSyncManager = new ScrollSyncManager();
@@ -77,6 +82,8 @@ export function activate(context: vscode.ExtensionContext): void {
   // Wire up managers
   decorationManager.setCommentManager(commentManager);
   decorationManager.setGhostMarkerManager(ghostMarkerManager);
+  decorationManager.setOrphanDetector(orphanDetector); // v2.1.3
+  decorationManager.setOrphanStatusBar(orphanStatusBar); // v2.1.3
   ghostMarkerManager.setASTManager(astAnchorManager);
 
   // Register managers for disposal
@@ -84,6 +91,7 @@ export function activate(context: vscode.ExtensionContext): void {
     dispose: () => {
       ghostMarkerManager.dispose();
       astAnchorManager.dispose();
+      orphanStatusBar.dispose(); // v2.1.3
     }
   });
 
@@ -118,6 +126,9 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Register search commands (v2.1.2)
   registerSearchCommands(context, searchEngine, commentManager);
+
+  // Register orphan detection commands (v2.1.3)
+  registerOrphanCommands(context, orphanDetector, commentManager, ghostMarkerManager, decorationManager);
 
   // Set up event listeners
   setupEventListeners(context, commentManager, decorationManager, codeLensProvider, fileDecorationProvider);

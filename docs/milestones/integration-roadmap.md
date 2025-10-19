@@ -286,8 +286,13 @@ test/manual/
   - Registered commands and keybindings
   - Wired into extension.ts
   - Zero compilation errors
-- [ ] OrphanDetector → Visual indicators (2-3 days) ⬅️ **NEXT**
-- [ ] Performance Caches → Wire into managers (1-2 days)
+- [x] OrphanDetector → Visual indicators (✅ COMPLETED)
+  - Added orphan decorations to DecorationManager
+  - Created OrphanStatusBar for count display
+  - Added orphan detection commands (detect, reanchor, report)
+  - Wired OrphanDetector into extension.ts
+  - Zero compilation errors
+- [ ] Performance Caches → Wire into managers (1-2 days) ⬅️ **NEXT**
 - [ ] Cross-File Ops → Register commands (1-2 days)
 - [ ] Smoke test (1 hour)
 - [x] Zero compilation errors ✅
@@ -340,8 +345,8 @@ test/manual/
 
 ---
 
-**Status:** Phase 1 (Integration) - In Progress (1 of 4 features complete)
-**Next Step:** Integrate Orphan Detection UI (v2.1.3)
+**Status:** Phase 1 (Integration) - In Progress (2 of 4 features complete - 50%)
+**Next Step:** Integrate Performance Caches (v2.1.4)
 
 ---
 
@@ -355,10 +360,18 @@ test/manual/
    - Export to Markdown
    - Command: `Ctrl+Alt+P Ctrl+Alt+F`
 
-2. **Backup File Bug Fix** - Resolved double `.comments` extension issue
+2. **Orphan Detection UI (v2.1.3)** - Fully integrated and compiling
+   - Automatic orphan detection on decoration updates
+   - Orange gutter icon with ⚠️ symbol and dashed border
+   - Status bar showing orphan count (clickable)
+   - Commands: `detectOrphans`, `reanchorComment`, `showOrphanReport`
+   - Hover messages with confidence scores and suggested locations
+   - Interactive orphan report with re-anchor workflow
+
+3. **Backup File Bug Fix** - Resolved double `.comments` extension issue
    - Fixed `FileSystemManager.restoreFromBackup()`
    - Created cleanup scripts
    - Clean test environment ready
 
 ### 📋 Next Up:
-**Task 2: Orphan Detection UI (v2.1.3)** - Wire up visual indicators for orphaned comments
+**Task 3: Performance Caches (v2.1.4)** - Wire AST and Comment caches into managers

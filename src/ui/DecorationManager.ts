@@ -6,12 +6,16 @@
 import * as vscode from 'vscode';
 import { CommentManager } from '../core/CommentManager';
 import { GhostMarkerManager } from '../core/GhostMarkerManager';
+import { OrphanDetector } from '../core/OrphanDetector';
+import { OrphanStatusBar } from './OrphanStatusBar';
 import { Comment, CommentTag, TAG_COLORS, GhostMarker, isRangeMarker, getRangeGutterCode, getSingleGutterCode } from '../types';
 
 export class DecorationManager {
   private decorationTypes: Map<string, vscode.TextEditorDecorationType> = new Map();
   private commentManager: CommentManager | null = null;
   private ghostMarkerManager: GhostMarkerManager | null = null;
+  private orphanDetector: OrphanDetector | null = null;
+  private orphanStatusBar: OrphanStatusBar | null = null;
 
   constructor() {
     this.initializeDecorationTypes();
@@ -29,6 +33,20 @@ export class DecorationManager {
    */
   setGhostMarkerManager(manager: GhostMarkerManager): void {
     this.ghostMarkerManager = manager;
+  }
+
+  /**
+   * Set the orphan detector (called after initialization) (v2.1.3)
+   */
+  setOrphanDetector(detector: OrphanDetector): void {
+    this.orphanDetector = detector;
+  }
+
+  /**
+   * Set the orphan status bar (called after initialization) (v2.1.3)
+   */
+  setOrphanStatusBar(statusBar: OrphanStatusBar): void {
+    this.orphanStatusBar = statusBar;
   }
 
   /**
@@ -89,6 +107,17 @@ export class DecorationManager {
         overviewRulerLane: vscode.OverviewRulerLane.Left,
       }));
     }
+
+    // Orphaned comment decoration (v2.1.3)
+    // Orange gutter icon with warning symbol, dashed border
+    this.decorationTypes.set('orphaned', vscode.window.createTextEditorDecorationType({
+      gutterIconPath: this.createGutterIcon('⚠️', '#FF8C00', false), // Dark orange
+      gutterIconSize: 'contain',
+      overviewRulerColor: '#FF8C00',
+      overviewRulerLane: vscode.OverviewRulerLane.Right,
+      border: '1px dashed #FF8C00',
+      borderRadius: '3px',
+    }));
   }
 
   /**
@@ -154,10 +183,20 @@ export class DecorationManager {
       if (liveGhostMarkers && liveGhostMarkers.length > 0) {
         console.log(`[DecorationManager] Using ${liveGhostMarkers.length} LIVE ghost markers`);
         this.applyGhostMarkerDecorations(editor, liveGhostMarkers, commentFile.comments);
+
+        // Apply orphan detection overlay (v2.1.3)
+        if (this.orphanDetector) {
+          await this.applyOrphanDecorations(editor, liveGhostMarkers, commentFile.comments);
+        }
       } else if (commentFile.ghostMarkers && commentFile.ghostMarkers.length > 0) {
         // Fallback to file-based markers if live markers not available
         console.log(`[DecorationManager] Using ${commentFile.ghostMarkers.length} ghost markers from file`);
         this.applyGhostMarkerDecorations(editor, commentFile.ghostMarkers, commentFile.comments);
+
+        // Apply orphan detection overlay (v2.1.3)
+        if (this.orphanDetector) {
+          await this.applyOrphanDecorations(editor, commentFile.ghostMarkers, commentFile.comments);
+        }
       } else {
         // Fallback to legacy decoration mode (v1.0)
         this.applyLegacyDecorations(editor, commentFile.comments);
@@ -483,6 +522,95 @@ export class DecorationManager {
 
     if (editor) {
       await this.updateDecorations(editor);
+    }
+  }
+
+  /**
+   * Apply orphan detection decorations (v2.1.3)
+   * Overlays orphan warnings on top of existing comment decorations
+   */
+  private async applyOrphanDecorations(
+    editor: vscode.TextEditor,
+    ghostMarkers: GhostMarker[],
+    comments: Comment[]
+  ): Promise<void> {
+    if (!this.orphanDetector) {
+      return;
+    }
+
+    const orphanDecorationType = this.decorationTypes.get('orphaned');
+    if (!orphanDecorationType) {
+      return;
+    }
+
+    // Create a map of comment ID -> comment for fast lookup
+    const commentMap = new Map<string, Comment>();
+    for (const comment of comments) {
+      commentMap.set(comment.id, comment);
+    }
+
+    const orphanDecorations: vscode.DecorationOptions[] = [];
+
+    // Check each ghost marker for orphaned comments
+    for (const marker of ghostMarkers) {
+      // Get the first comment on this marker to check orphan status
+      const firstCommentId = marker.commentIds[0];
+      if (!firstCommentId) {
+        continue;
+      }
+
+      const comment = commentMap.get(firstCommentId);
+      if (!comment) {
+        continue;
+      }
+
+      // Detect if this comment is orphaned
+      const orphanStatus = await this.orphanDetector.detectOrphan(
+        comment,
+        marker,
+        editor.document
+      );
+
+      if (orphanStatus.isOrphaned && orphanStatus.confidence >= 70) {
+        // Apply orphan decoration to this line
+        const lineNumber = marker.line - 1; // Convert to 0-indexed
+
+        if (lineNumber >= 0 && lineNumber < editor.document.lineCount) {
+          const range = editor.document.lineAt(lineNumber).range;
+
+          // Create hover message with orphan info
+          const hoverMessage = new vscode.MarkdownString();
+          hoverMessage.isTrusted = true;
+          hoverMessage.appendMarkdown(`**⚠️ Orphaned Comment** (${orphanStatus.confidence}% confidence)\n\n`);
+          hoverMessage.appendMarkdown(`**Reason:** ${orphanStatus.reason}\n\n`);
+
+          if (orphanStatus.suggestedLocation) {
+            hoverMessage.appendMarkdown(`**Suggested location:**\n`);
+            hoverMessage.appendMarkdown(`- File: ${orphanStatus.suggestedLocation.file}\n`);
+            hoverMessage.appendMarkdown(`- Line: ${orphanStatus.suggestedLocation.line}\n`);
+            hoverMessage.appendMarkdown(`- Symbol: ${orphanStatus.suggestedLocation.symbol}\n\n`);
+          }
+
+          hoverMessage.appendMarkdown(`[Re-anchor Comment](command:pairedComments.reanchorComment?${encodeURIComponent(JSON.stringify({uri: editor.document.uri.toString(), line: marker.line}))})`);
+
+          orphanDecorations.push({
+            range,
+            hoverMessage
+          });
+
+          console.log(`[DecorationManager] Orphaned comment detected at line ${marker.line}: ${orphanStatus.reason}`);
+        }
+      }
+    }
+
+    if (orphanDecorations.length > 0) {
+      console.log(`[DecorationManager] Applying ${orphanDecorations.length} orphan decorations`);
+      editor.setDecorations(orphanDecorationType, orphanDecorations);
+    }
+
+    // Update status bar with orphan count
+    if (this.orphanStatusBar) {
+      this.orphanStatusBar.updateCount(orphanDecorations.length);
     }
   }
 

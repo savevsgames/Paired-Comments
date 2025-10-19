@@ -436,4 +436,58 @@ export class OrphanDetector {
 
     return suggestions;
   }
+
+  /**
+   * Detect all orphaned comments in a file
+   * @param sourceFile - Source file path
+   * @param document - VS Code document
+   * @returns Array of orphaned comments with their status
+   */
+  async detectOrphansInFile(
+    sourceFile: string,
+    document: vscode.TextDocument
+  ): Promise<OrphanedComment[]> {
+    const orphanedComments: OrphanedComment[] = [];
+
+    try {
+      // Get all ghost markers for this file
+      const markers = this.ghostMarkerManager.getMarkers(document.uri);
+
+      // Get comment file to access comments
+      const commentFileUri = vscode.Uri.file(sourceFile + '.comments');
+      const commentFileData = await vscode.workspace.fs.readFile(commentFileUri);
+      const commentFile = JSON.parse(Buffer.from(commentFileData).toString('utf8'));
+
+      // Create comment map
+      const commentMap = new Map<string, any>();
+      for (const comment of commentFile.comments) {
+        commentMap.set(comment.id, comment);
+      }
+
+      // Check each marker
+      for (const marker of markers) {
+        for (const commentId of marker.commentIds) {
+          const comment = commentMap.get(commentId);
+          if (!comment) {
+            continue;
+          }
+
+          const orphanStatus = await this.detectOrphan(comment, marker, document);
+
+          if (orphanStatus.isOrphaned && orphanStatus.confidence >= 70) {
+            orphanedComments.push({
+              comment,
+              marker,
+              sourceFile,
+              status: orphanStatus
+            });
+          }
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to detect orphans in file', { sourceFile, error });
+    }
+
+    return orphanedComments;
+  }
 }

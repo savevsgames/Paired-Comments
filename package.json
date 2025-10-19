@@ -200,6 +200,23 @@
         "icon": "$(search)"
       },
       {
+        "command": "pairedComments.detectOrphans",
+        "title": "Paired Comments: Detect Orphaned Comments",
+        "category": "Paired Comments",
+        "icon": "$(warning)"
+      },
+      {
+        "command": "pairedComments.reanchorComment",
+        "title": "Paired Comments: Re-anchor Orphaned Comment",
+        "category": "Paired Comments"
+      },
+      {
+        "command": "pairedComments.showOrphanReport",
+        "title": "Paired Comments: Show Orphan Report",
+        "category": "Paired Comments",
+        "icon": "$(list-unordered)"
+      },
+      {
         "command": "pairedComments.copyAllComments",
         "title": "Paired Comments: Copy All Comments",
         "category": "Paired Comments"
