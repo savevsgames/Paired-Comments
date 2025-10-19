@@ -36,6 +36,12 @@ export class CommentFileDecorationProvider implements vscode.FileDecorationProvi
       return undefined;
     }
 
+    // Don't decorate backup files (PRODUCTION BUG FIX)
+    // Backup files match pattern: *.backup-YYYY-MM-DDTHH-MM-SS-sssZ
+    if (uri.fsPath.includes('.backup-')) {
+      return undefined;
+    }
+
     try {
       // Check if this file has comments
       const commentFile = await this.commentManager.loadComments(uri);

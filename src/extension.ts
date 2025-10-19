@@ -22,6 +22,7 @@ import { CommentSearchEngine } from './features/CommentSearchEngine';
 import { registerCommands } from './commands';
 import { registerSearchCommands } from './commands/search';
 import { registerOrphanCommands } from './commands/orphans';
+import { registerCrossFileCommands } from './commands/crossFile';
 import { logger } from './utils/Logger';
 import {
   isPairedCommentsError,
@@ -141,6 +142,9 @@ export function activate(context: vscode.ExtensionContext): void {
 
   // Register orphan detection commands (v2.1.3)
   registerOrphanCommands(context, orphanDetector, commentManager, ghostMarkerManager, decorationManager);
+
+  // Register cross-file operation commands (v2.1.5)
+  registerCrossFileCommands(context, commentManager, ghostMarkerManager, fileSystemManager, decorationManager);
 
   // Set up event listeners
   setupEventListeners(context, commentManager, decorationManager, codeLensProvider, fileDecorationProvider);

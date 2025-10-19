@@ -1,11 +1,12 @@
 /**
  * Cross-File Comment Operations
+ * v2.1.5 - ✅ INTEGRATED
  *
  * Functions for moving and copying comments between files while preserving
  * ghost markers, AI metadata, and parameters.
  *
- * NOT YET INTEGRATED - Implementation ready for testing and integration
- * No commands registered yet - these are pure functions
+ * UI wrappers in crossFile.ts - these are the core operation functions
+ * Commands registered: moveComment, copyComment, bulkMoveComments
  */
 
 import * as vscode from 'vscode';

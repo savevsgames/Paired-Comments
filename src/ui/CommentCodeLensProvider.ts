@@ -41,6 +41,12 @@ export class CommentCodeLensProvider implements vscode.CodeLensProvider {
       return [];
     }
 
+    // Don't provide CodeLens for backup files (PRODUCTION BUG FIX)
+    // Backup files match pattern: *.backup-YYYY-MM-DDTHH-MM-SS-sssZ
+    if (document.uri.fsPath.includes('.backup-')) {
+      return [];
+    }
+
     try {
       const codeLenses: vscode.CodeLens[] = [];
 

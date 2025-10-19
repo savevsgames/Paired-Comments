@@ -298,8 +298,13 @@ test/manual/
   - Wired CommentFileCache into CommentManager
   - Expected performance: 60-90x faster AST, 10-50x faster comments
   - Zero compilation errors
-- [ ] Cross-File Ops → Register commands (1-2 days) ⬅️ **NEXT**
-- [ ] Smoke test (1 hour)
+- [x] Cross-File Ops → Register commands (✅ COMPLETED)
+  - Created crossFile.ts command wrappers (400+ lines)
+  - Registered moveComment, copyComment, bulkMoveComments commands
+  - Added context menu items (show when comment exists on line)
+  - Wired into extension.ts
+  - Zero compilation errors
+- [ ] Smoke test (1 hour) ⬅️ **NEXT**
 - [x] Zero compilation errors ✅
 - [ ] Extension activates without errors
 
@@ -350,8 +355,8 @@ test/manual/
 
 ---
 
-**Status:** Phase 1 (Integration) - In Progress (3 of 4 features complete - 75%)
-**Next Step:** Integrate Cross-File Operations (v2.1.5)
+**Status:** Phase 1 (Integration) - Complete (4 of 4 features complete - 100%)
+**Next Step:** Smoke Test (verify extension activates and features work)
 
 ---
 
@@ -385,5 +390,15 @@ test/manual/
    - Created cleanup scripts
    - Clean test environment ready
 
+4. **Cross-File Operations (v2.1.5)** - Fully integrated and compiling
+   - Created crossFile.ts with interactive UI workflows
+   - Commands: `moveComment`, `copyComment`, `bulkMoveComments`
+   - File picker dialogs for target selection
+   - Line number input validation
+   - Metadata preservation options
+   - Context menu items (show when comment exists on line)
+   - Wired into extension.ts
+
 ### 📋 Next Up:
-**Task 4: Cross-File Operations (v2.1.5)** - Wire up move/copy commands
+**Phase 1 Complete!** - All 4 features integrated with zero compilation errors
+**Ready for:** Smoke test (F5 Extension Development Host)

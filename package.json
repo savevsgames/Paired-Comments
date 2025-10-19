@@ -258,6 +258,24 @@
         "icon": "$(history)"
       },
       {
+        "command": "pairedComments.moveComment",
+        "title": "Paired Comments: Move Comment to Another File",
+        "category": "Paired Comments",
+        "icon": "$(move)"
+      },
+      {
+        "command": "pairedComments.copyComment",
+        "title": "Paired Comments: Copy Comment to Another File",
+        "category": "Paired Comments",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "pairedComments.bulkMoveComments",
+        "title": "Paired Comments: Move Multiple Comments",
+        "category": "Paired Comments",
+        "icon": "$(list-selection)"
+      },
+      {
         "command": "pairedComments.convertInlineToPaired",
         "title": "Paired Comments: Convert Inline to Paired",
         "category": "Paired Comments",
@@ -401,6 +419,21 @@
           "command": "pairedComments.deleteComment",
           "group": "pairedComments@4",
           "when": "pairedComments.lineHasComment"
+        },
+        {
+          "command": "pairedComments.moveComment",
+          "group": "pairedComments@5",
+          "when": "pairedComments.lineHasComment"
+        },
+        {
+          "command": "pairedComments.copyComment",
+          "group": "pairedComments@6",
+          "when": "pairedComments.lineHasComment"
+        },
+        {
+          "command": "pairedComments.bulkMoveComments",
+          "group": "pairedComments@7",
+          "when": "editorTextFocus"
         }
       ],
       "commandPalette": [
