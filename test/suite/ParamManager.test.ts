@@ -2,12 +2,11 @@
  * Unit tests for ParamManager - Dynamic parameter interpolation
  */
 
-import { describe, it, beforeEach } from 'mocha';
 import { expect } from 'chai';
 import * as vscode from 'vscode';
 import { ParamManager } from '../../src/core/ParamManager';
 import { ASTAnchorManager } from '../../src/core/ASTAnchorManager';
-import { Comment, CommentParameter } from '../../src/types';
+import { Comment } from '../../src/types';
 
 suite('ParamManager', () => {
   let paramManager: ParamManager;
@@ -224,10 +223,10 @@ suite('ParamManager', () => {
       });
 
       // Should extract functionName if AST succeeds
-      if (params.functionName) {
-        expect(params.functionName.value).to.equal('calculateTotal');
-        expect(params.functionName.type).to.equal('dynamic');
-        expect(params.functionName.source).to.equal('function.name');
+      if (params['functionName']) {
+        expect(params['functionName'].value).to.equal('calculateTotal');
+        expect(params['functionName'].type).to.equal('dynamic');
+        expect(params['functionName'].source).to.equal('function.name');
       }
     });
 
@@ -270,18 +269,18 @@ suite('ParamManager', () => {
       });
 
       // Should extract computed parameters from AI metadata
-      expect(params.complexity).to.exist;
-      expect(params.complexity?.value).to.equal(5);
-      expect(params.complexity?.type).to.equal('computed');
+      expect(params['complexity']).to.exist;
+      expect(params['complexity']?.value).to.equal(5);
+      expect(params['complexity']?.type).to.equal('computed');
 
-      expect(params.cognitiveComplexity).to.exist;
-      expect(params.cognitiveComplexity?.value).to.equal(7);
+      expect(params['cognitiveComplexity']).to.exist;
+      expect(params['cognitiveComplexity']?.value).to.equal(7);
 
-      expect(params.tokens).to.exist;
-      expect(params.tokens?.value).to.equal(95); // Uses validated
+      expect(params['tokens']).to.exist;
+      expect(params['tokens']?.value).to.equal(95); // Uses validated
 
-      expect(params.paramCount).to.exist;
-      expect(params.paramCount?.value).to.equal(2);
+      expect(params['paramCount']).to.exist;
+      expect(params['paramCount']?.value).to.equal(2);
     });
 
     test('should return empty params on error', async () => {
@@ -354,9 +353,9 @@ suite('ParamManager', () => {
       });
 
       expect(params).to.exist;
-      expect(params?.nonExistentParam).to.exist;
-      expect(params?.nonExistentParam.value).to.equal('[nonExistentParam]');
-      expect(params?.nonExistentParam.type).to.equal('manual');
+      expect(params?.['nonExistentParam']).to.exist;
+      expect(params?.['nonExistentParam']?.value).to.equal('[nonExistentParam]');
+      expect(params?.['nonExistentParam']?.type).to.equal('manual');
     });
   });
 });

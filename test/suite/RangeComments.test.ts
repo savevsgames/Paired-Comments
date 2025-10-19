@@ -2,10 +2,8 @@
  * Unit tests for Range Comments functionality (v2.0.6+)
  */
 
-import { describe, it, beforeEach } from 'mocha';
 import { expect } from 'chai';
-import { GhostMarker, Comment } from '../../src/types';
-import { isRangeMarker, getRangeGutterCode, getSingleGutterCode } from '../../src/utils/contentAnchor';
+import { GhostMarker, Comment, isRangeMarker, getRangeGutterCode, getSingleGutterCode } from '../../src/types';
 
 suite('Range Comments', () => {
   suite('isRangeMarker', () => {
@@ -283,8 +281,9 @@ suite('Range Comments', () => {
         lastVerified: new Date().toISOString(),
         astAnchor: {
           symbolPath: ['processData'],
-          kind: 6, // SymbolKind.Function
-          containerName: undefined,
+          symbolKind: '6', // SymbolKind.Function (stored as string)
+          containerName: null,
+          offset: 0,
         },
       };
 
@@ -351,8 +350,8 @@ suite('Range Comments', () => {
         },
       };
 
-      expect(comment.params?.lineCount.value).to.equal(41);
-      expect(comment.params?.tokens.value).to.equal(500);
+      expect(comment.params?.['lineCount']?.value).to.equal(41);
+      expect(comment.params?.['tokens']?.value).to.equal(500);
     });
   });
 

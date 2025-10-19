@@ -33,7 +33,7 @@ export type CommentContentType = 'text' | 'markdown' | 'code' | 'link' | 'image'
 /**
  * Parameter types for dynamic comment interpolation (v2.1.2+)
  */
-export type ParameterType = 'static' | 'dynamic' | 'computed';
+export type ParameterType = 'static' | 'dynamic' | 'computed' | 'manual';
 
 /**
  * Source type for dynamic parameters

@@ -3,7 +3,6 @@
  * Note: These tests use mocks - no real API calls are made
  */
 
-import { describe, it, beforeEach, afterEach } from 'mocha';
 import { expect } from 'chai';
 import { AIMetadataService } from '../../src/ai/AIMetadataService';
 import { providerRegistry } from '../../src/ai/ProviderRegistry';

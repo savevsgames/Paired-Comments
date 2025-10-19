@@ -2,12 +2,10 @@
  * Unit tests for GhostMarkerManager - AST-based comment tracking
  */
 
-import { describe, it, beforeEach } from 'mocha';
 import { expect } from 'chai';
 import * as vscode from 'vscode';
 import { GhostMarkerManager } from '../../src/core/GhostMarkerManager';
 import { ASTAnchorManager } from '../../src/core/ASTAnchorManager';
-import { GhostMarker } from '../../src/types';
 
 suite('GhostMarkerManager', () => {
   let ghostMarkerManager: GhostMarkerManager;

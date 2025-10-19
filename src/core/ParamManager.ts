@@ -14,8 +14,8 @@
  */
 
 import * as vscode from 'vscode';
-import { Comment, CommentParameter, ParameterSource, ParameterType } from '../types';
-import { logger } from '../utils/logger';
+import { Comment, CommentParameter } from '../types';
+import { logger } from '../utils/Logger';
 import { ASTAnchorManager } from './ASTAnchorManager';
 
 /**
@@ -67,6 +67,8 @@ export class ParamManager {
 
     for (const match of matches) {
       const paramName = match[1];
+      if (!paramName) continue;
+
       const param = comment.params[paramName];
 
       if (param) {
@@ -96,7 +98,7 @@ export class ParamManager {
   extractParamNames(text: string): string[] {
     const paramRegex = /\$\{(\w+)\}/g;
     const matches = [...text.matchAll(paramRegex)];
-    return matches.map(m => m[1]);
+    return matches.map(m => m[1]).filter((name): name is string => name !== undefined);
   }
 
   /**
@@ -109,7 +111,7 @@ export class ParamManager {
    * @returns Record of auto-detected parameters
    */
   async extractFromCode(options: ExtractParamsOptions): Promise<Record<string, CommentParameter>> {
-    const { sourceUri, lineNumber, document, aiMetadata } = options;
+    const { lineNumber, document, aiMetadata } = options;
     const params: Record<string, CommentParameter> = {};
 
     try {
@@ -117,11 +119,14 @@ export class ParamManager {
       const astAnchor = await this.astAnchorManager.createAnchor(document, lineNumber - 1);
 
       if (astAnchor) {
+        // Convert symbolKind string back to number for comparison
+        const kind = parseInt(astAnchor.symbolKind, 10);
+
         // Extract function name if it's a function
-        if (astAnchor.kind === vscode.SymbolKind.Function || astAnchor.kind === vscode.SymbolKind.Method) {
+        if (kind === vscode.SymbolKind.Function || kind === vscode.SymbolKind.Method) {
           const functionName = this.extractFunctionNameFromPath(astAnchor.symbolPath);
           if (functionName) {
-            params.functionName = {
+            params['functionName'] = {
               value: functionName,
               type: 'dynamic',
               source: 'function.name',
@@ -131,10 +136,10 @@ export class ParamManager {
         }
 
         // Extract class name if it's a class or method
-        if (astAnchor.kind === vscode.SymbolKind.Class || astAnchor.kind === vscode.SymbolKind.Method) {
+        if (kind === vscode.SymbolKind.Class || kind === vscode.SymbolKind.Method) {
           const className = this.extractClassNameFromPath(astAnchor.symbolPath);
           if (className) {
-            params.className = {
+            params['className'] = {
               value: className,
               type: 'dynamic',
               source: 'class.name',
@@ -144,10 +149,10 @@ export class ParamManager {
         }
 
         // Extract variable name if it's a variable
-        if (astAnchor.kind === vscode.SymbolKind.Variable || astAnchor.kind === vscode.SymbolKind.Constant) {
+        if (kind === vscode.SymbolKind.Variable || kind === vscode.SymbolKind.Constant) {
           const variableName = this.extractVariableNameFromPath(astAnchor.symbolPath);
           if (variableName) {
-            params.variableName = {
+            params['variableName'] = {
               value: variableName,
               type: 'dynamic',
               source: 'variable.name',
@@ -160,7 +165,7 @@ export class ParamManager {
       // Extract computed parameters from AI metadata
       if (aiMetadata) {
         if (aiMetadata.tokens) {
-          params.tokens = {
+          params['tokens'] = {
             value: aiMetadata.tokens.validated || aiMetadata.tokens.heuristic,
             type: 'computed',
             source: 'aiMeta.tokens',
@@ -169,14 +174,14 @@ export class ParamManager {
         }
 
         if (aiMetadata.complexity) {
-          params.complexity = {
+          params['complexity'] = {
             value: aiMetadata.complexity.cyclomatic,
             type: 'computed',
             source: 'aiMeta.complexity',
             updatedAt: new Date().toISOString()
           };
 
-          params.cognitiveComplexity = {
+          params['cognitiveComplexity'] = {
             value: aiMetadata.complexity.cognitive,
             type: 'computed',
             source: 'aiMeta.complexity',
@@ -185,7 +190,7 @@ export class ParamManager {
         }
 
         if (aiMetadata.parameters) {
-          params.paramCount = {
+          params['paramCount'] = {
             value: aiMetadata.parameters.parameters.length,
             type: 'computed',
             source: 'aiMeta.paramCount',
@@ -321,22 +326,22 @@ export class ParamManager {
   private extractFunctionNameFromPath(symbolPath: string[]): string | null {
     // Symbol path is like ["ClassName", "methodName"] or ["functionName"]
     // Return the last element (the function/method name)
-    return symbolPath.length > 0 ? symbolPath[symbolPath.length - 1] : null;
+    return symbolPath.length > 0 ? (symbolPath[symbolPath.length - 1] ?? null) : null;
   }
 
   private extractClassNameFromPath(symbolPath: string[]): string | null {
     // For methods, class is the first element
     // For classes, it's the only element
     if (symbolPath.length === 1) {
-      return symbolPath[0]; // Class declaration
+      return symbolPath[0] ?? null; // Class declaration
     } else if (symbolPath.length > 1) {
-      return symbolPath[0]; // Method in class
+      return symbolPath[0] ?? null; // Method in class
     }
     return null;
   }
 
   private extractVariableNameFromPath(symbolPath: string[]): string | null {
     // Variables are usually top-level, return the first element
-    return symbolPath.length > 0 ? symbolPath[0] : null;
+    return symbolPath.length > 0 ? (symbolPath[0] ?? null) : null;
   }
 }
