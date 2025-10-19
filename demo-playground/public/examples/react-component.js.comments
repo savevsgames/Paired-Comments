@@ -1,0 +1,30 @@
+{
+  "version": "2.1.0",
+  "fileName": "react-component.js",
+  "comments": [
+    {
+      "id": "comment-1",
+      "line": 5,
+      "author": "Sarah Chen",
+      "text": "This component demonstrates React hooks and state management. The counter is a simple example but shows the basic pattern for managing component state.",
+      "tag": "NOTE",
+      "timestamp": "2024-10-15T14:30:00Z"
+    },
+    {
+      "id": "comment-2",
+      "line": 12,
+      "author": "Alex Rodriguez",
+      "text": "Consider adding PropTypes or TypeScript interfaces for better type safety. The component would benefit from explicit prop definitions.",
+      "tag": "TODO",
+      "timestamp": "2024-10-16T09:15:00Z"
+    },
+    {
+      "id": "comment-3",
+      "line": 20,
+      "author": "Jamie Park",
+      "text": "This is a great pattern! Clean separation of concerns and easy to test. The increment logic is simple but effective.",
+      "tag": "STAR",
+      "timestamp": "2024-10-17T11:45:00Z"
+    }
+  ]
+}
