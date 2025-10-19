@@ -1,28 +1,7 @@
 {
   "file": "ast-test.js",
   "version": "2.0.6",
-  "ghostMarkers": [
-    {
-      "id": "gm-n208anghwmgx93glt",
-      "line": 40,
-      "commentIds": [
-        "df33f0e4-1c6f-4c49-a216-dff40d157666"
-      ],
-      "astAnchor": {
-        "symbolPath": [
-          "ShoppingCart"
-        ],
-        "symbolKind": "Class",
-        "containerName": null,
-        "offset": 17
-      },
-      "lineHash": "d268ead9f03c85ac",
-      "lineText": "updateTotal() {",
-      "prevLineText": "",
-      "nextLineText": "this.total = calculateTotal(this.items);",
-      "lastVerified": "2025-10-19T05:13:09.329Z"
-    }
-  ],
+  "ghostMarkers": [],
   "comments": [
     {
       "id": "test-comment-1",
@@ -53,17 +32,6 @@
       "tag": "STAR",
       "status": "open",
       "ghostMarkerId": null
-    },
-    {
-      "id": "df33f0e4-1c6f-4c49-a216-dff40d157666",
-      "line": 40,
-      "startLine": 40,
-      "text": "This is a new single line comment - testing to see if it gets removed",
-      "author": "Unknown",
-      "created": "2025-10-19T05:13:09.294Z",
-      "updated": "2025-10-19T05:13:09.294Z",
-      "tag": null,
-      "ghostMarkerId": "gm-n208anghwmgx93glt"
     }
   ]
 }
