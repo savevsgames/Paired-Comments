@@ -5,6 +5,10 @@
 
 # Testing
 /coverage
+/test-results
+/playwright-report
+/.playwright
+/test-output.log
 
 # Next.js
 /.next/
@@ -31,3 +35,5 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+

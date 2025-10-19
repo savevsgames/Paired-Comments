@@ -1,0 +1,13 @@
+services:
+  demo-playground-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: paired-comments-demo-test
+    environment:
+      - NODE_ENV=test
+      - CI=true
+    volumes:
+      - ./test-results:/app/test-results
+      - ./playwright-report:/app/playwright-report
+    command: npm run test:all
