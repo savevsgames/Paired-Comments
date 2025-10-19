@@ -26,3 +26,6 @@ export interface AppState {
   showComments: boolean;
   sidebarWidth: number;
 }
+
+// Re-export mockFiles for filesystem preload
+export { mockFiles } from './mockData';
