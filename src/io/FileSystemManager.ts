@@ -119,10 +119,8 @@ export class FileSystemManager {
         filePath: commentUri.fsPath
       });
 
-      // Auto-migrate to latest version if needed
-      const migratedData = await this.migrateToLatestVersion(result, sourceUri);
-
-      return migratedData;
+      // No migration support - MVP uses v2.1.0 only
+      return result;
     } catch (error) {
       // File not found is expected - return null
       if ((error as { code?: string }).code === 'FileNotFound') {
@@ -257,12 +255,12 @@ export class FileSystemManager {
   }
 
   /**
-   * Migrate a comment file to the latest version (2.0.6)
-   * Handles: v1.0 → v2.0 → v2.0.5 → v2.0.6
+   * Migrate a comment file to the latest version (2.1.0)
+   * Handles: v1.0 → v2.0 → v2.0.5 → v2.0.6 → v2.1.0
    */
   async migrateToLatestVersion(data: CommentFile, sourceUri: vscode.Uri): Promise<CommentFile> {
     const currentVersion = data.version;
-    const targetVersion = COMMENT_FILE_VERSION; // Current is 2.0.6
+    const targetVersion = COMMENT_FILE_VERSION; // Current is 2.1.0
 
     // Already at latest version
     if (currentVersion === targetVersion) {
@@ -297,6 +295,15 @@ export class FileSystemManager {
         migratedData = {
           ...migratedData,
           version: '2.0.6'
+        };
+      }
+
+      // v2.0.6 → v2.1.0 (no schema changes, just version bump for v2.1.x features)
+      if (migratedData.version === '2.0.6') {
+        logger.info('Migrating v2.0.6 → v2.1.0 (Phase 1 features)');
+        migratedData = {
+          ...migratedData,
+          version: '2.1.0'
         };
       }
 
