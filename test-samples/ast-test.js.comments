@@ -1,165 +1,37 @@
 {
   "file": "ast-test.js",
   "version": "2.0.6",
-  "ghostMarkers": [
-    {
-      "id": "gm-formatCurrency",
-      "line": 18,
-      "commentIds": [
-        "comment-formatCurrency"
-      ],
-      "astAnchor": {
-        "symbolPath": [
-          "formatCurrency"
-        ],
-        "symbolKind": "Function",
-        "containerName": null,
-        "offset": 0
-      },
-      "lineHash": "abc123def456",
-      "lineText": "function formatCurrency(amount) {",
-      "prevLineText": "// Test 2: Another top-level function",
-      "nextLineText": "  return `$${amount.toFixed(2)}`;",
-      "lastVerified": "2025-10-17T23:50:00.000Z"
-    },
-    {
-      "id": "gm-dttgcpse7mgvjrzmz",
-      "line": 1,
-      "endLine": 10,
-      "commentIds": [
-        "c2a2fb96-7cbb-4f19-85f5-8be49a2d18ff"
-      ],
-      "astAnchor": null,
-      "lineHash": "8d64a30d9de151b6",
-      "lineText": "/**",
-      "prevLineText": "",
-      "nextLineText": "* AST Anchor Testing File",
-      "lastVerified": "2025-10-18T00:36:37.547Z"
-    },
-    {
-      "id": "gm-il10nhqi8mgvtttlp",
-      "line": 35,
-      "commentIds": [
-        "cccb120f-85ac-4953-b57b-57779aa7b8ba"
-      ],
-      "astAnchor": {
-        "symbolPath": [
-          "ShoppingCart"
-        ],
-        "symbolKind": "Class",
-        "containerName": null,
-        "offset": 12
-      },
-      "lineHash": "0db4c4200ff94d8f",
-      "lineText": "removeItem(itemId) {",
-      "prevLineText": "",
-      "nextLineText": "this.items = this.items.filter(item => item.id !== itemId);",
-      "lastVerified": "2025-10-18T05:17:59.197Z"
-    },
-    {
-      "id": "gm-4rboq0g06mgvug1iv",
-      "line": 60,
-      "endLine": 65,
-      "commentIds": [
-        "ad39ef34-5cdb-4acf-9d86-8c02fb2ce3ba"
-      ],
-      "astAnchor": null,
-      "lineHash": "d41d8cd98f00b204",
-      "lineText": "/**",
-      "prevLineText": "  return applyDiscount;",
-      "nextLineText": " * ",
-      "lastVerified": "2025-10-18T05:36:37.474Z"
-    },
-    {
-      "id": "gm-wsg2mfrucmgwzva41",
-      "line": 30,
-      "commentIds": [
-        "2619c368-7c7d-42f1-8480-bc7a813b1240"
-      ],
-      "astAnchor": {
-        "symbolPath": [
-          "ShoppingCart"
-        ],
-        "symbolKind": "Class",
-        "containerName": null,
-        "offset": 7
-      },
-      "lineHash": "43dba59079d0689e",
-      "lineText": "addItem(item) {",
-      "prevLineText": "// Test 4: Method that we'll move within the class",
-      "nextLineText": "this.items.push(item);",
-      "lastVerified": "2025-10-19T00:54:51.121Z"
-    }
-  ],
+  "ghostMarkers": [],
   "comments": [
     {
-      "id": "c2a2fb96-7cbb-4f19-85f5-8be49a2d18ff",
-      "line": 1,
-      "startLine": 1,
-      "endLine": 10,
-      "text": "NOTE: This IS NOW a range comment covering lines 1-10! (Updated for v2.0.6)",
-      "author": "Unknown",
-      "created": "2025-10-18T00:36:37.530Z",
-      "updated": "2025-10-18T00:36:37.530Z",
-      "tag": "NOTE",
-      "ghostMarkerId": "gm-dttgcpse7mgvjrzmz"
-    },
-    {
-      "id": "comment-formatCurrency",
-      "line": 18,
-      "text": "Currency formatter - ensures consistent $ formatting",
+      "id": "test-comment-1",
+      "line": 13,
+      "text": "Test comment for calculateTotal function",
       "author": "Test User",
-      "created": "2025-10-17T23:50:00.000Z",
-      "updated": "2025-10-17T23:50:00.000Z",
+      "timestamp": "2025-10-19T03:49:14.363Z",
+      "tag": "NOTE",
+      "status": "open",
+      "ghostMarkerId": null
+    },
+    {
+      "id": "test-comment-2",
+      "line": 18,
+      "text": "TODO: Add currency formatting validation",
+      "author": "Test User",
+      "timestamp": "2025-10-19T03:49:14.363Z",
       "tag": "TODO",
-      "ghostMarkerId": "gm-formatCurrency"
+      "status": "open",
+      "ghostMarkerId": null
     },
     {
-      "id": "2619c368-7c7d-42f1-8480-bc7a813b1240",
+      "id": "test-comment-3",
       "line": 30,
-      "startLine": 30,
-      "text": "The ${functionName} has ${complexity} complexity",
-      "author": "Unknown",
-      "created": "2025-10-19T00:54:51.102Z",
-      "updated": "2025-10-19T00:54:51.102Z",
-      "tag": null,
-      "ghostMarkerId": "gm-wsg2mfrucmgwzva41",
-      "params": {
-        "functionName": {
-          "value": "[functionName]",
-          "type": "manual",
-          "source": "manual",
-          "updatedAt": "2025-10-19T00:54:51.125Z"
-        },
-        "complexity": {
-          "value": "[complexity]",
-          "type": "manual",
-          "source": "manual",
-          "updatedAt": "2025-10-19T00:54:51.125Z"
-        }
-      }
-    },
-    {
-      "id": "cccb120f-85ac-4953-b57b-57779aa7b8ba",
-      "line": 35,
-      "text": "This is a REAL ranged comment now!",
-      "author": "Unknown",
-      "created": "2025-10-18T05:17:59.182Z",
-      "updated": "2025-10-19T00:35:55.781Z",
+      "text": "STAR: Important method for cart functionality",
+      "author": "Test User",
+      "timestamp": "2025-10-19T03:49:14.363Z",
       "tag": "STAR",
-      "ghostMarkerId": "gm-il10nhqi8mgvtttlp"
-    },
-    {
-      "id": "ad39ef34-5cdb-4acf-9d86-8c02fb2ce3ba",
-      "line": 60,
-      "startLine": 60,
-      "endLine": 65,
-      "text": "This is the ranged comment version MANUAL ENTRY STYLE",
-      "author": "Unknown",
-      "created": "2025-10-18T05:36:37.474Z",
-      "updated": "2025-10-18T19:53:40.229Z",
-      "tag": "QUESTION",
-      "ghostMarkerId": "gm-4rboq0g06mgvug1iv"
+      "status": "open",
+      "ghostMarkerId": null
     }
   ]
 }

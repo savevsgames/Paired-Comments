@@ -423,7 +423,9 @@
     "test:watch": "mocha --require ts-node/register --watch 'test/unit/**/*.test.ts'",
     "test:coverage": "nyc npm run test:unit",
     "test:reset-manual": "node test/manual/reset-tests.js",
+    "test:reset-samples": "node scripts/reset-test-samples.js",
     "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
+    "cleanup:old-backups": "node scripts/cleanup-old-backups.js",
     "package": "vsce package",
     "clean": "rimraf out coverage .nyc_output"
   },

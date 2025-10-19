@@ -599,11 +599,13 @@ export class FileSystemManager {
     try {
       const dirUri = vscode.Uri.file(commentUri.fsPath.substring(0, commentUri.fsPath.lastIndexOf('\\')));
       const fileName = commentUri.fsPath.substring(commentUri.fsPath.lastIndexOf('\\') + 1);
+      // Get base name without .comments extension for matching backups
+      const baseName = fileName.replace(/\.comments$/, '');
 
-      // Get all backup files
+      // Get all backup files (format: basename.backup-timestamp.comments)
       const entries = await vscode.workspace.fs.readDirectory(dirUri);
       const backupFiles = entries
-        .filter(([name]) => name.startsWith(`${fileName}.backup-`))
+        .filter(([name]) => name.startsWith(`${baseName}.backup-`) && name.endsWith('.comments'))
         .map(([name]) => ({
           name,
           uri: vscode.Uri.file(`${dirUri.fsPath}\\${name}`)
