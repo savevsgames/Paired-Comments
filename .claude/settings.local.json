@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm run compile:*)",
       "WebSearch",
-      "Bash(npm run test:unit)"
+      "Bash(npm run test:unit)",
+      "Bash(npm run test:e2e)"
     ],
     "deny": [],
     "ask": []
