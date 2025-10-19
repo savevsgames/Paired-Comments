@@ -431,95 +431,314 @@ This roadmap is organized by **milestones** (major achievements) rather than pha
 
 ---
 
-## 📋 Milestone 4.5: Search & Filtering (v2.1.2) - PLANNED
+## 📋 Milestone 4.5: Advanced Search & Filtering (v2.1.2) - PLANNED
 
-**Target:** December 2025 (1-2 weeks)
-**Goal:** Advanced search and filtering for large codebases
+**Target:** December 2025 (1 week)
+**Goal:** Google-like search for comments in large codebases
 **Priority:** HIGH - Critical for usability with many comments
+**Estimated Effort:** 3-4 days
+
+**Design Document:** [docs/milestones/v2.1.2-advanced-search.md](milestones/v2.1.2-advanced-search.md)
 
 ### Features
 
-#### Multi-Field Search
-- Search by text content, author, tag, symbol name
-- Date range filters (created, updated, resolved)
-- Status filters (open, resolved, orphaned)
-- Regex support for advanced queries
+#### Multi-Field Search Engine
+- **Search syntax**: `"text" tag:TODO author:john symbol:calculateTotal`
+- **Field support**: text, author, tags, symbol, status, date ranges, AI metadata
+- **Advanced queries**: `created:>2025-10-01`, `has:complexity`, `is:orphaned`
+- **Relevance scoring**: Match score (0-100) for result ranking
 
 #### Quick Filters
-- Show only TODO/FIXME
-- Show only my comments
-- Show only orphaned markers
-- Show only AI-enriched comments
-- Show only range comments
+- Pre-built filters: TODO only, FIXME only, My Comments, Orphaned, AI-Enriched, Recent (7 days)
+- Toggle buttons in search UI
+- Combine with text search
 
 #### Search Results View
-- List view with snippets
-- Group by file, author, tag, or symbol
-- Click to navigate to code
-- Export search results to Markdown
-- Save search queries as presets
+- **Grouping options**: File, Author, Tag, Date, Symbol
+- **Sorting options**: Relevance, Date Created, Date Updated, Line Number, Alphabetical
+- **Navigation**: Click to open paired view and navigate to line
+- **Context**: Snippet preview with highlighted matches
+
+#### Export Capabilities
+- **Markdown export**: Grouped results with metadata
+- **JSON export**: Structured data for tooling
+- **CSV export**: Spreadsheet-friendly format
+
+### Implementation Phases
+1. **Search Engine** (Day 1-2) - `src/features/CommentSearchEngine.ts`
+   - Query parser (`parseSearchString()` for field:value syntax)
+   - Search algorithm (filter and score)
+   - Relevance scoring
+
+2. **Search UI** (Day 2-3) - `src/ui/SearchPanel.ts`
+   - Search input with autocomplete
+   - Quick filter buttons
+   - Grouping and sorting controls
+   - Results list with navigation
+
+3. **Export & Polish** (Day 3-4)
+   - Export to Markdown/JSON/CSV
+   - Search history
+   - Loading indicators
+   - Performance optimization
 
 ### Commands
 - `Ctrl+Alt+P F` - Open advanced search panel
 - `Ctrl+Alt+P Ctrl+Alt+F` - Find in current file comments
 
-### Implementation
-- `src/features/CommentSearch.ts` - Search engine with indexing
-- `src/ui/SearchPanel.ts` - Search UI webview
-- Integration with existing `showAllComments` command
-
 ### Success Metrics
-- Search 1000 comments in <50ms
-- Support complex queries (AND/OR/NOT)
-- Export results maintain formatting
-- Saved searches persist across sessions
+- ✅ Search returns results in <1 second for 1000 comments
+- ✅ All search fields functional (text, author, tag, symbol, date, AI)
+- ✅ Quick filters work with single click
+- ✅ Export generates valid Markdown
+- ✅ Search accessible via keyboard shortcut
+- ✅ User can save and reuse common searches
 
 ### Dependencies
 - ✅ Range comments complete (v2.0.6)
 - ✅ Tags system complete (v0.1.0)
+- ⚠️ AI Metadata (v2.1.0) - Required for has:complexity filter
 
 ---
 
-## 📋 Milestone 4.8: Performance Optimizations (v2.1.3) - PLANNED
+## 📋 Milestone 4.6: Orphan Detection UI (v2.1.3) - PLANNED
 
-**Target:** December 2025 (1 week)
-**Goal:** Handle large files (1000+ lines) and many comments (100+)
-**Priority:** HIGH - Essential for enterprise adoption
+**Target:** December 2025 (1-2 weeks)
+**Goal:** Detect and fix orphaned comments proactively
+**Priority:** HIGH - Critical for reliability
+**Estimated Effort:** 3-4 days
+
+**Design Document:** [docs/milestones/v2.1.3-orphan-detection-ui.md](milestones/v2.1.3-orphan-detection-ui.md)
+
+### Overview
+
+Orphaned comments are comments whose code has been deleted, moved, or significantly changed, making the AST anchor invalid. This milestone adds proactive detection, clear visual indicators, and assisted re-anchoring.
 
 ### Features
 
-#### Incremental Parse Cache
-- Cache AST node maps per file
-- Invalidate only changed regions
-- Reuse partial ASTs for large files
-- LRU cache with configurable size
+#### Orphan Detection Logic
+- **Detection reasons**:
+  - AST anchor failed (symbol not found)
+  - Line hash mismatch (code changed)
+  - Symbol moved (found at different location)
+  - Symbol deleted (not found anywhere)
+  - File deleted
+- **Confidence scoring**: 0-100, how sure we are it's orphaned
+- **Suggested locations**: Where we think the comment should be re-anchored
 
-#### Lazy Loading
-- Load comments on-demand for visible regions
-- Virtual scrolling for comment lists (100+ comments)
-- Debounce AST updates (300ms delay)
-- Progressive rendering for search results
+#### Visual Indicators
+- **Gutter icons**: `[?]` warning marker (red/orange) for orphaned comments
+- **Status bar**: "⚠️ 3 orphaned comments in this file"
+- **Hover message**: Shows orphan reason and recovery actions
+- **Decoration**: Light orange highlight with dashed border
 
-#### Background Processing
-- Async AST parsing with progress indicator
-- Non-blocking ghost marker updates
-- Batched file system writes (reduce I/O)
-- Web worker for intensive operations
+#### Re-Anchor UI
+- **CodeLens actions**: `[🔗 Re-anchor Here] [🔍 Find Symbol] [🗑️ Delete]`
+- **Re-anchor dialog**: Shows original location, suggests new location
+- **Batch re-anchor**: Fix multiple orphans at once
+- **Auto-suggest**: Search for symbol in file and suggest location
+
+#### Orphan Report View
+- **Workspace scan**: Find all orphaned comments across all files
+- **Grouped display**: By file, with counts
+- **Batch operations**: Re-anchor all, delete all
+- **Export report**: Markdown export for documentation
+
+### Implementation Phases
+1. **Detection Logic** (Day 1-2) - `src/core/OrphanDetector.ts`
+   - `detectOrphan()` - Check if comment is orphaned
+   - `findSymbolInFile()` - Search for moved symbols
+   - Confidence scoring algorithm
+
+2. **Visual Indicators** (Day 2) - `src/ui/DecorationManager.ts`
+   - Orphan decoration type
+   - Status bar integration
+   - Hover message with actions
+
+3. **Re-Anchor UI** (Day 3) - `src/commands/reanchor.ts`
+   - CodeLens actions
+   - Re-anchor dialog
+   - Ghost marker update logic
+
+4. **Batch Operations** (Day 4) - `src/ui/OrphanReportView.ts`
+   - TreeDataProvider for orphan list
+   - Batch re-anchor
+   - Export to Markdown
 
 ### Success Metrics
-- Parse 1000-line file in <100ms
-- Update 100 ghost markers in <50ms
-- No UI freezing during AST updates
-- Memory usage <50MB for 1000 comments
+- ✅ Detects orphans with >90% accuracy
+- ✅ False positive rate <5%
+- ✅ Re-anchor success rate >95%
+- ✅ Batch re-anchor completes in <5s for 100 orphans
+- ✅ Visual indicators clear and non-intrusive
+- ✅ User can fix orphans in <30 seconds each
 
-### Implementation
-- `src/cache/ASTCache.ts` - Incremental parse cache
-- `src/workers/ASTWorker.ts` - Background AST processing
-- Update `ASTAnchorManager` with caching layer
+### Dependencies
+- ✅ Ghost Marker system (v2.0+)
+- ✅ AST Anchor Manager (v2.0.5)
+- ✅ Error handling (v2.0.7)
+
+---
+
+## 📋 Milestone 4.7: Performance Cache (v2.1.4) - PLANNED
+
+**Target:** December 2025 (1 week)
+**Goal:** Optimize for large files (1000+ lines) and many comments (100+)
+**Priority:** MEDIUM-HIGH - Essential for enterprise adoption
+**Estimated Effort:** 2-3 days
+
+**Design Document:** [docs/milestones/v2.1.4-performance-cache.md](milestones/v2.1.4-performance-cache.md)
+
+### Overview
+
+Currently, every file open/save triggers full AST parsing and comment loading, which becomes slow at scale. This milestone adds intelligent caching to achieve 60-90x performance improvements.
+
+### Features
+
+#### AST Parse Cache
+- **LRU cache** with version tracking (cache up to 50 files)
+- **Cache invalidation** on document changes
+- **Performance**: First parse 100-300ms → Subsequent <5ms (60-90x faster)
+- **Statistics tracking**: Cache hits/misses, hit rate
+
+**Implementation:** `src/core/ASTCacheManager.ts`
+```typescript
+export class ASTCacheManager {
+  async getSymbols(document: TextDocument): Promise<DocumentSymbol[]>
+  invalidate(documentUri: Uri): void
+  getStats(): {hits: number, misses: number, hitRate: number}
+}
+```
+
+#### Comment File Cache
+- **In-memory cache** with dirty bit tracking
+- **Auto-save** with debouncing (2 second delay)
+- **Batch writes**: 5-10x fewer disk writes
+- **Performance**: First load 10-50ms → Subsequent <1ms
+
+**Implementation:** `src/io/CommentFileCache.ts`
+```typescript
+export class CommentFileCache {
+  async get(sourceUri: Uri): Promise<CommentFile>
+  set(sourceUri: Uri, commentFile: CommentFile): void
+  async flush(sourceUri?: Uri): Promise<void>
+}
+```
+
+#### Ghost Marker Verification Cache
+- **Verification caching** per marker with line hash tracking
+- **Performance**: Verification 50-100ms → <1ms (50x faster)
+- **For 100 markers**: 5000ms → 100ms total
+
+**Implementation:** `src/core/GhostMarkerCache.ts`
+
+#### Incremental Updates
+- **Smart verification**: Only check markers within changed line ranges + 10 line buffer
+- **Performance**: Small edit verifies 2-5 markers instead of 100 (95% reduction)
+
+### Implementation Phases
+1. **AST Cache** (Day 1) - LRU cache with version tracking
+2. **Comment File Cache** (Day 2) - Dirty tracking and auto-save
+3. **Marker Verification Cache** (Day 2-3) - Incremental updates
+4. **Background Processing** (Day 3) - Progress indicators and async operations
+
+### Expected Performance Improvements
+
+| Operation | Before | After | Improvement |
+|-----------|--------|-------|-------------|
+| AST parse (warm) | 100-300ms | <5ms | 60-90x faster |
+| Load .comments | 10-50ms | <1ms | 10-50x faster |
+| Verify 100 markers | 5000ms | 100ms | 50x faster |
+| Small edit verification | 100 markers | 2-5 markers | 95% reduction |
+
+### Success Metrics
+- ✅ 1000-line file opens in <100ms
+- ✅ Adding comment takes <50ms
+- ✅ Typing doesn't cause lag (frame drops <5%)
+- ✅ 100 comments load in <100ms
+- ✅ Cache hit rate >80%
 
 ### Dependencies
 - ✅ AST foundation complete (v2.0.5)
-- ✅ Error handling complete (v2.0.7)
+- ✅ Ghost Marker system complete (v2.0+)
+
+---
+
+## 📋 Milestone 4.8: Cross-File Comment Movement (v2.1.5) - PLANNED
+
+**Target:** December 2025 (1 week)
+**Goal:** Move/copy comments between files seamlessly
+**Priority:** MEDIUM
+**Estimated Effort:** 2-3 days
+
+**Design Document:** [docs/features/cross-file-comment-movement.md](../features/cross-file-comment-movement.md)
+
+### Overview
+
+Enable comments to be moved or copied between source files while maintaining their integrity, ghost markers, and AI metadata. Currently, if code is refactored to a different file, comments don't follow.
+
+### Features
+
+#### Move Comment Command
+- **Command**: `pairedComments.moveComment`
+- **Workflow**:
+  1. User selects comment in source file
+  2. Invokes "Move Comment to Another File"
+  3. Selects destination file and line
+  4. Extension moves comment, updates ghost markers, saves both files
+- **Preservation**: AI metadata, parameters, tags, all preserved
+
+#### Copy Comment Command
+- **Command**: `pairedComments.copyComment`
+- **Workflow**: Similar to move, but duplicates comment with new ID
+- **Author tracking**: Updated to show "john (copied from utils.js)"
+
+#### Bulk Move
+- **Use case**: Move entire class with 10 comments to new file
+- **Preserves**: Relative line positions and spacing
+- **Progress**: Shows "Re-anchored 5 of 7 comments"
+
+#### Git Rename Detection
+- **Auto-detect**: File renames via VS Code file system watcher
+- **Prompt**: "File renamed. Update comment file reference?"
+- **Auto-update**: Renames .comments file and updates internal paths
+
+#### Export/Import Between Workspaces
+- **Export format**: JSON with full metadata
+- **Import**: Creates comments with new ghost markers
+- **Cross-project**: Move comments between different workspaces
+
+### Implementation
+
+**Core Functions:**
+```typescript
+export interface MoveCommentOptions {
+  commentId: string;
+  sourceUri: vscode.Uri;
+  targetUri: vscode.Uri;
+  targetLine: number;
+  preserveMetadata: boolean;
+}
+
+export async function moveComment(options: MoveCommentOptions): Promise<void>
+export async function copyComment(options: MoveCommentOptions): Promise<void>
+export async function bulkMoveComments(options: BulkMoveOptions): Promise<void>
+```
+
+**File:** `src/commands/crossFileOperations.ts`
+
+### Success Metrics
+- ✅ Move comment succeeds 100% for valid targets
+- ✅ Ghost markers track correctly after move
+- ✅ AI metadata and params preserved
+- ✅ Bulk move handles 50+ comments without errors
+- ✅ Git rename detection works for 95%+ of renames
+- ✅ Export/Import preserves all metadata
+
+### Dependencies
+- ✅ Ghost Marker system (v2.0+)
+- ✅ CommentManager CRUD operations (v0.1.0)
+- ⚠️ Advanced Search (v2.1.2) - To show "all orphans" filter
 
 ---
 
@@ -835,29 +1054,51 @@ See **Milestone 6 (UX Enhancements)** for higher-priority features.
    - **NOTE:** v2.0.8 completed first (critical UX fixes)
 
 ### Upcoming Milestones
-1. 📋 **Test Coverage Push** - January 2026 (1 week)
+1. 📋 **Advanced Search & Filtering (v2.1.2)** - December 2025 (1 week)
+   - Google-like search with field:value syntax
+   - Multi-field search (text, author, tag, symbol, date, AI metadata)
+   - Quick filters (TODO only, my comments, orphaned, AI-enriched)
+   - Search results view with grouping and sorting
+   - Export search results to Markdown/JSON/CSV
+   - **New Commands:** `Ctrl+Alt+P F` (search panel)
+   - **Design Complete:** [v2.1.2-advanced-search.md](milestones/v2.1.2-advanced-search.md)
+
+2. 📋 **Orphan Detection UI (v2.1.3)** - December 2025 (1-2 weeks)
+   - Automatic orphan detection with confidence scoring
+   - Visual indicators (gutter icons, status bar, hover messages)
+   - Re-anchor UI with CodeLens actions
+   - Batch operations for fixing multiple orphans
+   - Orphan report view with workspace scan
+   - **Design Complete:** [v2.1.3-orphan-detection-ui.md](milestones/v2.1.3-orphan-detection-ui.md)
+
+3. 📋 **Performance Cache (v2.1.4)** - December 2025 (1 week)
+   - AST parse cache (60-90x faster warm cache)
+   - Comment file cache with dirty tracking and auto-save
+   - Ghost marker verification cache (50x faster)
+   - Incremental updates (only verify changed regions)
+   - **Goal:** Parse 1000-line files in <100ms, 100 comments in <100ms
+   - **Design Complete:** [v2.1.4-performance-cache.md](milestones/v2.1.4-performance-cache.md)
+
+4. 📋 **Cross-File Comment Movement (v2.1.5)** - December 2025 (1 week)
+   - Move/copy comments between files with metadata preservation
+   - Bulk move operations for refactoring workflows
+   - Git rename detection and auto-update .comments files
+   - Export/import between workspaces
+   - **Design Complete:** [cross-file-comment-movement.md](../features/cross-file-comment-movement.md)
+
+5. 📋 **Test Coverage Push** - January 2026 (1 week)
    - Ghost marker tests (40+ tests added)
    - AST anchor tests
    - AI metadata tests (35+ tests added)
    - ParamManager tests (45+ tests added)
    - Range comment tests (35+ tests added)
+   - Cross-file movement tests
+   - Search engine tests
+   - Orphan detection tests
    - Integration tests (10+ tests added)
-   - Target: 70%+ coverage (190 total tests)
+   - Target: 70%+ coverage (250+ total tests)
 
-2. 📋 **Search & Filtering (v2.1.2)** - December 2025 (1-2 weeks)
-   - Multi-field search (text, author, tag, symbol, date)
-   - Quick filters (TODO only, my comments, orphaned, AI-enriched)
-   - Search results view with grouping
-   - Export search results to Markdown
-   - **New Commands:** `Ctrl+Alt+P F` (search panel)
-
-3. 📋 **Performance Optimizations (v2.1.3)** - December 2025 (1 week)
-   - Incremental AST parse cache
-   - Lazy loading for large comment lists
-   - Background processing with progress indicators
-   - **Goal:** Parse 1000-line files in <100ms
-
-4. 📋 **v1.0 Release Prep** - February 2026 (2 weeks)
+6. 📋 **v1.0 Release Prep** - February 2026 (2 weeks)
    - Security audit (OWASP top 10)
    - Performance testing (large files, many comments)
    - Beta user feedback (10+ testers)
@@ -866,7 +1107,7 @@ See **Milestone 6 (UX Enhancements)** for higher-priority features.
    - Professional README + user guide
    - Contributing guidelines
 
-5. 📋 **MCP Integration (v2.2.0)** - Q1 2026 (4-6 weeks, if user demand)
+7. 📋 **MCP Integration (v2.2.0)** - Q1 2026 (4-6 weeks, if user demand)
    - Extract AI layer to MCP server
    - Extension becomes MCP client
    - MCP event hooks (anchor updates, comment changes)
@@ -874,19 +1115,19 @@ See **Milestone 6 (UX Enhancements)** for higher-priority features.
    - JSON-RPC interface for agents
    - **Only build if users validate the need**
 
-6. 📋 **UX Enhancements (v2.3.0)** - Q2 2026 (2 weeks)
+8. 📋 **UX Enhancements (v2.3.0)** - Q2 2026 (2 weeks)
    - Comment templates (Why/What/How quick-insert)
    - PR Review Exporter (Markdown grouped by symbol)
    - Symbol-scoped view mode (filter to current function/class)
    - Multi-file navigation (jump between related .comments)
 
-7. 💡 **Advanced AI Features (v2.4.0)** - Q2 2026
+9. 💡 **Advanced AI Features (v2.4.0)** - Q2 2026
    - AI Summarization (summarize threads per symbol)
    - Symbol Metrics Overlay (complexity + coverage viz)
    - Semantic Search (vector embeddings)
 
-8. 💡 **GitHub Demo (v3.5.0)** - Q3 2026
-9. 💡 **AI Training Comparison (v3.6.0)** - Q4 2026
+10. 💡 **GitHub Demo (v3.5.0)** - Q3 2026
+11. 💡 **AI Training Comparison (v3.6.0)** - Q4 2026
 
 ---
 

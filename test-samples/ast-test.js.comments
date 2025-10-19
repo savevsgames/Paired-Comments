@@ -69,6 +69,26 @@
       "prevLineText": "  return applyDiscount;",
       "nextLineText": " * ",
       "lastVerified": "2025-10-18T05:36:37.474Z"
+    },
+    {
+      "id": "gm-wsg2mfrucmgwzva41",
+      "line": 30,
+      "commentIds": [
+        "2619c368-7c7d-42f1-8480-bc7a813b1240"
+      ],
+      "astAnchor": {
+        "symbolPath": [
+          "ShoppingCart"
+        ],
+        "symbolKind": "Class",
+        "containerName": null,
+        "offset": 7
+      },
+      "lineHash": "43dba59079d0689e",
+      "lineText": "addItem(item) {",
+      "prevLineText": "// Test 4: Method that we'll move within the class",
+      "nextLineText": "this.items.push(item);",
+      "lastVerified": "2025-10-19T00:54:51.121Z"
     }
   ],
   "comments": [
@@ -93,6 +113,31 @@
       "updated": "2025-10-17T23:50:00.000Z",
       "tag": "TODO",
       "ghostMarkerId": "gm-formatCurrency"
+    },
+    {
+      "id": "2619c368-7c7d-42f1-8480-bc7a813b1240",
+      "line": 30,
+      "startLine": 30,
+      "text": "The ${functionName} has ${complexity} complexity",
+      "author": "Unknown",
+      "created": "2025-10-19T00:54:51.102Z",
+      "updated": "2025-10-19T00:54:51.102Z",
+      "tag": null,
+      "ghostMarkerId": "gm-wsg2mfrucmgwzva41",
+      "params": {
+        "functionName": {
+          "value": "[functionName]",
+          "type": "manual",
+          "source": "manual",
+          "updatedAt": "2025-10-19T00:54:51.125Z"
+        },
+        "complexity": {
+          "value": "[complexity]",
+          "type": "manual",
+          "source": "manual",
+          "updatedAt": "2025-10-19T00:54:51.125Z"
+        }
+      }
     },
     {
       "id": "cccb120f-85ac-4953-b57b-57779aa7b8ba",

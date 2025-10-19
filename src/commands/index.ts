@@ -1306,6 +1306,24 @@ async function convertPairedToInline(deps: CommandDependencies): Promise<void> {
 }
 
 /**
+ * Get display text for a comment (with parameter interpolation if available)
+ * v2.1.2: Interpolates ${variableName} patterns with actual values
+ */
+function getCommentDisplayText(comment: Comment, paramManager: ParamManager | null): string {
+  if (!paramManager || !comment.params) {
+    return comment.text;
+  }
+
+  try {
+    return paramManager.interpolate(comment);
+  } catch (error) {
+    // Fallback to raw text if interpolation fails
+    logger.debug('Failed to interpolate comment parameters', error);
+    return comment.text;
+  }
+}
+
+/**
  * Show comment actions menu (v2.1.1)
  * Quick pick menu with all available actions for a comment
  */
@@ -1321,12 +1339,15 @@ async function showCommentActionsMenu(deps: CommandDependencies, sourceUri: vsco
   // If multiple comments, let user pick which one first
   let selectedComment = comments[0];
   if (comments.length > 1) {
-    const commentItems = comments.map(c => ({
-      label: c.text.substring(0, 60) + (c.text.length > 60 ? '...' : ''),
-      description: `by ${c.author}`,
-      detail: c.tag ? `[${c.tag}] ${c.text}` : c.text,
-      comment: c
-    }));
+    const commentItems = comments.map(c => {
+      const displayText = getCommentDisplayText(c, deps.paramManager);
+      return {
+        label: displayText.substring(0, 60) + (displayText.length > 60 ? '...' : ''),
+        description: `by ${c.author}`,
+        detail: c.tag ? `[${c.tag}] ${displayText}` : displayText,
+        comment: c
+      };
+    });
 
     const selectedItem = await vscode.window.showQuickPick(commentItems, {
       placeHolder: `${comments.length} comments on line ${lineNumber} - Select one`,
@@ -1441,7 +1462,7 @@ async function showCommentActionsMenu(deps: CommandDependencies, sourceUri: vsco
         break;
 
       case 'copy':
-        await executeCopyAction(selectedComment);
+        await executeCopyAction(deps, selectedComment);
         break;
 
       case 'tag':
@@ -1549,8 +1570,10 @@ async function executeDeleteAction(deps: CommandDependencies, sourceUri: vscode.
 /**
  * Execute copy action (copies comment text to clipboard)
  */
-async function executeCopyAction(comment: Comment): Promise<void> {
-  await vscode.env.clipboard.writeText(comment.text);
+async function executeCopyAction(deps: CommandDependencies, comment: Comment): Promise<void> {
+  // Use interpolated text if params are available (v2.1.2)
+  const displayText = getCommentDisplayText(comment, deps.paramManager);
+  await vscode.env.clipboard.writeText(displayText);
   void vscode.window.showInformationMessage('Comment text copied to clipboard');
 }
 

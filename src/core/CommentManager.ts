@@ -8,19 +8,24 @@ import * as vscode from 'vscode';
 import { Comment, CommentFile, AddCommentOptions, UpdateCommentOptions, detectTag } from '../types';
 import { FileSystemManager } from '../io/FileSystemManager';
 import { GhostMarkerManager } from './GhostMarkerManager';
+import { ParamManager } from './ParamManager';
 import { aiMetadataService } from '../ai/AIMetadataService';
 import { logger } from '../utils/Logger';
 
 export class CommentManager {
   private cache: Map<string, CommentFile> = new Map();
   private ghostMarkerManager: GhostMarkerManager | null = null;
+  private paramManager: ParamManager | null = null;
 
   constructor(
     private fileSystemManager: FileSystemManager,
-    ghostMarkerManager?: GhostMarkerManager
+    ghostMarkerManager?: GhostMarkerManager,
+    paramManager?: ParamManager
   ) {
     // Ghost markers are optional for backwards compatibility
     this.ghostMarkerManager = ghostMarkerManager || null;
+    // Param manager is optional for backwards compatibility
+    this.paramManager = paramManager || null;
   }
 
   /**
@@ -209,6 +214,27 @@ export class CommentManager {
       }
     }
 
+    // Dynamic parameter extraction (v2.1.2) - Extract params from comment text
+    let params: Comment['params'];
+    if (this.paramManager) {
+      try {
+        const document = await vscode.workspace.openTextDocument(sourceUri);
+        params = await this.paramManager.createParams(options.text, {
+          sourceUri,
+          lineNumber: options.line,
+          document,
+          aiMetadata
+        });
+
+        if (params && Object.keys(params).length > 0) {
+          logger.info(`Extracted ${Object.keys(params).length} dynamic parameter(s) from comment text`);
+        }
+      } catch (error) {
+        // Non-blocking: Log error but continue with comment creation
+        logger.warn('Parameter extraction failed (comment will be created without params)', error);
+      }
+    }
+
     const newComment: Comment = {
       id,
       line: options.line,
@@ -220,7 +246,8 @@ export class CommentManager {
       updated: now,
       tag: tag,
       ghostMarkerId: ghostMarkerId,
-      aiMetadata: aiMetadata // v2.1.0: Add AI metadata if available
+      aiMetadata: aiMetadata, // v2.1.0: Add AI metadata if available
+      params: params // v2.1.2: Add dynamic parameters if available
     };
 
     // Add to comments array
@@ -249,6 +276,29 @@ export class CommentManager {
     comment.text = options.text;
     comment.updated = new Date().toISOString();
     comment.tag = detectTag(options.text);
+
+    // Re-extract parameters if ParamManager is available (v2.1.2)
+    if (this.paramManager) {
+      try {
+        const document = await vscode.workspace.openTextDocument(sourceUri);
+        const params = await this.paramManager.createParams(options.text, {
+          sourceUri,
+          lineNumber: comment.line,
+          document,
+          aiMetadata: comment.aiMetadata
+        });
+
+        // Update params (or remove if none found)
+        comment.params = params;
+
+        if (params && Object.keys(params).length > 0) {
+          logger.debug(`Updated ${Object.keys(params).length} parameter(s) for comment ${comment.id}`);
+        }
+      } catch (error) {
+        // Non-blocking: Log error but continue with comment update
+        logger.warn('Parameter update failed (comment will be updated without param changes)', error);
+      }
+    }
 
     await this.saveComments(sourceUri, commentFile);
   }

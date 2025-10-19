@@ -3,26 +3,6 @@
   "version": "2.0.6",
   "ghostMarkers": [
     {
-      "id": "gm-calculateTotal",
-      "line": 13,
-      "commentIds": [
-        "comment-calculateTotal"
-      ],
-      "astAnchor": {
-        "symbolPath": [
-          "calculateTotal"
-        ],
-        "symbolKind": "Function",
-        "containerName": null,
-        "offset": 0
-      },
-      "lineHash": "9889baf13f5ec07b",
-      "lineText": "function calculateTotal(items) {",
-      "prevLineText": "// Test 1: Top-level function (will add comment here and move it)",
-      "nextLineText": "  return items.reduce((sum, item) => sum + item.price, 0);",
-      "lastVerified": "2025-10-17T23:50:00.000Z"
-    },
-    {
       "id": "gm-formatCurrency",
       "line": 18,
       "commentIds": [
@@ -105,16 +85,6 @@
       "ghostMarkerId": "gm-dttgcpse7mgvjrzmz"
     },
     {
-      "id": "comment-calculateTotal",
-      "line": 13,
-      "text": "Main pricing calculation - sums all item prices in the cart",
-      "author": "Test User",
-      "created": "2025-10-17T23:50:00.000Z",
-      "updated": "2025-10-17T23:50:00.000Z",
-      "tag": "NOTE",
-      "ghostMarkerId": "gm-calculateTotal"
-    },
-    {
       "id": "comment-formatCurrency",
       "line": 18,
       "text": "Currency formatter - ensures consistent $ formatting",
@@ -130,8 +100,8 @@
       "text": "This is a REAL ranged comment now!",
       "author": "Unknown",
       "created": "2025-10-18T05:17:59.182Z",
-      "updated": "2025-10-18T05:17:59.182Z",
-      "tag": null,
+      "updated": "2025-10-19T00:35:55.781Z",
+      "tag": "STAR",
       "ghostMarkerId": "gm-il10nhqi8mgvtttlp"
     },
     {

@@ -533,9 +533,10 @@ export class FileSystemManager {
       // Read current file
       const fileData = await vscode.workspace.fs.readFile(commentUri);
 
-      // Create backup with timestamp
+      // Create backup with timestamp (insert before .comments extension)
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const backupUri = vscode.Uri.file(`${commentUri.fsPath}.backup-${timestamp}`);
+      const basePath = commentUri.fsPath.replace(/\.comments$/, '');
+      const backupUri = vscode.Uri.file(`${basePath}.backup-${timestamp}.comments`);
 
       // Write backup
       await vscode.workspace.fs.writeFile(backupUri, fileData);
@@ -564,11 +565,13 @@ export class FileSystemManager {
     try {
       const dirUri = vscode.Uri.file(commentUri.fsPath.substring(0, commentUri.fsPath.lastIndexOf('\\')));
       const fileName = commentUri.fsPath.substring(commentUri.fsPath.lastIndexOf('\\') + 1);
+      // Get base name without .comments extension for matching backups
+      const baseName = fileName.replace(/\.comments$/, '');
 
-      // Get all backup files
+      // Get all backup files (format: basename.backup-timestamp.comments)
       const entries = await vscode.workspace.fs.readDirectory(dirUri);
       const backupFiles = entries
-        .filter(([name]) => name.startsWith(`${fileName}.backup-`))
+        .filter(([name]) => name.startsWith(`${baseName}.backup-`) && name.endsWith('.comments'))
         .map(([name]) => ({
           name,
           uri: vscode.Uri.file(`${dirUri.fsPath}\\${name}`)

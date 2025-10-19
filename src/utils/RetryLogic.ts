@@ -205,7 +205,7 @@ export async function retry<T>(
   if (result.error) {
     throw result.error;
   } else {
-    throw new Error('Operation failed with unknown error');
+    throw new Error(`Operation failed with unknown error after ${result.attempts} attempts in ${result.totalTimeMs}ms`);
   }
 }
 

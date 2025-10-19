@@ -63,7 +63,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const paramManager = new ParamManager(astAnchorManager);
   const fileSystemManager = new FileSystemManager(astAnchorManager);
   const ghostMarkerManager = new GhostMarkerManager();
-  const commentManager = new CommentManager(fileSystemManager, ghostMarkerManager);
+  const commentManager = new CommentManager(fileSystemManager, ghostMarkerManager, paramManager);
   const decorationManager = new DecorationManager();
   const scrollSyncManager = new ScrollSyncManager();
   const pairedViewManager = new PairedViewManager(
