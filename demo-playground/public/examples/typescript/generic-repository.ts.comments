@@ -1,0 +1,46 @@
+{
+  "version": "2.1.0",
+  "fileName": "generic-repository.ts",
+  "comments": [
+    {
+      "id": "comment-1",
+      "line": 16,
+      "author": "Riley Cooper",
+      "text": "Generic constraint 'T extends Entity' ensures type safety - all entities must have id, createdAt, updatedAt. This prevents runtime errors and enables better autocomplete.",
+      "tag": "NOTE",
+      "timestamp": "2024-10-12T09:30:00Z",
+      "aiMeta": {
+        "complexity": "medium",
+        "tokens": 320,
+        "params": {
+          "tableName": "string - database table name",
+          "db": "DatabaseConnection - database connection instance"
+        }
+      }
+    },
+    {
+      "id": "comment-2",
+      "line": 33,
+      "author": "Jamie Rodriguez",
+      "text": "SQL injection vulnerability! Table name is not parameterized. Attacker could pass malicious tableName in constructor. Need to validate table names against whitelist.",
+      "tag": "FIXME",
+      "timestamp": "2024-10-13T14:20:00Z"
+    },
+    {
+      "id": "comment-3",
+      "line": 57,
+      "author": "Morgan Davis",
+      "text": "Omit utility type removes id/timestamps from create payload - clean API that prevents users from manually setting these fields. TypeScript magic at its best!",
+      "tag": "STAR",
+      "timestamp": "2024-10-14T11:45:00Z"
+    },
+    {
+      "id": "comment-4",
+      "line": 75,
+      "author": "Casey Kim",
+      "text": "Should we add optimistic locking here? What if two requests update the same record simultaneously? Consider adding version field check.",
+      "tag": "TODO",
+      "timestamp": "2024-10-15T16:10:00Z"
+    }
+  ]
+}

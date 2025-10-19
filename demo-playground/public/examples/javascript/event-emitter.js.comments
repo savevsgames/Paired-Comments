@@ -1,0 +1,38 @@
+{
+  "version": "2.1.0",
+  "fileName": "event-emitter.js",
+  "comments": [
+    {
+      "id": "comment-1",
+      "line": 16,
+      "author": "Taylor Swift",
+      "text": "Returns an unsubscribe function - excellent API design! Allows users to clean up listeners without keeping references to callbacks. This prevents memory leaks in long-lived applications.",
+      "tag": "STAR",
+      "timestamp": "2024-10-14T16:45:00Z",
+      "aiMeta": {
+        "complexity": "low",
+        "tokens": 180,
+        "params": {
+          "eventName": "string - name of event to listen for",
+          "callback": "function - handler called when event fires"
+        }
+      }
+    },
+    {
+      "id": "comment-2",
+      "line": 34,
+      "author": "Morgan Freeman",
+      "text": "Error handling inside forEach prevents one bad handler from breaking all others. However, we lose stack traces here. Consider adding option to rethrow in development mode.",
+      "tag": "NOTE",
+      "timestamp": "2024-10-15T11:20:00Z"
+    },
+    {
+      "id": "comment-3",
+      "line": 45,
+      "author": "Casey Martinez",
+      "text": "Clever implementation of 'once' using a wrapper function. The wrapper auto-unsubscribes after first call. Make sure this doesn't cause issues with event ordering!",
+      "tag": "QUESTION",
+      "timestamp": "2024-10-16T14:55:00Z"
+    }
+  ]
+}

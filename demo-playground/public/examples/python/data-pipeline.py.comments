@@ -1,0 +1,42 @@
+{
+  "version": "2.1.0",
+  "fileName": "data-pipeline.py",
+  "comments": [
+    {
+      "id": "comment-1",
+      "line": 27,
+      "author": "Avery Johnson",
+      "text": "pd.to_datetime() handles multiple date formats automatically. Great for messy real-world data! But consider specifying format explicitly for performance on large datasets.",
+      "tag": "NOTE",
+      "timestamp": "2024-10-10T13:20:00Z",
+      "aiMeta": {
+        "complexity": "low",
+        "tokens": 210
+      }
+    },
+    {
+      "id": "comment-2",
+      "line": 29,
+      "author": "Dakota Lee",
+      "text": "errors='coerce' silently converts invalid numbers to NaN. This could hide data quality issues! Consider logging how many values were coerced for monitoring.",
+      "tag": "FIXME",
+      "timestamp": "2024-10-11T10:45:00Z"
+    },
+    {
+      "id": "comment-3",
+      "line": 39,
+      "author": "River Martinez",
+      "text": "Rolling average with groupby - elegant pandas pattern! Window=7 gives weekly average. The transform() keeps the original dataframe shape instead of aggregating.",
+      "tag": "STAR",
+      "timestamp": "2024-10-12T15:30:00Z"
+    },
+    {
+      "id": "comment-4",
+      "line": 54,
+      "author": "Skylar Chen",
+      "text": "Method chaining (fluent interface) makes the pipeline readable. But what about error handling? If extract() fails, transform() never runs. Need try/catch?",
+      "tag": "QUESTION",
+      "timestamp": "2024-10-13T09:15:00Z"
+    }
+  ]
+}

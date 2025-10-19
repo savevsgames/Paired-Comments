@@ -1,0 +1,46 @@
+{
+  "version": "2.1.0",
+  "fileName": "async-patterns.js",
+  "comments": [
+    {
+      "id": "comment-1",
+      "line": 10,
+      "author": "Alex Chen",
+      "text": "Exponential backoff retry pattern - critical for handling transient API failures. The delay doubles with each retry (2^attempt) but caps at 10 seconds to avoid excessive waits.",
+      "tag": "NOTE",
+      "timestamp": "2024-10-15T10:30:00Z",
+      "aiMeta": {
+        "complexity": "medium",
+        "tokens": 450,
+        "params": {
+          "endpoint": "string - API endpoint path",
+          "maxRetries": "number - maximum retry attempts (default: 3)"
+        }
+      }
+    },
+    {
+      "id": "comment-2",
+      "line": 15,
+      "author": "Sam Park",
+      "text": "Should we add request timeout handling here? Network hangs could cause this to wait indefinitely. Consider adding AbortController with a timeout.",
+      "tag": "TODO",
+      "timestamp": "2024-10-16T14:20:00Z"
+    },
+    {
+      "id": "comment-3",
+      "line": 31,
+      "author": "Jordan Lee",
+      "text": "Promise.all() will fail fast if ANY request fails. For production, consider Promise.allSettled() to get results from successful requests even if some fail.",
+      "tag": "FIXME",
+      "timestamp": "2024-10-17T09:45:00Z"
+    },
+    {
+      "id": "comment-4",
+      "line": 38,
+      "author": "Alex Chen",
+      "text": "Simple in-memory cache - great for demo but needs TTL (time-to-live) for production. Cache could grow unbounded and serve stale data.",
+      "tag": "QUESTION",
+      "timestamp": "2024-10-18T11:15:00Z"
+    }
+  ]
+}
