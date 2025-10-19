@@ -410,6 +410,7 @@
     "test:e2e": "npm run compile && npm run compile:tests && node ./out/test/runTest.js",
     "test:watch": "mocha --require ts-node/register --watch 'test/unit/**/*.test.ts'",
     "test:coverage": "nyc npm run test:unit",
+    "test:reset-manual": "node test/manual/reset-tests.js",
     "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "package": "vsce package",
     "clean": "rimraf out coverage .nyc_output"
