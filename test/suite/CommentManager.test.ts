@@ -9,7 +9,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { CommentManager } from '../../src/core/CommentManager';
 import { FileSystemManager } from '../../src/io/FileSystemManager';
-import { ASTAnchorManager } from '../../src/core/ASTAnchorManager';
+// import { ASTAnchorManager } from // Unused import '../../src/core/ASTAnchorManager';
 
 suite('CommentManager Integration Tests', () => {
   let tempDir: string;
@@ -43,8 +43,8 @@ function goodbye() {
     fs.writeFileSync(testFilePath, testContent, 'utf8');
 
     // Initialize managers
-    const astManager = new ASTAnchorManager();
-    fileSystemManager = new FileSystemManager(astManager);
+    // const astManager = new ASTAnchorManager(); // Unused in current tests
+    fileSystemManager = new FileSystemManager();
     commentManager = new CommentManager(fileSystemManager);
   });
 

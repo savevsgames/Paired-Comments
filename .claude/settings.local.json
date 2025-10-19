@@ -4,7 +4,10 @@
       "Bash(npm run compile:*)",
       "WebSearch",
       "Bash(npm run test:unit)",
-      "Bash(npm run test:e2e)"
+      "Bash(npm run test:e2e)",
+      "Bash(npm run compile:tests)",
+      "Bash(timeout 180 npm run test:e2e)",
+      "Bash(tee test-output.log)"
     ],
     "deny": [],
     "ask": []

@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { FileSystemManager } from '../../src/io/FileSystemManager';
-import { ASTAnchorManager } from '../../src/core/ASTAnchorManager';
+// import { ASTAnchorManager } from // Unused import '../../src/core/ASTAnchorManager';
 import { CommentFile, COMMENT_FILE_EXTENSION } from '../../src/types';
 
 suite('FileSystemManager Integration Tests', () => {
@@ -34,8 +34,8 @@ suite('FileSystemManager Integration Tests', () => {
     fs.writeFileSync(testFilePath, 'console.log("test");', 'utf8');
 
     // Initialize manager
-    const astManager = new ASTAnchorManager();
-    fileSystemManager = new FileSystemManager(astManager);
+    // const astManager = new ASTAnchorManager(); // Unused in current tests
+    fileSystemManager = new FileSystemManager();
   });
 
   teardown(() => {

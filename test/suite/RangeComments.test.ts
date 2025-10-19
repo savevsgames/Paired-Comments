@@ -57,53 +57,53 @@ suite('Range Comments', () => {
 
   suite('getRangeGutterCode', () => {
     test('should return start code for range start', () => {
-      const code = getRangeGutterCode('TODO', 'start');
+      const code = getRangeGutterCode('TODO', true);
       expect(code).to.equal('TS');
     });
 
     test('should return end code for range end', () => {
-      const code = getRangeGutterCode('TODO', 'end');
+      const code = getRangeGutterCode('TODO', false);
       expect(code).to.equal('TE');
     });
 
     test('should handle NOTE tag', () => {
-      expect(getRangeGutterCode('NOTE', 'start')).to.equal('NS');
-      expect(getRangeGutterCode('NOTE', 'end')).to.equal('NE');
+      expect(getRangeGutterCode('NOTE', true)).to.equal('NS');
+      expect(getRangeGutterCode('NOTE', false)).to.equal('NE');
     });
 
     test('should handle FIXME tag', () => {
-      expect(getRangeGutterCode('FIXME', 'start')).to.equal('FS');
-      expect(getRangeGutterCode('FIXME', 'end')).to.equal('FE');
+      expect(getRangeGutterCode('FIXME', true)).to.equal('FS');
+      expect(getRangeGutterCode('FIXME', false)).to.equal('FE');
     });
 
     test('should handle QUESTION tag', () => {
-      expect(getRangeGutterCode('QUESTION', 'start')).to.equal('QS');
-      expect(getRangeGutterCode('QUESTION', 'end')).to.equal('QE');
+      expect(getRangeGutterCode('QUESTION', true)).to.equal('QS');
+      expect(getRangeGutterCode('QUESTION', false)).to.equal('QE');
     });
 
     test('should handle HACK tag', () => {
-      expect(getRangeGutterCode('HACK', 'start')).to.equal('HS');
-      expect(getRangeGutterCode('HACK', 'end')).to.equal('HE');
+      expect(getRangeGutterCode('HACK', true)).to.equal('HS');
+      expect(getRangeGutterCode('HACK', false)).to.equal('HE');
     });
 
     test('should handle WARNING tag', () => {
-      expect(getRangeGutterCode('WARNING', 'start')).to.equal('WS');
-      expect(getRangeGutterCode('WARNING', 'end')).to.equal('WE');
+      expect(getRangeGutterCode('WARNING', true)).to.equal('WS');
+      expect(getRangeGutterCode('WARNING', false)).to.equal('WE');
     });
 
     test('should handle STAR tag', () => {
-      expect(getRangeGutterCode('STAR', 'start')).to.equal('SS');
-      expect(getRangeGutterCode('STAR', 'end')).to.equal('SE');
+      expect(getRangeGutterCode('STAR', true)).to.equal('SS');
+      expect(getRangeGutterCode('STAR', false)).to.equal('SE');
     });
 
     test('should handle null tag', () => {
-      expect(getRangeGutterCode(null, 'start')).to.equal('CS');
-      expect(getRangeGutterCode(null, 'end')).to.equal('CE');
+      expect(getRangeGutterCode(null, true)).to.equal('CS');
+      expect(getRangeGutterCode(null, false)).to.equal('CE');
     });
 
     test('should handle undefined tag', () => {
-      expect(getRangeGutterCode(undefined, 'start')).to.equal('CS');
-      expect(getRangeGutterCode(undefined, 'end')).to.equal('CE');
+      expect(getRangeGutterCode(undefined as any, true)).to.equal('CS');
+      expect(getRangeGutterCode(undefined as any, false)).to.equal('CE');
     });
   });
 
@@ -141,7 +141,7 @@ suite('Range Comments', () => {
     });
 
     test('should return C for undefined tag', () => {
-      expect(getSingleGutterCode(undefined)).to.equal('C');
+      expect(getSingleGutterCode(undefined as any)).to.equal('C');
     });
   });
 
