@@ -194,6 +194,12 @@
         "category": "Paired Comments"
       },
       {
+        "command": "pairedComments.search",
+        "title": "Paired Comments: Search Comments",
+        "category": "Paired Comments",
+        "icon": "$(search)"
+      },
+      {
         "command": "pairedComments.copyAllComments",
         "title": "Paired Comments: Copy All Comments",
         "category": "Paired Comments"
@@ -324,6 +330,12 @@
         "command": "pairedComments.findInComments",
         "key": "ctrl+alt+p f",
         "mac": "cmd+alt+p f",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "pairedComments.search",
+        "key": "ctrl+alt+p ctrl+alt+f",
+        "mac": "cmd+alt+p cmd+alt+f",
         "when": "editorTextFocus"
       },
       {

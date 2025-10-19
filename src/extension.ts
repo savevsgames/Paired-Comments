@@ -14,7 +14,9 @@ import { DecorationManager } from './ui/DecorationManager';
 import { CommentCodeLensProvider } from './ui/CommentCodeLensProvider';
 import { CommentFileDecorationProvider } from './ui/CommentFileDecorationProvider';
 import { FileSystemManager } from './io/FileSystemManager';
+import { CommentSearchEngine } from './features/CommentSearchEngine';
 import { registerCommands } from './commands';
+import { registerSearchCommands } from './commands/search';
 import { logger } from './utils/Logger';
 import {
   isPairedCommentsError,
@@ -101,6 +103,9 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.registerFileDecorationProvider(fileDecorationProvider)
   );
 
+  // Initialize search engine (v2.1.2)
+  const searchEngine = new CommentSearchEngine(fileSystemManager);
+
   // Register all commands
   registerCommands(context, {
     commentManager,
@@ -110,6 +115,9 @@ export function activate(context: vscode.ExtensionContext): void {
     fileSystemManager,
     paramManager,
   });
+
+  // Register search commands (v2.1.2)
+  registerSearchCommands(context, searchEngine, commentManager);
 
   // Set up event listeners
   setupEventListeners(context, commentManager, decorationManager, codeLensProvider, fileDecorationProvider);
