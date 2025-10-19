@@ -46,3 +46,7 @@ demo-playground/out/
 demo-playground/.env*.local
 demo-playground/*.tsbuildinfo
 demo-playground/next-env.d.ts
+demo-playground/test-results/
+demo-playground/playwright-report/
+demo-playground/.playwright/
+demo-playground/test-output.log
