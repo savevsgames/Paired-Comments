@@ -79,3 +79,57 @@
   The Vision:
   Paired Comments should become the industry stan
 - remember, when you reset the test files, also make sure there are no .comments files that should not be there, and ensure that the .comments files that may be present are reset to match the test files after establishing which test file(s) should be there.
+- Current Project State
+
+  Phase: Phase 1 (Integration) - Near Complete, Moving to Manual Testing
+  Status: All 4 pre-built features integrated, bug fixes complete, clean test environment ready
+
+  Recent Critical Decisions
+
+  1. No Legacy Migration Code Needed
+
+  - Decision: Don't maintain backward compatibility for old formats (v1.x, v2.0.x timestamp field)
+  - Reason: No users yet = no legacy to support
+  - Impact: Removed complex migration code we were writing, simplified approach
+  - Files Affected: Reverted experimental changes to CommentManager.ts and FileSystemManager.ts
+  - Current Format: v2.0.6 with created/updated fields, ghost markers required
+
+  2. Clean Test Environment Over Complex Test Files
+
+  - Decision: Create simple, clean test files in current format only
+  - Reason: Old test files had mixed formats causing confusion during smoke tests
+  - Result:
+    - 2 test files: simple-test.js (3 functions, 3 comments) and ast-test.js (existing, cleaned)
+    - Both files: v2.0.6 format, ghost markers with AST anchors, no legacy fields
+    - Removed: All backup files, ghost-markers-demo files (redundant)
+
+  Bug Fixes Completed (All Committed)
+
+  1. ✅ Bug #1: Backup files processed as source files → Fixed with filtering in CommentFileDecorationProvider and CommentCodeLensProvider
+  2. ✅ Bug #2: Schema validation rejecting old format → Fixed to accept EITHER format in FileSystemManager.validateCommentFile()
+  3. ✅ Bug #3: Extension processing .comments files → Fixed with filtering in DecorationManager.updateDecorations()
+  4. ✅ Bug #4: Cache marking all files dirty → Fixed with markDirty parameter in CommentFileCache.set()
+  5. ✅ Bug #5: CodeLens click not finding comments → Fixed cache lookup in getCommentsForLine() and getCommentById()
+
+  Phase 1 Features Integrated
+
+  1. ✅ Advanced Search (v2.1.2) - Field:value syntax search
+  2. ✅ Orphan Detection (v2.1.3) - Detect comments whose code was deleted
+  3. ✅ Performance Caches (v2.1.4) - CommentFileCache with 10-50x speedup
+  4. ✅ Cross-File Operations (v2.1.5) - Move/copy comments between files
+  5. ✅ Keybindings added for all new features to Ctrl+Alt+P menu
+
+  Testing Framework
+
+  - Manual Testing: Template-based .test.md files in test/manual/ (following TEMPLATE.test.md)
+  - Smoke Test Created: test/manual/core-features/01-smoke-test.test.md
+  - Next Step: Run smoke test (Press F5 → Open test files → Verify CodeLens works → Check Debug Console for errors)
+  - Strategy: Get a few manual tests passing BEFORE writing 250+ automated tests
+
+  Key Files Status
+
+  - ✅ test-samples/simple-test.js + .comments - Clean v2.0.6 format
+  - ✅ test-samples/ast-test.js + .comments - Clean v2.0.6 format
+  - ✅ test/manual/core-features/01-smoke-test.test.md - Ready to run
+  - ✅ Compilation: Clean, no TypeScript errors
+  - ✅ All bug fixes: Committed and int
