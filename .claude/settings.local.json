@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npm install)",
-      "Bash(docker-compose up --build -d)"
+      "Bash(docker-compose up --build -d)",
+      "Bash(npm run build)"
     ],
     "deny": [],
     "ask": []
