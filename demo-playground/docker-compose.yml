@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  demo-playground:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: paired-comments-demo
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount example files (read-only for reset functionality)
+      - ./src/data/examples:/app/data/examples:ro
+      # Development hot-reload (comment out for production)
+      - ./src:/app/src
+      - ./public:/app/public
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_APP_NAME=Paired Comments Demo
+      - NEXT_PUBLIC_VERSION=2.1.6
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
