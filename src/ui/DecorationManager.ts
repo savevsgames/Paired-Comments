@@ -109,14 +109,15 @@ export class DecorationManager {
     }
 
     // Orphaned comment decoration (v2.1.3)
-    // Orange gutter icon with warning symbol, dashed border
+    // Orange warning triangle icon with exclamation mark
     this.decorationTypes.set('orphaned', vscode.window.createTextEditorDecorationType({
-      gutterIconPath: this.createGutterIcon('⚠️', '#FF8C00', false), // Dark orange
+      gutterIconPath: vscode.Uri.file(__dirname + '/../../resources/orphan-warning.svg'),
       gutterIconSize: 'contain',
-      overviewRulerColor: '#FF8C00',
+      overviewRulerColor: '#E57C2A',
       overviewRulerLane: vscode.OverviewRulerLane.Right,
-      border: '1px dashed #FF8C00',
+      border: '1px dashed #E57C2A',
       borderRadius: '3px',
+      backgroundColor: 'rgba(229, 124, 42, 0.1)', // Light orange background
     }));
   }
 
@@ -651,8 +652,9 @@ export class DecorationManager {
           // Create hover message with orphan info
           const hoverMessage = new vscode.MarkdownString();
           hoverMessage.isTrusted = true;
+          hoverMessage.supportHtml = true;
           hoverMessage.appendMarkdown(`**⚠️ Orphaned Comment** (${orphanStatus.confidence}% confidence)\n\n`);
-          hoverMessage.appendMarkdown(`**Reason:** ${orphanStatus.reason}\n\n`);
+          hoverMessage.appendMarkdown(`**Reason:** ${this.orphanDetector.getOrphanDescription(orphanStatus)}\n\n`);
 
           if (orphanStatus.suggestedLocation) {
             hoverMessage.appendMarkdown(`**Suggested location:**\n`);
@@ -661,7 +663,21 @@ export class DecorationManager {
             hoverMessage.appendMarkdown(`- Symbol: ${orphanStatus.suggestedLocation.symbol}\n\n`);
           }
 
-          hoverMessage.appendMarkdown(`[Re-anchor Comment](command:pairedComments.reanchorComment?${encodeURIComponent(JSON.stringify({uri: editor.document.uri.toString(), line: marker.line}))})`);
+          // Add recovery suggestions
+          const suggestions = this.orphanDetector.getRecoverySuggestions(orphanStatus);
+          if (suggestions.length > 0) {
+            hoverMessage.appendMarkdown(`**Recovery Options:**\n`);
+            for (const suggestion of suggestions) {
+              hoverMessage.appendMarkdown(`- ${suggestion}\n`);
+            }
+            hoverMessage.appendMarkdown(`\n`);
+          }
+
+          // Add action links
+          hoverMessage.appendMarkdown(`**Actions:** `);
+          hoverMessage.appendMarkdown(`[Re-anchor](command:pairedComments.reanchorComment?${encodeURIComponent(JSON.stringify({uri: editor.document.uri.toString(), line: marker.line}))}) | `);
+          hoverMessage.appendMarkdown(`[View Report](command:pairedComments.showOrphanReport) | `);
+          hoverMessage.appendMarkdown(`[Dismiss](command:pairedComments.dismissOrphanWarning)`);
 
           orphanDecorations.push({
             range,

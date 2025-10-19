@@ -1146,23 +1146,24 @@ See **Milestone 6 (UX Enhancements)** for higher-priority features.
 
 **New Phase Order:** Core Demo → MCP → Scale Features (data-driven development)
 
-1. 📋 **Orphan Detection UI (v2.1.2)** - November 2025 (1-2 weeks) **← NEXT UP**
-   - Automatic orphan detection with confidence scoring
-   - Visual indicators (gutter icons, status bar, hover messages)
-   - Re-anchor UI with CodeLens actions
-   - Batch operations for fixing multiple orphans
-   - Orphan report view with workspace scan
-   - **Rationale:** Core UX requirement - prevents data loss for single users
-   - **Design Complete:** [v2.1.3-orphan-detection-ui.md](milestones/v2.1.3-orphan-detection-ui.md)
+1. ✅ **Orphan Detection UI (v2.1.2)** - COMPLETE (October 19, 2025)
+   - ✅ Automatic orphan detection with confidence scoring
+   - ✅ Visual indicators (orange warning triangle icon, status bar, enhanced hover messages)
+   - ✅ Re-anchor UI with command integration
+   - ✅ Orphan report view (QuickPick)
+   - ✅ Auto-detection on file open/save/edit
+   - ✅ Unit tests (2 tests) + Integration tests (5 E2E workflow tests)
+   - **Implementation:** [v2.1.3-orphan-detection-ui.md](milestones/v2.1.3-orphan-detection-ui.md)
+   - **Status Doc:** [v2.1.2-orphan-detection-status.md](milestones/v2.1.2-orphan-detection-status.md)
 
-2. 📋 **GitHub Demo Playground (v2.1.3)** - December 2025 (2-3 weeks)
+2. 📋 **GitHub Demo Playground (v2.1.3)** - December 2025 (2-3 weeks) **← NEXT UP**
    - Containerized Next.js app (Docker + Docker Compose)
    - Fake GitHub UI with Monaco editor
    - Paired Comments extension embedded
    - 20+ curated examples (real-world scenarios)
    - Export & share functionality
    - **Rationale:** Validates product-market fit, creates marketing asset, provides testing playground
-   - **Design Document:** [v2.1.3-github-demo-playground.md](milestones/v2.1.3-github-demo-playground.md) ← TO BE CREATED
+   - **Design Document:** [v2.1.3-github-demo-playground.md](milestones/v2.1.3-github-demo-playground.md)
 
 3. 📋 **MCP Integration (v2.2.0)** - January 2026 (4-6 weeks)
    - Extract AI layer to MCP server
