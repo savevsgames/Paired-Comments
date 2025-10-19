@@ -105,10 +105,15 @@ suite('GhostMarkerManager', () => {
       expect(retrieved).to.deep.equal(marker);
     });
 
-    test.skip('should return undefined for non-existent marker', () => {
-      // Test skipped - needs document URI
-      // const retrieved = ghostMarkerManager.getMarkerById(doc.uri, 'non-existent-id');
-      // expect(retrieved).to.be.undefined;
+    test('should return undefined for non-existent marker', async () => {
+      const content = 'const x = 5;';
+      const doc = await vscode.workspace.openTextDocument({
+        content,
+        language: 'javascript',
+      });
+
+      const retrieved = ghostMarkerManager.getMarkerById(doc.uri, 'non-existent-id');
+      expect(retrieved).to.be.undefined;
     });
   });
 
@@ -202,9 +207,16 @@ suite('GhostMarkerManager', () => {
       expect(updated!.endLine).to.equal(15);
     });
 
-    test.skip('should handle non-existent marker gracefully', () => {
-      // Test skipped - needs document context
-      // ghostMarkerManager.updateMarkerLine(doc, 'non-existent', 10);
+    test('should handle non-existent marker gracefully', async () => {
+      const content = 'const x = 5;';
+      const doc = await vscode.workspace.openTextDocument({
+        content,
+        language: 'javascript',
+      });
+
+      // Should not throw when updating non-existent marker
+      ghostMarkerManager.updateMarkerLine(doc, 'non-existent', 10);
+      // No assertion needed - just verify it doesn't throw
     });
   });
 
