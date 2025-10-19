@@ -6,15 +6,18 @@ import FileHeader from '@/components/GitHubUI/FileHeader';
 import EditorPane from '@/components/GitHubUI/EditorPane';
 import CommentsPane from '@/components/GitHubUI/CommentsPane';
 import ActionBar from '@/components/GitHubUI/ActionBar';
+import ExportModal from '@/components/ExportModal';
 import { FileNode } from '@/lib/types';
 import { mockFiles } from '@/lib/mockData';
 import { preloadExampleFiles, resetToExamples } from '@/lib/filesystem/preload';
+import { copyShareLink } from '@/lib/export';
 import '@/lib/vscode-shim'; // Initialize VS Code API shim
 
 export default function Home() {
   const [currentFile, setCurrentFile] = useState<FileNode | null>(null);
   const [showComments, setShowComments] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   // Initialize filesystem on app startup
   useEffect(() => {
@@ -37,21 +40,32 @@ export default function Home() {
   };
 
   const handleExport = () => {
-    alert('Export functionality coming in Phase 7!');
+    setShowExportModal(true);
   };
 
-  const handleShare = () => {
-    alert('Share functionality coming in Phase 7!');
+  const handleShare = async () => {
+    try {
+      await copyShareLink();
+      alert('✅ Demo link copied to clipboard!');
+    } catch (error) {
+      alert('❌ Failed to copy link. Check console for details.');
+    }
   };
 
   const handleReset = async () => {
+    const confirmed = confirm(
+      'Reset to original examples? This will discard any changes you made.'
+    );
+
+    if (!confirmed) return;
+
     try {
       await resetToExamples();
       setCurrentFile(null);
-      alert('Reset complete! Files restored to original examples.');
+      alert('✅ Reset complete! Files restored to original examples.');
     } catch (error) {
       console.error('[App] Reset failed:', error);
-      alert('Reset failed. Check console for details.');
+      alert('❌ Reset failed. Check console for details.');
     }
   };
 
@@ -61,7 +75,6 @@ export default function Home() {
 
   const handleContentChange = (content: string) => {
     // Update file content when edited
-    // Will wire up to IndexedDB in Phase 4
     console.log('Content changed:', content.substring(0, 50) + '...');
   };
 
@@ -116,6 +129,12 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+      />
     </div>
   );
 }

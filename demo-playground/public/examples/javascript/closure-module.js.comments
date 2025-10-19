@@ -1,0 +1,57 @@
+{
+  "version": "2.1.0",
+  "fileName": "closure-module.js",
+  "comments": [
+    {
+      "id": "comment-1",
+      "line": 6,
+      "author": "Drew Anderson",
+      "text": "Classic closure pattern! The IIFE creates a private scope where 'items' and 'discount' are completely hidden from outside access. This is how we got private variables before ES6 classes.",
+      "tag": "NOTE",
+      "timestamp": "2024-10-12T09:30:00Z",
+      "aiMeta": {
+        "complexity": "medium",
+        "tokens": 420
+      }
+    },
+    {
+      "id": "comment-2",
+      "line": 23,
+      "author": "Sage Wilson",
+      "text": "Mutating the existing item instead of creating a new one. This works but breaks immutability. Consider returning a new items array for better functional programming style.",
+      "tag": "QUESTION",
+      "timestamp": "2024-10-13T14:20:00Z"
+    },
+    {
+      "id": "comment-3",
+      "line": 56,
+      "author": "River Thompson",
+      "text": "Shallow copy with spread operator! Good practice to prevent external code from mutating the internal items array. But nested objects would still be mutable - consider deep cloning if items have nested properties.",
+      "tag": "STAR",
+      "timestamp": "2024-10-14T11:45:00Z",
+      "aiMeta": {
+        "complexity": "low",
+        "tokens": 180
+      }
+    },
+    {
+      "id": "comment-4",
+      "line": 76,
+      "author": "Avery Martinez",
+      "text": "Beautiful demonstration of closure scope! Each counter instance has its own 'count' variable that persists between calls. This is the power of closures - stateful functions without classes.",
+      "tag": "STAR",
+      "timestamp": "2024-10-15T16:00:00Z",
+      "aiMeta": {
+        "complexity": "medium",
+        "tokens": 310,
+        "params": [
+          {
+            "name": "initialValue",
+            "type": "number",
+            "description": "Starting value for the counter"
+          }
+        ]
+      }
+    }
+  ]
+}

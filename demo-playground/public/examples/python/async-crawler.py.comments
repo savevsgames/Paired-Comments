@@ -1,0 +1,53 @@
+{
+  "version": "2.1.0",
+  "fileName": "async-crawler.py",
+  "comments": [
+    {
+      "id": "comment-1",
+      "line": 12,
+      "author": "Taylor Singh",
+      "text": "Semaphore limits concurrent requests to prevent overwhelming the target server. Great for rate limiting! The 'async with' ensures the semaphore is always released, even on exceptions.",
+      "tag": "NOTE",
+      "timestamp": "2024-10-13T11:00:00Z",
+      "aiMeta": {
+        "complexity": "medium",
+        "tokens": 520,
+        "params": [
+          {
+            "name": "max_concurrent",
+            "type": "int",
+            "description": "Maximum number of concurrent HTTP requests"
+          }
+        ]
+      }
+    },
+    {
+      "id": "comment-2",
+      "line": 18,
+      "author": "Quinn Martinez",
+      "text": "Timeout is hardcoded to 10 seconds. Should this be configurable? Some pages load slower, especially with lots of assets. Consider making it a class parameter.",
+      "tag": "QUESTION",
+      "timestamp": "2024-10-14T15:30:00Z"
+    },
+    {
+      "id": "comment-3",
+      "line": 38,
+      "author": "Alex Patel",
+      "text": "asyncio.gather(*tasks) runs all tasks concurrently and waits for all to complete. This is the magic of async Python - fetching 5 pages in parallel! Much faster than sequential fetches.",
+      "tag": "STAR",
+      "timestamp": "2024-10-15T10:15:00Z",
+      "aiMeta": {
+        "complexity": "medium",
+        "tokens": 290
+      }
+    },
+    {
+      "id": "comment-4",
+      "line": 42,
+      "author": "Cameron White",
+      "text": "Naive HTML parsing with string operations! This will break on complex HTML and miss many links. Use BeautifulSoup or lxml for production. This is just a demo simplification.",
+      "tag": "FIXME",
+      "timestamp": "2024-10-16T13:45:00Z"
+    }
+  ]
+}

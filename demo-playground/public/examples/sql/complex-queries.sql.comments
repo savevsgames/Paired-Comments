@@ -1,0 +1,62 @@
+{
+  "version": "2.1.0",
+  "fileName": "complex-queries.sql",
+  "comments": [
+    {
+      "id": "comment-1",
+      "line": 5,
+      "author": "Dakota Moore",
+      "text": "CTEs make complex queries readable! Instead of nested subqueries, we build up results step by step. The query optimizer often performs the same as subqueries, but CTEs are much easier for humans to understand.",
+      "tag": "NOTE",
+      "timestamp": "2024-10-10T14:00:00Z",
+      "aiMeta": {
+        "complexity": "high",
+        "tokens": 650
+      }
+    },
+    {
+      "id": "comment-2",
+      "line": 47,
+      "author": "Avery Johnson",
+      "text": "Window functions are powerful but can be slow on large datasets! The PARTITION BY creates separate windows for each customer. Consider adding an index on (customer_id, order_date) for better performance.",
+      "tag": "FIXME",
+      "timestamp": "2024-10-11T16:30:00Z",
+      "aiMeta": {
+        "complexity": "high",
+        "tokens": 420
+      }
+    },
+    {
+      "id": "comment-3",
+      "line": 72,
+      "author": "River Chen",
+      "text": "Recursive CTE for org charts! This traverses the employee hierarchy from top to bottom. The UNION ALL combines the anchor (top-level employees) with the recursive member. Watch out for cycles!",
+      "tag": "STAR",
+      "timestamp": "2024-10-12T11:15:00Z",
+      "aiMeta": {
+        "complexity": "very-high",
+        "tokens": 580,
+        "params": [
+          {
+            "name": "level",
+            "type": "integer",
+            "description": "Depth in the hierarchy (1 for top-level)"
+          },
+          {
+            "name": "path",
+            "type": "text",
+            "description": "Breadcrumb trail from root to current employee"
+          }
+        ]
+      }
+    },
+    {
+      "id": "comment-4",
+      "line": 104,
+      "author": "Skylar Williams",
+      "text": "FILTER clause is cleaner than CASE WHEN for conditional aggregation! This PostgreSQL feature (SQL:2003 standard) makes the query more readable than the old SUM(CASE...) pattern.",
+      "tag": "STAR",
+      "timestamp": "2024-10-13T09:45:00Z"
+    }
+  ]
+}

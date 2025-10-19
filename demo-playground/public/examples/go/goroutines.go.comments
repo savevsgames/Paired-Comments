@@ -1,0 +1,62 @@
+{
+  "version": "2.1.0",
+  "fileName": "goroutines.go",
+  "comments": [
+    {
+      "id": "comment-1",
+      "line": 24,
+      "author": "Blake Carter",
+      "text": "WaitGroup is crucial for coordinating goroutines! The defer wg.Done() ensures we always signal completion, even if the function panics. This prevents deadlocks where main waits forever.",
+      "tag": "NOTE",
+      "timestamp": "2024-10-11T10:00:00Z",
+      "aiMeta": {
+        "complexity": "medium",
+        "tokens": 580,
+        "params": [
+          {
+            "name": "jobs",
+            "type": "<-chan Job",
+            "description": "Receive-only channel for incoming work"
+          },
+          {
+            "name": "results",
+            "type": "chan<- Result",
+            "description": "Send-only channel for processed results"
+          }
+        ]
+      }
+    },
+    {
+      "id": "comment-2",
+      "line": 45,
+      "author": "Sydney Kim",
+      "text": "Buffered channel with capacity numJobs. This allows sending all jobs without blocking, even before workers start consuming. Unbuffered would block after first send until a worker receives.",
+      "tag": "STAR",
+      "timestamp": "2024-10-12T13:30:00Z"
+    },
+    {
+      "id": "comment-3",
+      "line": 63,
+      "author": "Jordan White",
+      "text": "This goroutine waits for workers to finish then closes results channel. But what if workers panic? The WaitGroup would never complete. Consider using panic recovery in workers.",
+      "tag": "FIXME",
+      "timestamp": "2024-10-13T15:45:00Z",
+      "aiMeta": {
+        "complexity": "high",
+        "tokens": 220
+      }
+    },
+    {
+      "id": "comment-4",
+      "line": 101,
+      "author": "Riley Brooks",
+      "text": "Fan-in pattern merges multiple channels into one! Each input channel gets its own goroutine to read from. The WaitGroup ensures we close the output channel only after all inputs are drained.",
+      "tag": "STAR",
+      "timestamp": "2024-10-14T11:20:00Z",
+      "aiMeta": {
+        "complexity": "high",
+        "tokens": 490
+      }
+    }
+  ]
+}

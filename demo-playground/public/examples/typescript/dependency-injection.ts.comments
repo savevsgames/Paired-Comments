@@ -1,0 +1,53 @@
+{
+  "version": "2.1.0",
+  "fileName": "dependency-injection.ts",
+  "comments": [
+    {
+      "id": "comment-1",
+      "line": 23,
+      "author": "Morgan Taylor",
+      "text": "The singleton pattern in DI is powerful but be careful! If the factory has side effects or depends on external state, you might get stale instances. Consider adding a refresh() method.",
+      "tag": "NOTE",
+      "timestamp": "2024-10-14T10:20:00Z",
+      "aiMeta": {
+        "complexity": "medium",
+        "tokens": 450,
+        "params": [
+          {
+            "name": "options",
+            "type": "{ singleton?: boolean }",
+            "description": "Configuration for provider registration"
+          }
+        ]
+      }
+    },
+    {
+      "id": "comment-2",
+      "line": 35,
+      "author": "Casey Kim",
+      "text": "Missing circular dependency detection! If ServiceA depends on ServiceB which depends on ServiceA, this will cause a stack overflow. Need to track resolution stack.",
+      "tag": "FIXME",
+      "timestamp": "2024-10-15T14:45:00Z"
+    },
+    {
+      "id": "comment-3",
+      "line": 82,
+      "author": "Jordan Lee",
+      "text": "SQL injection vulnerability! Never concatenate user input into SQL queries. This is just a demo, but in real code, always use parameterized queries or an ORM.",
+      "tag": "FIXME",
+      "timestamp": "2024-10-16T09:30:00Z",
+      "aiMeta": {
+        "complexity": "high",
+        "tokens": 380
+      }
+    },
+    {
+      "id": "comment-4",
+      "line": 94,
+      "author": "Riley Chen",
+      "text": "Beautiful DI setup! The type safety here is excellent - TypeScript ensures you can't resolve the wrong type. This is much cleaner than manual dependency wiring.",
+      "tag": "STAR",
+      "timestamp": "2024-10-17T16:15:00Z"
+    }
+  ]
+}
