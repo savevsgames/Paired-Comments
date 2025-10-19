@@ -34,6 +34,12 @@ export default function Home() {
     setShowComments(!showComments);
   };
 
+  const handleContentChange = (content: string) => {
+    // Update file content when edited
+    // Will wire up to IndexedDB in Phase 4
+    console.log('Content changed:', content.substring(0, 50) + '...');
+  };
+
   return (
     <div className="h-screen flex flex-col bg-github-canvas-default">
       {/* Action Bar */}
@@ -62,7 +68,7 @@ export default function Home() {
           <div className="flex-1 flex overflow-hidden">
             {/* Code Editor */}
             <div className="flex-1 overflow-auto">
-              <EditorPane file={currentFile} />
+              <EditorPane file={currentFile} onChange={handleContentChange} />
             </div>
 
             {/* Comments Pane */}
