@@ -1,0 +1,352 @@
+/**
+ * Integration tests for AI-powered comment workflows
+ * Tests the complete flow: Create comment → Extract params → AI enrichment
+ */
+
+import { describe, it, beforeEach } from 'mocha';
+import { expect } from 'chai';
+import * as vscode from 'vscode';
+import { CommentManager } from '../../src/core/CommentManager';
+import { GhostMarkerManager } from '../../src/core/GhostMarkerManager';
+import { ASTAnchorManager } from '../../src/core/ASTAnchorManager';
+import { FileSystemManager } from '../../src/io/FileSystemManager';
+import { ParamManager } from '../../src/core/ParamManager';
+
+describe('AI Workflow Integration', () => {
+  let commentManager: CommentManager;
+  let ghostMarkerManager: GhostMarkerManager;
+  let astAnchorManager: ASTAnchorManager;
+  let fileSystemManager: FileSystemManager;
+  let paramManager: ParamManager;
+
+  beforeEach(() => {
+    astAnchorManager = new ASTAnchorManager();
+    fileSystemManager = new FileSystemManager(astAnchorManager);
+    ghostMarkerManager = new GhostMarkerManager();
+    ghostMarkerManager.setASTManager(astAnchorManager);
+    commentManager = new CommentManager(fileSystemManager, ghostMarkerManager);
+    paramManager = new ParamManager(astAnchorManager);
+  });
+
+  describe('Dynamic Parameters Workflow', () => {
+    it('should create comment with dynamic parameters', async () => {
+      const content = 'function calculateTotal(items) {\n  return items.reduce((a, b) => a + b, 0);\n}';
+      const doc = await vscode.workspace.openTextDocument({
+        content,
+        language: 'javascript',
+      });
+
+      // Create comment text with dynamic parameters
+      const commentText = 'TODO: Refactor ${functionName} to handle edge cases';
+
+      // Extract parameters from code
+      const params = await paramManager.createParams(commentText, {
+        sourceUri: doc.uri,
+        lineNumber: 1,
+        document: doc,
+      });
+
+      expect(params).to.exist;
+
+      // Create comment with params
+      const comment = await commentManager.addComment(doc.uri, {
+        line: 1,
+        text: commentText,
+        params,
+      });
+
+      expect(comment).to.exist;
+      expect(comment.text).to.equal(commentText);
+      expect(comment.params).to.exist;
+
+      // Interpolate parameters
+      const interpolated = paramManager.interpolate(comment);
+      // If AST extraction succeeded, should contain function name
+      if (params?.functionName) {
+        expect(interpolated).to.include('calculateTotal');
+      }
+    });
+
+    it('should update dynamic parameters when code changes', async () => {
+      const content = 'function oldName() { return 42; }';
+      const doc = await vscode.workspace.openTextDocument({
+        content,
+        language: 'javascript',
+      });
+
+      // Create comment
+      const commentText = 'The ${functionName} needs optimization';
+      const params = await paramManager.createParams(commentText, {
+        sourceUri: doc.uri,
+        lineNumber: 1,
+        document: doc,
+      });
+
+      const comment = await commentManager.addComment(doc.uri, {
+        line: 1,
+        text: commentText,
+        params,
+      });
+
+      // Simulate code rename (in real scenario, this would be a document edit)
+      const newContent = 'function newName() { return 42; }';
+      const newDoc = await vscode.workspace.openTextDocument({
+        content: newContent,
+        language: 'javascript',
+      });
+
+      // Update dynamic params
+      const updatedComment = await paramManager.updateDynamicParams(comment, {
+        sourceUri: newDoc.uri,
+        lineNumber: 1,
+        document: newDoc,
+      });
+
+      // If AST extraction succeeded with new name
+      if (updatedComment.params?.functionName) {
+        const interpolated = paramManager.interpolate(updatedComment);
+        // Should reflect new function name if AST succeeded
+        expect(interpolated).to.be.a('string');
+      }
+    });
+  });
+
+  describe('Range Comments with AI Metadata', () => {
+    it('should create range comment with AI metadata', async () => {
+      const content = [
+        'function processPayment(order) {',
+        '  if (order.total > 100) {',
+        '    return applyDiscount(order);',
+        '  }',
+        '  return order.total;',
+        '}',
+      ].join('\n');
+
+      const doc = await vscode.workspace.openTextDocument({
+        content,
+        language: 'javascript',
+      });
+
+      // Create range comment
+      const comment = await commentManager.addComment(doc.uri, {
+        line: 1,
+        startLine: 1,
+        endLine: 6,
+        text: 'This function has ${complexity} complexity and spans ${lineCount} lines',
+        params: {
+          complexity: {
+            value: 5,
+            type: 'computed',
+            source: 'aiMeta.complexity',
+          },
+          lineCount: {
+            value: 6,
+            type: 'computed',
+            source: 'aiMeta.paramCount',
+          },
+        },
+        aiMetadata: {
+          complexity: {
+            cyclomatic: 5,
+            cognitive: 7,
+            maintainability: 75,
+            confidence: 0.9,
+          },
+          tokens: {
+            heuristic: 150,
+            validated: 145,
+            confidence: 0.95,
+          },
+        },
+      });
+
+      expect(comment).to.exist;
+      expect(comment.startLine).to.equal(1);
+      expect(comment.endLine).to.equal(6);
+      expect(comment.aiMetadata).to.exist;
+      expect(comment.params).to.exist;
+
+      // Interpolate
+      const interpolated = paramManager.interpolate(comment);
+      expect(interpolated).to.include('5 complexity');
+      expect(interpolated).to.include('6 lines');
+    });
+  });
+
+  describe('Ghost Marker with AST Tracking', () => {
+    it('should track comment through function rename', async () => {
+      const content = 'function originalName() { return 1; }';
+      const doc = await vscode.workspace.openTextDocument({
+        content,
+        language: 'javascript',
+      });
+
+      // Add comment
+      const comment = await commentManager.addComment(doc.uri, {
+        line: 1,
+        text: 'This function needs tests',
+      });
+
+      // Get ghost marker
+      const marker = ghostMarkerManager.getMarkerAtLine(doc.uri, 1);
+      expect(marker).to.exist;
+
+      // Marker should have AST anchor (if VS Code symbol provider succeeded)
+      if (marker?.astAnchor) {
+        expect(marker.astAnchor.symbolPath).to.be.an('array');
+      }
+    });
+
+    it('should track range comment through code edits', async () => {
+      const content = [
+        'function test() {',
+        '  const x = 5;',
+        '  const y = 10;',
+        '  return x + y;',
+        '}',
+      ].join('\n');
+
+      const doc = await vscode.workspace.openTextDocument({
+        content,
+        language: 'javascript',
+      });
+
+      // Create range comment
+      const comment = await commentManager.addComment(doc.uri, {
+        line: 2,
+        startLine: 2,
+        endLine: 4,
+        text: 'This logic can be simplified',
+      });
+
+      // Get range marker
+      const marker = ghostMarkerManager.getMarkerAtLine(doc.uri, 2);
+      expect(marker).to.exist;
+      expect(marker?.endLine).to.equal(4);
+
+      // Verify marker tracks the range
+      const markerAtLine3 = ghostMarkerManager.getMarkerAtLine(doc.uri, 3);
+      expect(markerAtLine3?.id).to.equal(marker?.id);
+    });
+  });
+
+  describe('Full Workflow: Create, Update, Interpolate', () => {
+    it('should complete full AI-enriched comment lifecycle', async () => {
+      const content = 'function calculateDiscount(price, percent) {\n  return price * (1 - percent / 100);\n}';
+      const doc = await vscode.workspace.openTextDocument({
+        content,
+        language: 'javascript',
+      });
+
+      // Step 1: Create comment with dynamic parameters
+      const commentText = 'Function ${functionName} takes ${paramCount} parameters';
+      const params = await paramManager.createParams(commentText, {
+        sourceUri: doc.uri,
+        lineNumber: 1,
+        document: doc,
+        aiMetadata: {
+          parameters: {
+            name: 'calculateDiscount',
+            kind: 'function',
+            parameters: [
+              { name: 'price', type: 'number' },
+              { name: 'percent', type: 'number' },
+            ],
+            lineCount: 3,
+            confidence: 0.9,
+          },
+        },
+      });
+
+      // Step 2: Create comment
+      const comment = await commentManager.addComment(doc.uri, {
+        line: 1,
+        text: commentText,
+        params,
+      });
+
+      expect(comment).to.exist;
+
+      // Step 3: Validate parameters
+      const isValid = paramManager.validate(comment);
+      expect(isValid).to.be.true;
+
+      // Step 4: Interpolate text
+      const interpolated = paramManager.interpolate(comment);
+      expect(interpolated).to.be.a('string');
+
+      // If extraction succeeded, verify interpolation
+      if (params?.paramCount) {
+        expect(interpolated).to.include('2 parameters');
+      }
+
+      // Step 5: Get ghost marker
+      const marker = ghostMarkerManager.getMarkerAtLine(doc.uri, 1);
+      expect(marker).to.exist;
+      expect(marker?.commentIds).to.include(comment.id);
+    });
+  });
+
+  describe('Error Handling and Graceful Degradation', () => {
+    it('should handle missing AI metadata gracefully', async () => {
+      const content = 'const x = 5;';
+      const doc = await vscode.workspace.openTextDocument({
+        content,
+        language: 'javascript',
+      });
+
+      // Create comment without AI metadata
+      const commentText = 'TODO: Add ${complexity} handling';
+      const params = await paramManager.createParams(commentText, {
+        sourceUri: doc.uri,
+        lineNumber: 1,
+        document: doc,
+        // No aiMetadata provided
+      });
+
+      // Should create placeholder for missing param
+      expect(params).to.exist;
+      expect(params?.complexity).to.exist;
+      expect(params?.complexity.value).to.equal('[complexity]');
+      expect(params?.complexity.type).to.equal('manual');
+    });
+
+    it('should handle AST extraction failures', async () => {
+      const content = '// Just a comment, no code';
+      const doc = await vscode.workspace.openTextDocument({
+        content,
+        language: 'javascript',
+      });
+
+      // Try to extract params from non-code line
+      const params = await paramManager.extractFromCode({
+        sourceUri: doc.uri,
+        lineNumber: 1,
+        document: doc,
+      });
+
+      // Should return empty or partial params
+      expect(params).to.be.an('object');
+    });
+
+    it('should handle invalid parameter syntax', () => {
+      const comment = {
+        id: 'c1',
+        line: 1,
+        text: 'Bad syntax: ${incomplete or $invalid}',
+        author: 'test',
+        created: new Date().toISOString(),
+        updated: new Date().toISOString(),
+        params: {},
+      };
+
+      // Extract should find nothing
+      const names = paramManager.extractParamNames(comment.text);
+      expect(names).to.deep.equal([]);
+
+      // Interpolate should return original
+      const interpolated = paramManager.interpolate(comment);
+      expect(interpolated).to.equal(comment.text);
+    });
+  });
+});

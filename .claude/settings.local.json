@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npm run compile:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npm run test:unit)"
     ],
     "deny": [],
     "ask": []

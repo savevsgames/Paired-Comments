@@ -31,6 +31,47 @@ export interface CommentSyntax {
 export type CommentContentType = 'text' | 'markdown' | 'code' | 'link' | 'image';
 
 /**
+ * Parameter types for dynamic comment interpolation (v2.1.2+)
+ */
+export type ParameterType = 'static' | 'dynamic' | 'computed';
+
+/**
+ * Source type for dynamic parameters
+ */
+export type ParameterSource =
+  | 'function.name'       // Function name from AST
+  | 'class.name'          // Class name from AST
+  | 'variable.name'       // Variable name from AST
+  | 'aiMeta.tokens'       // Token estimate from AI metadata
+  | 'aiMeta.complexity'   // Complexity score from AI metadata
+  | 'aiMeta.paramCount'   // Number of parameters from AI metadata
+  | 'manual';             // Manually set by user
+
+/**
+ * Dynamic parameter for comment text interpolation (v2.1.2+)
+ *
+ * Example:
+ * text: "The ${functionName} takes ${paramCount} parameters"
+ * params: {
+ *   functionName: { value: "processUserData", type: "dynamic", source: "function.name" },
+ *   paramCount: { value: 3, type: "computed", source: "aiMeta.paramCount" }
+ * }
+ */
+export interface CommentParameter {
+  /** Current value of the parameter */
+  value: string | number | boolean;
+
+  /** Type of parameter (static = never changes, dynamic = from AST, computed = from AI) */
+  type: ParameterType;
+
+  /** Source of the parameter value (where it comes from) */
+  source: ParameterSource;
+
+  /** Last time this parameter was updated (ISO 8601) */
+  updatedAt?: string;
+}
+
+/**
  * Reply to a comment (for threaded conversations)
  */
 export interface CommentReply {
@@ -71,11 +112,14 @@ export interface Comment {
   /** Content anchor: actual text of the line for verification */
   lineText?: string;
 
-  /** The comment text content */
+  /** The comment text content (can include ${variableName} for dynamic params) */
   text: string;
 
   /** Content type (text, markdown, code, link, image) */
   contentType?: CommentContentType;
+
+  /** Dynamic parameters for variable interpolation (v2.1.2+) */
+  params?: Record<string, CommentParameter>;
 
   /** Author of the comment */
   author: string;
