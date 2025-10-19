@@ -38,3 +38,11 @@ yarn-error.log*
 *.tmp
 *.temp
 .cache/
+
+# Demo Playground (Next.js)
+demo-playground/node_modules/
+demo-playground/.next/
+demo-playground/out/
+demo-playground/.env*.local
+demo-playground/*.tsbuildinfo
+demo-playground/next-env.d.ts
