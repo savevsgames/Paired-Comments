@@ -11,12 +11,13 @@ bitsandbytes>=0.39.0
 accelerate>=0.20.0
 sentencepiece>=0.1.99  # For Llama tokenizer
 
-# Evaluation dependencies (will be added later)
-# azure-ai-evaluation>=1.0.0
-# openai>=1.0.0
+# Evaluation dependencies
+scipy>=1.10.0  # For statistical tests
+numpy>=1.24.0
+matplotlib>=3.7.0  # For plots (optional)
 
-# MLflow tracking (will be added later)
-# mlflow>=2.7.0
+# MLflow tracking
+mlflow>=2.7.0
 
 # Utilities
 tqdm>=4.65.0
