@@ -1,0 +1,20 @@
+# HumanEval Dataset Preparation Dependencies
+
+# Dataset loading from Hugging Face
+datasets>=2.14.0
+
+# Training dependencies (will be added later)
+# torch>=2.0.0
+# transformers>=4.30.0
+# peft>=0.4.0
+# bitsandbytes>=0.39.0
+
+# Evaluation dependencies (will be added later)
+# azure-ai-evaluation>=1.0.0
+# openai>=1.0.0
+
+# MLflow tracking (will be added later)
+# mlflow>=2.7.0
+
+# Utilities
+tqdm>=4.65.0
