@@ -3,11 +3,13 @@
 # Dataset loading from Hugging Face
 datasets>=2.14.0
 
-# Training dependencies (will be added later)
-# torch>=2.0.0
-# transformers>=4.30.0
-# peft>=0.4.0
-# bitsandbytes>=0.39.0
+# Training dependencies
+torch>=2.0.0
+transformers>=4.30.0
+peft>=0.4.0
+bitsandbytes>=0.39.0
+accelerate>=0.20.0
+sentencepiece>=0.1.99  # For Llama tokenizer
 
 # Evaluation dependencies (will be added later)
 # azure-ai-evaluation>=1.0.0
