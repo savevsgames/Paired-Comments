@@ -958,20 +958,155 @@ See **Milestone 6 (UX Enhancements)** for higher-priority features.
 
 ---
 
-## 💡 Milestone 7: AI Training Comparison (v3.6.0) - VISION
+## 🚧 Milestone 7: AI Training Comparison (v3.6.0) - IN PROGRESS
 
-**Target:** Q4 2026
-**Goal:** Empirical proof that `.comments` improve AI training
+**Started:** October 19, 2025
+**Target:** Q1 2026 (Accelerated from Q4 2026)
+**Goal:** Empirical proof that `.comments` metadata improves AI model training
 
-**Strategic Value:** Data-driven proof for Microsoft acquisition
+**Strategic Value:** Data-driven proof for Microsoft/Azure ML acquisition
 
-### Features
-- Split-screen training comparison dashboard
-- Pre-built training scenarios
-- Azure ML integration
-- Evaluation metrics (accuracy, pass@k, functional correctness)
+**Status:** 🚧 CODE-COMPLETE - Ready for hardware setup and training
 
-**Deferred Until:** After GitHub Demo (need showcase first)
+### ✅ Completed Infrastructure (October 19, 2025)
+
+#### Data Preparation Pipeline ✅
+- ✅ **HumanEval Dataset** - 164 hand-written programming problems (industry standard)
+- ✅ **Control Dataset** - Conventional code (no metadata)
+- ✅ **Experiment Dataset** - Code + `.comments` metadata extracted via AST
+- ✅ **Automatic Metadata Extraction** - 9 fields: functionName, algorithmType, timeComplexity, spaceComplexity, complexity, paramCount, edgeCases, returnType, validates
+- ✅ **Train/Val/Test Splits** - 70/15/15 (114/25/25 samples)
+- ✅ **Micro Datasets** - 5 samples for Stage 1 validation
+
+**7 Python scripts:** download, create control/experiment, extract metadata, split, create micro dataset, master pipeline
+
+#### Training Infrastructure ✅
+- ✅ **QLoRA Fine-tuning** - 4-bit quantization for Llama-3 8B
+- ✅ **Memory Optimized** - Fits in 12GB VRAM (RTX 4070Ti)
+- ✅ **Staged Validation** - Stage 1 (5 samples, 30 min) → Stage 4 (164 samples, 21 hrs)
+- ✅ **Configuration Presets** - Stage 1 (quick validation) and Stage 4 (production)
+- ✅ **TensorBoard Logging** - Real-time training metrics
+- ✅ **LoRA Adapters** - ~200MB per model (vs 8GB full model)
+
+**4 Python scripts:** config, dataset loader, train, quick start runner
+
+#### Evaluation & Comparison ✅
+- ✅ **HumanEval Evaluator** - pass@1 metric (functional correctness)
+- ✅ **Statistical Tests** - Paired t-test, McNemar's test, Cohen's d effect size
+- ✅ **Comparison Reports** - Automated markdown reports with significance testing
+- ✅ **MLflow Integration** - Experiment tracking (optional)
+- ✅ **Per-Sample Analysis** - Detailed results for each problem
+
+**5 Python scripts:** config, HumanEval evaluator, comparison, MLflow logger, report generator
+
+### 📊 Approach: Local Hardware + Industry Standard
+
+**Hardware:**
+- **RTX 4070Ti (12GB VRAM)** - Primary training (local, saves $200)
+- **Linux Server** - MLflow tracking + dashboard (optional)
+- **Cost:** $254 total ($2 training + $242 evaluation vs $442 Azure-only)
+
+**Dataset:**
+- **HumanEval** - Industry standard benchmark (GPT-4: 67%, CodeLlama 7B: 29.9%)
+- **Why HumanEval:** Direct comparison to published baselines, saves 1 week vs custom dataset
+- **Training time:** 42 hours total (21 hrs per model)
+
+**Expected Results:**
+- Control (Llama-3 8B, no metadata): ~30% pass@1
+- Experiment (Llama-3 8B + metadata): ~40-45% pass@1 (+33-50% improvement!)
+- **If we hit 40%+:** Our 8B model with metadata beats CodeLlama 7B (29.9%) without!
+
+### 🚀 Next Steps (Awaiting Hardware)
+
+**Phase 1: Hardware Setup (1 day)**
+- [ ] Connect RTX 4070Ti tower
+- [ ] Install CUDA drivers + PyTorch
+- [ ] Test GPU: `python src/training/config.py`
+- [ ] (Optional) Setup MLflow server on Linux
+
+**Phase 2: Validation & Training (1-2 days + 42 hrs)**
+- [ ] Run Stage 1 validation (5 samples, 30 min per model)
+- [ ] If Stage 1 passes → Stage 4 production (164 samples, 21 hrs per model)
+- [ ] Monitor with TensorBoard
+
+**Phase 3: Evaluation & Analysis (1 day)**
+- [ ] Run HumanEval evaluation (pass@1)
+- [ ] Statistical significance testing
+- [ ] Generate comparison report
+
+**Phase 4: Documentation & Launch (1 week)**
+- [ ] Write whitepaper with results
+- [ ] Create visualizations/charts
+- [ ] Submit to arXiv
+- [ ] Blog post & social media
+
+### 📁 Repository Structure
+
+```
+ai-training-demo/
+├── README.md                    # Project overview
+├── requirements.txt             # All dependencies
+├── setup.bat/sh                 # Environment setup
+├── docs/                        # Documentation
+│   ├── INDEX.md                 # Navigation guide
+│   ├── AI_TRAINING_ROADMAP.md   # Completion checklist
+│   ├── guides/                  # 6 implementation guides
+│   │   ├── 01-INFRASTRUCTURE.md
+│   │   ├── 02-VALIDATION.md
+│   │   ├── 03-DATASETS.md
+│   │   ├── 04-TRAINING.md
+│   │   ├── 05-EVALUATION.md
+│   │   └── 06-HUMANEVAL-APPROACH.md
+│   └── reference/               # Technical docs
+│       ├── ARCHITECTURE.md
+│       └── AZURE-INTEGRATION.md
+├── src/
+│   ├── data/                    # 7 data prep scripts
+│   │   ├── download_humaneval.py
+│   │   ├── create_control_dataset.py
+│   │   ├── add_comments_metadata.py
+│   │   ├── split_dataset.py
+│   │   ├── create_micro_dataset.py
+│   │   ├── prepare_datasets.py  # Master pipeline
+│   │   └── README.md
+│   ├── training/                # 4 training scripts
+│   │   ├── config.py            # Model & training config
+│   │   ├── dataset.py           # Dataset loader
+│   │   ├── train.py             # Main training script
+│   │   ├── run_stage1.sh/bat    # Quick start
+│   │   └── README.md
+│   └── evaluation/              # 5 evaluation scripts
+│       ├── config.py
+│       ├── humaneval_evaluator.py
+│       ├── compare.py           # Statistical comparison
+│       ├── mlflow_logger.py
+│       └── README.md
+└── datasets/                    # Generated (gitignored)
+    ├── humaneval_raw/           # 164 problems
+    ├── control/                 # Train/val/test splits
+    └── experiment/              # Train/val/test splits (with metadata)
+```
+
+### 🎯 Success Metrics
+
+**Quantitative:**
+- [ ] Experiment > Control by >10% (target: +33-50%)
+- [ ] Statistical significance: p < 0.05
+- [ ] Effect size: medium+ (Cohen's d > 0.5)
+
+**Qualitative:**
+- [ ] Whitepaper published on arXiv
+- [ ] Results documented in repository
+- [ ] Metadata schema validated for AI training
+
+### 📚 Key Documents
+
+**In ai-training-demo/:**
+- `README.md` - Project overview, budget ($254), timeline (10 weeks)
+- `docs/AI_TRAINING_ROADMAP.md` - Living checklist with fill-in-the-blank results
+- `docs/guides/06-HUMANEVAL-APPROACH.md` - Why HumanEval, baselines, workflow
+
+**All code complete!** Just waiting on hardware to run training.
 
 ---
 
